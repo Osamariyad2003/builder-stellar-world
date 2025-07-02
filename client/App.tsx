@@ -14,6 +14,7 @@ import News from "./pages/admin/News";
 import Resources from "./pages/admin/Resources";
 import Professors from "./pages/admin/Professors";
 import Store from "./pages/admin/Store";
+import Settings from "./pages/admin/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="resources/quizzes" element={<Resources />} />
               <Route path="professors" element={<Professors />} />
               <Route path="store" element={<Store />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="/" element={<Navigate to="/admin" />} />
             <Route path="*" element={<NotFound />} />
