@@ -54,6 +54,13 @@ export default function Login() {
           <CardDescription>
             Sign in to access the admin dashboard
           </CardDescription>
+          <div className="mt-4 p-3 bg-secondary/50 rounded-lg text-left">
+            <p className="text-sm font-medium mb-1">Demo Credentials:</p>
+            <p className="text-xs text-muted-foreground">
+              Email: admin@medjust.com
+            </p>
+            <p className="text-xs text-muted-foreground">Password: demo123</p>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

@@ -3,14 +3,14 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+// Demo Firebase configuration - replace with your actual config
 const firebaseConfig = {
-  // Replace with your Firebase config
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
+  apiKey: "AIzaSyBvOKTyftlO-HFketkRAR4lOIreSqC6qgM",
+  authDomain: "medjust-demo.firebaseapp.com",
+  projectId: "medjust-demo",
+  storageBucket: "medjust-demo.appspot.com",
   messagingSenderId: "123456789",
-  appId: "your-app-id",
+  appId: "1:123456789:web:abcdef123456",
 };
 
 const app = initializeApp(firebaseConfig);
