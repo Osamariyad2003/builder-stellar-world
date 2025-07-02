@@ -216,7 +216,10 @@ export default function Resources() {
       {/* Lectures List */}
       <div className="space-y-6">
         {filteredLectures.map((lecture) => (
-          <Card key={lecture.id} className="hover:shadow-md transition-shadow">
+          <Card
+            key={lecture.id}
+            className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary/20 hover:border-l-primary"
+          >
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -261,27 +264,51 @@ export default function Resources() {
               <div className="grid gap-6 md:grid-cols-3">
                 {/* Videos */}
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <PlayCircle className="h-4 w-4 text-green-600" />
-                    Videos ({lecture.videos.length})
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <PlayCircle className="h-4 w-4 text-green-600" />
+                      Videos ({lecture.videos.length})
+                    </div>
+                    {lecture.videos.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          lecture.videos.forEach((video) =>
+                            window.open(video.youtubeUrl, "_blank"),
+                          );
+                        }}
+                        className="h-6 px-2 text-xs"
+                      >
+                        Play All
+                      </Button>
+                    )}
                   </div>
                   {lecture.videos.length > 0 ? (
                     <div className="space-y-2">
                       {lecture.videos.map((video) => (
-                        <div
+                        <button
                           key={video.id}
-                          className="p-3 bg-secondary/50 rounded-lg"
+                          onClick={() =>
+                            window.open(video.youtubeUrl, "_blank")
+                          }
+                          className="w-full p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
                         >
                           <div className="flex gap-3">
-                            {video.thumbnailUrl && (
-                              <img
-                                src={video.thumbnailUrl}
-                                alt={video.title}
-                                className="w-16 h-12 object-cover rounded"
-                              />
-                            )}
+                            <div className="relative">
+                              {video.thumbnailUrl && (
+                                <img
+                                  src={video.thumbnailUrl}
+                                  alt={video.title}
+                                  className="w-16 h-12 object-cover rounded"
+                                />
+                              )}
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                <PlayCircle className="h-6 w-6 text-white" />
+                              </div>
+                            </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm line-clamp-1">
+                              <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
                                 {video.title}
                               </p>
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -290,7 +317,7 @@ export default function Resources() {
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   ) : (
@@ -302,27 +329,49 @@ export default function Resources() {
 
                 {/* Files */}
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <FileText className="h-4 w-4 text-blue-600" />
-                    Files ({lecture.files.length})
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <FileText className="h-4 w-4 text-blue-600" />
+                      Files ({lecture.files.length})
+                    </div>
+                    {lecture.files.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          lecture.files.forEach((file) =>
+                            window.open(file.fileUrl, "_blank"),
+                          );
+                        }}
+                        className="h-6 px-2 text-xs"
+                      >
+                        Download All
+                      </Button>
+                    )}
                   </div>
                   {lecture.files.length > 0 ? (
                     <div className="space-y-2">
                       {lecture.files.map((file) => (
-                        <div
+                        <button
                           key={file.id}
-                          className="p-3 bg-secondary/50 rounded-lg"
+                          onClick={() => window.open(file.fileUrl, "_blank")}
+                          className="w-full p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
                         >
-                          <p className="font-medium text-sm line-clamp-1">
-                            {file.title}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Badge variant="outline" className="text-xs">
-                              {file.fileType}
-                            </Badge>
-                            <span>{file.fileSize}</span>
+                          <div className="flex items-start gap-2">
+                            <FileText className="h-4 w-4 text-blue-600 mt-1 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                                {file.title}
+                              </p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Badge variant="outline" className="text-xs">
+                                  {file.fileType}
+                                </Badge>
+                                <span>{file.fileSize}</span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   ) : (
@@ -334,27 +383,54 @@ export default function Resources() {
 
                 {/* Quizzes */}
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <HelpCircle className="h-4 w-4 text-purple-600" />
-                    Quizzes ({lecture.quizzes.length})
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <HelpCircle className="h-4 w-4 text-purple-600" />
+                      Quizzes ({lecture.quizzes.length})
+                    </div>
+                    {lecture.quizzes.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          alert(
+                            `Starting all ${lecture.quizzes.length} quizzes for: ${lecture.title}`,
+                          );
+                        }}
+                        className="h-6 px-2 text-xs"
+                      >
+                        Start All
+                      </Button>
+                    )}
                   </div>
                   {lecture.quizzes.length > 0 ? (
                     <div className="space-y-2">
                       {lecture.quizzes.map((quiz) => (
-                        <div
+                        <button
                           key={quiz.id}
-                          className="p-3 bg-secondary/50 rounded-lg"
+                          onClick={() => {
+                            // For now, show an alert. In a real app, this would navigate to the quiz page
+                            alert(
+                              `Starting quiz: ${quiz.title}\nTime limit: ${quiz.timeLimit} minutes\nPassing score: ${quiz.passingScore}%`,
+                            );
+                          }}
+                          className="w-full p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
                         >
-                          <p className="font-medium text-sm line-clamp-1">
-                            {quiz.title}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            {quiz.timeLimit}min
-                            <span>•</span>
-                            <span>{quiz.passingScore}% pass</span>
+                          <div className="flex items-start gap-2">
+                            <HelpCircle className="h-4 w-4 text-purple-600 mt-1 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                                {quiz.title}
+                              </p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                {quiz.timeLimit}min
+                                <span>•</span>
+                                <span>{quiz.passingScore}% pass</span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   ) : (
