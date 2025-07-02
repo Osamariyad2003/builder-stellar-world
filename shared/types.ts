@@ -14,32 +14,49 @@ export interface NewsItem {
   videoUrl?: string;
 }
 
+export interface Lecture {
+  id?: string;
+  title: string;
+  description?: string;
+  subject: string;
+  order: number;
+  createdAt: Date;
+  createdBy: string;
+  videos: Video[];
+  files: FileResource[];
+  quizzes: Quiz[];
+}
+
 export interface Video {
   id?: string;
   title: string;
   youtubeUrl: string;
   thumbnailUrl?: string;
+  duration?: string;
+  description?: string;
   uploadedAt: Date;
   uploadedBy: string;
   imageUrl?: string;
-  subject: string;
 }
 
 export interface FileResource {
   id?: string;
   title: string;
   fileUrl: string;
+  fileType: string;
+  fileSize?: string;
+  description?: string;
   uploadedAt: Date;
   uploadedBy: string;
-  imageUrl?: string;
-  subject: string;
 }
 
 export interface Quiz {
   id?: string;
   title: string;
+  description?: string;
   questions: QuizQuestion[];
-  subject: string;
+  timeLimit?: number;
+  passingScore?: number;
   createdAt: Date;
   createdBy: string;
 }
