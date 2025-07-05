@@ -19,18 +19,28 @@ export function useNews() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "news"), orderBy("updatedAt", "desc"));
 
     const unsubscribe = onSnapshot(
       q,
       (querySnapshot) => {
         const newsData: NewsItem[] = [];
         querySnapshot.forEach((doc) => {
+          const data = doc.data();
           newsData.push({
             id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate() || new Date(),
-            updatedAt: doc.data().updatedAt?.toDate() || new Date(),
+            title: data.title || "",
+            content: data.content || "",
+            imageUrl: data.imageUrl || "",
+            videoUrl: data.videoUrl || "",
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date(),
+            authorName: data.authorName || "",
+            authorId: data.newsId || doc.id,
+            tags: data.tags || [],
+            isPinned: data.isPinned || false,
+            viewsCount: data.viewsCount || 0,
+            attachments: data.attachments || [],
           } as NewsItem);
         });
         setNews(newsData);
