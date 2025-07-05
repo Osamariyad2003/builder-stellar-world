@@ -20,6 +20,8 @@ import { QuizForm } from "@/components/admin/QuizForm";
 import { SubjectForm } from "@/components/admin/SubjectForm";
 import { FileForm } from "@/components/admin/FileForm";
 import { VideoForm } from "@/components/admin/VideoForm";
+import { LectureForm } from "@/components/admin/LectureForm";
+import { useYears } from "@/hooks/useYears";
 import {
   BookOpen,
   Plus,
@@ -38,6 +40,7 @@ import {
   Upload,
   Video,
   FolderPlus,
+  Loader2,
 } from "lucide-react";
 
 interface Subject {
@@ -78,151 +81,6 @@ interface Quiz {
   passingScore: number;
 }
 
-// Mock data structure
-const yearsData = {
-  basic: [
-    {
-      year: 1,
-      subjects: [
-        {
-          id: "anat-1",
-          name: "Anatomy & Embryology",
-          lectures: [
-            {
-              id: "lec-1",
-              title: "Introduction to Human Anatomy",
-              description: "Basic anatomical terminology and body systems",
-              videos: [
-                {
-                  id: "v1",
-                  title: "Body Systems Overview",
-                  url: "https://youtube.com/watch?v=abc",
-                  duration: "45:30",
-                },
-              ],
-              files: [
-                {
-                  id: "f1",
-                  title: "Anatomy Atlas.pdf",
-                  url: "/files/anatomy-atlas.pdf",
-                  type: "PDF",
-                  size: "15MB",
-                },
-              ],
-              quizzes: [
-                {
-                  id: "q1",
-                  title: "Basic Anatomy Quiz",
-                  questions: 20,
-                  duration: 30,
-                  passingScore: 75,
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      year: 2,
-      subjects: [
-        {
-          id: "path-2",
-          name: "Pathology",
-          lectures: [
-            {
-              id: "lec-4",
-              title: "General Pathology",
-              description: "Introduction to disease processes",
-              videos: [],
-              files: [],
-              quizzes: [],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      year: 3,
-      subjects: [
-        {
-          id: "pharm-3",
-          name: "Pharmacology",
-          lectures: [
-            {
-              id: "lec-5",
-              title: "Drug Mechanisms",
-              description: "How drugs work in the body",
-              videos: [],
-              files: [],
-              quizzes: [],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-  clinical: [
-    {
-      year: 4,
-      subjects: [
-        {
-          id: "int-med-4",
-          name: "Internal Medicine",
-          lectures: [
-            {
-              id: "lec-6",
-              title: "Cardiovascular Diseases",
-              description: "Heart and vascular disorders",
-              videos: [],
-              files: [],
-              quizzes: [],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      year: 5,
-      subjects: [
-        {
-          id: "surg-5",
-          name: "Surgery",
-          lectures: [
-            {
-              id: "lec-7",
-              title: "Surgical Principles",
-              description: "Basic surgical techniques and patient care",
-              videos: [],
-              files: [],
-              quizzes: [],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      year: 6,
-      subjects: [
-        {
-          id: "clin-rot-6",
-          name: "Clinical Rotations",
-          lectures: [
-            {
-              id: "lec-8",
-              title: "Emergency Medicine",
-              description: "Emergency care and trauma management",
-              videos: [],
-              files: [],
-              quizzes: [],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
-
 export default function Years() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
@@ -230,9 +88,13 @@ export default function Years() {
   const [isSubjectFormOpen, setIsSubjectFormOpen] = useState(false);
   const [isFileFormOpen, setIsFileFormOpen] = useState(false);
   const [isVideoFormOpen, setIsVideoFormOpen] = useState(false);
+  const [isLectureFormOpen, setIsLectureFormOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedLecture, setSelectedLecture] = useState<string | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [yearType, setYearType] = useState<"basic" | "clinical">("basic");
+
+  const { years, loading, error, isOfflineMode, createSubject, createLecture, deleteLecture } = useYears();
 
   const handleVideoClick = (video: Video) => {
     window.open(video.url, "_blank");
@@ -258,6 +120,12 @@ export default function Years() {
     setSelectedYear(year);
     setYearType(type);
     setIsSubjectFormOpen(true);
+  };
+
+  const handleAddLecture = (subject: any, type: "basic" | "clinical") => {
+    setSelectedSubject(subject);
+    setYearType(type);
+    setIsLectureFormOpen(true);
   };
 
   const handleAddFile = (lectureId: string) => {
@@ -298,10 +166,43 @@ export default function Years() {
           setIsSubjectFormOpen(false);
           setSelectedYear(null);
         }}
-        onSave={(subjectData) => {
-          console.log("Save subject:", subjectData, "for year:", selectedYear);
-          setIsSubjectFormOpen(false);
-          setSelectedYear(null);
+        onSave={async (subjectData) => {
+          try {
+            await createSubject({
+              ...subjectData,
+              yearId: `year${selectedYear}`,
+              order: 1,
+            });
+            setIsSubjectFormOpen(false);
+            setSelectedYear(null);
+          } catch (error) {
+            console.error("Error saving subject:", error);
+            alert("Failed to save subject. Please try again.");
+          }
+        }}
+      />
+    );
+  }
+
+  if (isLectureFormOpen) {
+    return (
+      <LectureForm
+        subjectId={selectedSubject?.id}
+        subjectName={selectedSubject?.name}
+        yearType={yearType}
+        onClose={() => {
+          setIsLectureFormOpen(false);
+          setSelectedSubject(null);
+        }}
+        onSave={async (lectureData) => {
+          try {
+            await createLecture(lectureData);
+            setIsLectureFormOpen(false);
+            setSelectedSubject(null);
+          } catch (error) {
+            console.error("Error saving lecture:", error);
+            alert("Failed to save lecture. Please try again.");
+          }
         }}
       />
     );
@@ -353,9 +254,36 @@ export default function Years() {
           <h1 className="text-3xl font-bold">Academic Years Management</h1>
           <p className="text-muted-foreground">
             Manage curriculum by academic years, subjects, and lectures
+            {isOfflineMode && (
+              <span className="ml-2 text-orange-600 font-medium">
+                • Working in offline mode
+              </span>
+            )}
           </p>
         </div>
       </div>
+
+      {/* Loading State */}
+      {loading && (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading academic years...</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <Card>
+          <CardContent className="text-center py-12">
+            <div className="text-destructive mb-4">⚠️ Error loading years</div>
+            <p className="text-muted-foreground">{error}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {!loading && !error && (
 
       {/* Search */}
       <Card>
@@ -386,21 +314,21 @@ export default function Years() {
 
         <TabsContent value="basic" className="space-y-4">
           <div className="space-y-6">
-            {yearsData.basic.map((yearData) => (
+            {years.filter(year => year.type === 'basic').map((yearData) => (
               <Card
-                key={yearData.year}
+                key={yearData.yearNumber}
                 className="border-l-4 border-l-blue-500"
               >
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                       <GraduationCap className="h-5 w-5 text-blue-600" />
-                      Year {yearData.year}
+                      Year {yearData.yearNumber}
                     </CardTitle>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleAddSubject(yearData.year, "basic")}
+                      onClick={() => handleAddSubject(yearData.yearNumber, "basic")}
                       className="flex items-center gap-2"
                     >
                       <FolderPlus className="h-4 w-4" />
@@ -632,7 +560,7 @@ export default function Years() {
 
         <TabsContent value="clinical" className="space-y-4">
           <div className="space-y-6">
-            {yearsData.clinical.map((yearData) => (
+            {years.filter(year => year.type === 'clinical').map((yearData) => (
               <Card key={yearData.year} className="border-l-4 border-l-red-500">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -875,6 +803,7 @@ export default function Years() {
           </div>
         </TabsContent>
       </Tabs>
+      )}
     </div>
   );
 }
