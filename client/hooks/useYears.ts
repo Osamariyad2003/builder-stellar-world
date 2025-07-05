@@ -116,17 +116,26 @@ export function useYears() {
       try {
         // Try to fetch years
         const yearsSnapshot = await getDocs(collection(db, "years"));
-        const yearsData: YearData[] = [];
+        let yearsData: YearData[] = [];
 
-        yearsSnapshot.forEach((doc) => {
-          const data = doc.data();
-          yearsData.push({
-            id: doc.id,
-            yearNumber: data.yearNumber || parseInt(doc.id.replace("year", "")),
-            type: data.type || (data.yearNumber <= 3 ? "basic" : "clinical"),
-            subjects: [],
+        if (yearsSnapshot.empty) {
+          // Initialize years structure if not exists
+          console.log("No years found, initializing years structure...");
+          await initializeYearsStructure();
+          // Create basic structure for display
+          yearsData = createDefaultYears();
+        } else {
+          yearsSnapshot.forEach((doc) => {
+            const data = doc.data();
+            yearsData.push({
+              id: doc.id,
+              yearNumber:
+                data.yearNumber || parseInt(doc.id.replace("year", "")),
+              type: data.type || (data.yearNumber <= 3 ? "basic" : "clinical"),
+              subjects: [],
+            });
           });
-        });
+        }
 
         // Try to fetch subjects
         const subjectsSnapshot = await getDocs(collection(db, "Subjects"));
@@ -183,6 +192,11 @@ export function useYears() {
         setSubjects(subjectsData);
         setLoading(false);
         setIsOfflineMode(false);
+        console.log(
+          "✅ Years data loaded successfully:",
+          completeYears.length,
+          "years",
+        );
       } catch (error) {
         console.error("Firebase error, switching to offline mode:", error);
         setIsOfflineMode(true);
@@ -195,6 +209,39 @@ export function useYears() {
 
     fetchData();
   }, []);
+
+  const createDefaultYears = (): YearData[] => {
+    return [
+      { id: "year1", yearNumber: 1, type: "basic", subjects: [] },
+      { id: "year2", yearNumber: 2, type: "basic", subjects: [] },
+      { id: "year3", yearNumber: 3, type: "basic", subjects: [] },
+      { id: "year4", yearNumber: 4, type: "clinical", subjects: [] },
+      { id: "year5", yearNumber: 5, type: "clinical", subjects: [] },
+      { id: "year6", yearNumber: 6, type: "clinical", subjects: [] },
+    ];
+  };
+
+  const initializeYearsStructure = async () => {
+    try {
+      const batch = writeBatch(db);
+
+      // Create year documents
+      for (let i = 1; i <= 6; i++) {
+        const yearRef = doc(db, "years", `year${i}`);
+        batch.set(yearRef, {
+          yearNumber: i,
+          type: i <= 3 ? "basic" : "clinical",
+          name: `Year ${i}`,
+          createdAt: new Date(),
+        });
+      }
+
+      await batch.commit();
+      console.log("✅ Years structure initialized in Firebase");
+    } catch (error) {
+      console.error("❌ Failed to initialize years structure:", error);
+    }
+  };
 
   const createSubject = async (
     subjectData: Omit<SubjectData, "id" | "lectures">,
