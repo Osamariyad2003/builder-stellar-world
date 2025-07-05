@@ -36,6 +36,7 @@ export default function Professors() {
     createProfessor,
     updateProfessor,
     deleteProfessor,
+    isOfflineMode,
   } = useProfessors();
 
   const filteredProfessors = professors.filter(
@@ -89,6 +90,11 @@ export default function Professors() {
           <h1 className="text-3xl font-bold">Professors Management</h1>
           <p className="text-muted-foreground">
             Manage faculty information and profiles
+            {isOfflineMode && (
+              <span className="ml-2 text-orange-600 font-medium">
+                • Working in offline mode
+              </span>
+            )}
           </p>
         </div>
         <Button onClick={() => setIsFormOpen(true)}>

@@ -48,56 +48,84 @@ export function useProfessors() {
   const [professors, setProfessors] = useState<Professor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, "professors"), orderBy("name", "asc"));
+    // Try to test Firebase connection first
+    const testFirebaseConnection = async () => {
+      try {
+        // Try a simple read operation to test permissions
+        const testQuery = query(collection(db, "professors"));
+        await getDocs(testQuery);
 
-    const unsubscribe = onSnapshot(
-      q,
-      (querySnapshot) => {
-        const professorsData: Professor[] = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          professorsData.push({
-            id: doc.id,
-            name: data.name || "",
-            department: data.department || "",
-            email: data.email || "",
-            officeLocation: data.officeLocation || "",
-            imageUrl: data.imageUrl || "",
-          });
-        });
-        setProfessors(professorsData);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching professors:", error);
-        // Fallback to mock data when Firebase fails
-        console.log("Using mock data for professors");
-        setProfessors(mockProfessors);
-        setError(null); // Clear error when using mock data
-        setLoading(false);
-      },
-    );
+        // If successful, set up real-time listener
+        const q = query(collection(db, "professors"), orderBy("name", "asc"));
+        const unsubscribe = onSnapshot(
+          q,
+          (querySnapshot) => {
+            const professorsData: Professor[] = [];
+            querySnapshot.forEach((doc) => {
+              const data = doc.data();
+              professorsData.push({
+                id: doc.id,
+                name: data.name || "",
+                department: data.department || "",
+                email: data.email || "",
+                officeLocation: data.officeLocation || "",
+                imageUrl: data.imageUrl || "",
+              });
+            });
+            setProfessors(professorsData);
+            setLoading(false);
+          },
+          (error) => {
+            console.error("Error in Firebase listener:", error);
+            enterOfflineMode();
+          },
+        );
 
-    return () => unsubscribe();
+        return unsubscribe;
+      } catch (error) {
+        console.error("Firebase connection failed:", error);
+        enterOfflineMode();
+        return null;
+      }
+    };
+
+    const enterOfflineMode = () => {
+      console.log("🔄 Switching to offline mode with mock data");
+      setIsOfflineMode(true);
+      setProfessors(mockProfessors);
+      setError(null);
+      setLoading(false);
+    };
+
+    testFirebaseConnection();
   }, []);
 
   const createProfessor = async (professorData: Omit<Professor, "id">) => {
-    try {
-      await addDoc(collection(db, "professors"), {
-        ...professorData,
-        professorId: `prof_${Date.now()}`, // Generate unique ID
-      });
-    } catch (error) {
-      console.error("Error creating professor:", error);
-      // Simulate success with mock data for development
+    if (isOfflineMode) {
+      // Offline mode - work with local data only
       const newProfessor: Professor = {
-        id: `mock_${Date.now()}`,
+        id: `offline_${Date.now()}`,
         ...professorData,
       };
       setProfessors((prev) => [...prev, newProfessor]);
-      console.log("Added professor to mock data:", newProfessor);
+      console.log("✅ Added professor in offline mode:", newProfessor.name);
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "professors"), {
+        ...professorData,
+        professorId: `prof_${Date.now()}`,
+      });
+      console.log("✅ Added professor to Firebase:", professorData.name);
+    } catch (error) {
+      console.error("Error creating professor:", error);
+      // Switch to offline mode and retry
+      setIsOfflineMode(true);
+      await createProfessor(professorData);
     }
   };
 
@@ -105,28 +133,48 @@ export function useProfessors() {
     id: string,
     professorData: Partial<Professor>,
   ) => {
-    try {
-      await updateDoc(doc(db, "professors", id), professorData);
-    } catch (error) {
-      console.error("Error updating professor:", error);
-      // Update mock data for development
+    if (isOfflineMode || id.startsWith("offline_") || id.startsWith("mock_")) {
+      // Offline mode or local data - update locally only
       setProfessors((prev) =>
         prev.map((prof) =>
           prof.id === id ? { ...prof, ...professorData } : prof,
         ),
       );
-      console.log("Updated professor in mock data");
+      console.log("✅ Updated professor in offline mode");
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, "professors", id), professorData);
+      console.log("✅ Updated professor in Firebase");
+    } catch (error) {
+      console.error("Error updating professor:", error);
+      // Update locally as fallback
+      setProfessors((prev) =>
+        prev.map((prof) =>
+          prof.id === id ? { ...prof, ...professorData } : prof,
+        ),
+      );
+      console.log("✅ Updated professor locally (Firebase failed)");
     }
   };
 
   const deleteProfessor = async (id: string) => {
+    if (isOfflineMode || id.startsWith("offline_") || id.startsWith("mock_")) {
+      // Offline mode or local data - delete locally only
+      setProfessors((prev) => prev.filter((prof) => prof.id !== id));
+      console.log("✅ Deleted professor in offline mode");
+      return;
+    }
+
     try {
       await deleteDoc(doc(db, "professors", id));
+      console.log("✅ Deleted professor from Firebase");
     } catch (error) {
       console.error("Error deleting professor:", error);
-      // Remove from mock data for development
+      // Delete locally as fallback
       setProfessors((prev) => prev.filter((prof) => prof.id !== id));
-      console.log("Removed professor from mock data");
+      console.log("✅ Deleted professor locally (Firebase failed)");
     }
   };
 
@@ -137,5 +185,6 @@ export function useProfessors() {
     createProfessor,
     updateProfessor,
     deleteProfessor,
+    isOfflineMode,
   };
 }
