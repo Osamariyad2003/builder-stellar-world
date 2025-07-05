@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NewsForm } from "@/components/admin/NewsForm";
+import { useNews } from "@/hooks/useNews";
 import {
   Plus,
   Search,
@@ -21,59 +22,9 @@ import {
   Calendar,
   User,
   Tag,
+  Loader2,
+  Newspaper,
 } from "lucide-react";
-
-// Mock data - replace with real data from Firestore
-const mockNews = [
-  {
-    id: "1",
-    title: "Revolutionary Gene Therapy Shows Promise in Cancer Treatment",
-    content:
-      "Recent studies demonstrate significant progress in targeted gene therapy...",
-    authorName: "Dr. Sarah Johnson",
-    authorId: "user1",
-    createdAt: new Date("2024-01-15"),
-    updatedAt: new Date("2024-01-15"),
-    tags: ["oncology", "gene-therapy", "research"],
-    isPinned: true,
-    viewsCount: 1247,
-    attachments: [],
-    imageUrl:
-      "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=300&h=200&fit=crop",
-  },
-  {
-    id: "2",
-    title: "Medical Education Technology Trends for 2024",
-    content:
-      "Exploring the latest innovations in medical education platforms...",
-    authorName: "Prof. Michael Chen",
-    authorId: "user2",
-    createdAt: new Date("2024-01-14"),
-    updatedAt: new Date("2024-01-14"),
-    tags: ["education", "technology", "trends"],
-    isPinned: false,
-    viewsCount: 892,
-    attachments: [],
-    imageUrl:
-      "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=300&h=200&fit=crop",
-  },
-  {
-    id: "3",
-    title: "New Guidelines for Emergency Medicine Protocols",
-    content:
-      "Updated protocols for emergency medical procedures and best practices...",
-    authorName: "Dr. Emily Rodriguez",
-    authorId: "user3",
-    createdAt: new Date("2024-01-13"),
-    updatedAt: new Date("2024-01-13"),
-    tags: ["emergency", "protocols", "guidelines"],
-    isPinned: false,
-    viewsCount: 654,
-    attachments: ["protocol-guide.pdf"],
-    imageUrl:
-      "https://images.unsplash.com/photo-1551190822-a9333d879b1f?w=300&h=200&fit=crop",
-  },
-];
 
 export default function News() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -81,7 +32,10 @@ export default function News() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
 
-  const filteredNews = mockNews.filter(
+  const { news, loading, error, createNews, updateNews, deleteNews } =
+    useNews();
+
+  const filteredNews = news.filter(
     (news) =>
       news.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       news.tags.some((tag) =>
@@ -94,9 +48,15 @@ export default function News() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    // Implement delete functionality
-    console.log("Delete news:", id);
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this article?")) {
+      try {
+        await deleteNews(id);
+      } catch (error) {
+        console.error("Error deleting news:", error);
+        alert("Failed to delete article. Please try again.");
+      }
+    }
   };
 
   const handleCreateNew = () => {
@@ -112,10 +72,19 @@ export default function News() {
           setIsFormOpen(false);
           setSelectedNews(null);
         }}
-        onSave={(newsData) => {
-          console.log("Save news:", newsData);
-          setIsFormOpen(false);
-          setSelectedNews(null);
+        onSave={async (newsData) => {
+          try {
+            if (selectedNews) {
+              await updateNews(selectedNews.id, newsData);
+            } else {
+              await createNews(newsData as any);
+            }
+            setIsFormOpen(false);
+            setSelectedNews(null);
+          } catch (error) {
+            console.error("Error saving news:", error);
+            alert("Failed to save article. Please try again.");
+          }
         }}
       />
     );
@@ -153,86 +122,108 @@ export default function News() {
         </CardContent>
       </Card>
 
+      {/* Loading State */}
+      {loading && (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading news articles...</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <Card>
+          <CardContent className="text-center py-12">
+            <div className="text-destructive mb-4">⚠️ Error loading news</div>
+            <p className="text-muted-foreground">{error}</p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* News List */}
-      <div className="space-y-4">
-        {filteredNews.map((news) => (
-          <Card key={news.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="pt-6">
-              <div className="flex gap-4">
-                {news.imageUrl && (
-                  <img
-                    src={news.imageUrl}
-                    alt={news.title}
-                    className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
-                  />
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold line-clamp-1">
-                          {news.title}
-                        </h3>
-                        {news.isPinned && (
-                          <Pin className="h-4 w-4 text-yellow-500" />
-                        )}
-                      </div>
-                      <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
-                        {news.content}
-                      </p>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {news.tags.map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant="secondary"
-                            className="text-xs"
-                          >
-                            <Tag className="h-3 w-3 mr-1" />
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {news.authorName}
+      {!loading && !error && (
+        <div className="space-y-4">
+          {filteredNews.map((news) => (
+            <Card key={news.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex gap-4">
+                  {news.imageUrl && (
+                    <img
+                      src={news.imageUrl}
+                      alt={news.title}
+                      className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-lg font-semibold line-clamp-1">
+                            {news.title}
+                          </h3>
+                          {news.isPinned && (
+                            <Pin className="h-4 w-4 text-yellow-500" />
+                          )}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {news.createdAt.toLocaleDateString()}
+                        <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
+                          {news.content}
+                        </p>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {news.tags.map((tag) => (
+                            <Badge
+                              key={tag}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              <Tag className="h-3 w-3 mr-1" />
+                              {tag}
+                            </Badge>
+                          ))}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          {news.viewsCount} views
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            {news.authorName}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {news.createdAt.toLocaleDateString()}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Eye className="h-3 w-3" />
+                            {news.viewsCount} views
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(news)}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(news.id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-2 ml-4">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(news)}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(news.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-      {filteredNews.length === 0 && (
+      {!loading && !error && filteredNews.length === 0 && (
         <Card>
           <CardContent className="text-center py-12">
             <Newspaper className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
