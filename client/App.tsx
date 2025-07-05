@@ -44,6 +44,15 @@ const App = () => (
               <Route index element={<Dashboard />} />
               <Route path="news" element={<News />} />
               <Route path="years" element={<Years />} />
+              {/* Redirect old resources routes to years */}
+              <Route
+                path="resources"
+                element={<Navigate to="/admin/years" replace />}
+              />
+              <Route
+                path="resources/*"
+                element={<Navigate to="/admin/years" replace />}
+              />
               <Route path="professors" element={<Professors />} />
               <Route path="store" element={<Store />} />
               <Route path="settings" element={<Settings />} />
