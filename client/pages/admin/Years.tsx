@@ -17,6 +17,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { QuizForm } from "@/components/admin/QuizForm";
+import { SubjectForm } from "@/components/admin/SubjectForm";
+import { FileForm } from "@/components/admin/FileForm";
+import { VideoForm } from "@/components/admin/VideoForm";
 import {
   BookOpen,
   Plus,
@@ -32,6 +35,9 @@ import {
   GraduationCap,
   Stethoscope,
   Download,
+  Upload,
+  Video,
+  FolderPlus,
 } from "lucide-react";
 
 interface Subject {
@@ -417,6 +423,12 @@ export default function Years() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [isQuizFormOpen, setIsQuizFormOpen] = useState(false);
+  const [isSubjectFormOpen, setIsSubjectFormOpen] = useState(false);
+  const [isFileFormOpen, setIsFileFormOpen] = useState(false);
+  const [isVideoFormOpen, setIsVideoFormOpen] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [selectedLecture, setSelectedLecture] = useState<string | null>(null);
+  const [yearType, setYearType] = useState<"basic" | "clinical">("basic");
 
   const handleVideoClick = (video: Video) => {
     window.open(video.url, "_blank");
@@ -433,8 +445,25 @@ export default function Years() {
   };
 
   const handleAddQuiz = (lectureId: string) => {
+    setSelectedLecture(lectureId);
     setSelectedQuiz(null);
     setIsQuizFormOpen(true);
+  };
+
+  const handleAddSubject = (year: number, type: "basic" | "clinical") => {
+    setSelectedYear(year);
+    setYearType(type);
+    setIsSubjectFormOpen(true);
+  };
+
+  const handleAddFile = (lectureId: string) => {
+    setSelectedLecture(lectureId);
+    setIsFileFormOpen(true);
+  };
+
+  const handleAddVideo = (lectureId: string) => {
+    setSelectedLecture(lectureId);
+    setIsVideoFormOpen(true);
   };
 
   if (isQuizFormOpen) {
@@ -444,11 +473,70 @@ export default function Years() {
         onClose={() => {
           setIsQuizFormOpen(false);
           setSelectedQuiz(null);
+          setSelectedLecture(null);
         }}
         onSave={(quizData) => {
-          console.log("Save quiz:", quizData);
+          console.log("Save quiz:", quizData, "for lecture:", selectedLecture);
           setIsQuizFormOpen(false);
           setSelectedQuiz(null);
+          setSelectedLecture(null);
+        }}
+      />
+    );
+  }
+
+  if (isSubjectFormOpen) {
+    return (
+      <SubjectForm
+        year={selectedYear}
+        yearType={yearType}
+        onClose={() => {
+          setIsSubjectFormOpen(false);
+          setSelectedYear(null);
+        }}
+        onSave={(subjectData) => {
+          console.log("Save subject:", subjectData, "for year:", selectedYear);
+          setIsSubjectFormOpen(false);
+          setSelectedYear(null);
+        }}
+      />
+    );
+  }
+
+  if (isFileFormOpen) {
+    return (
+      <FileForm
+        lectureId={selectedLecture}
+        onClose={() => {
+          setIsFileFormOpen(false);
+          setSelectedLecture(null);
+        }}
+        onSave={(fileData) => {
+          console.log("Save file:", fileData, "for lecture:", selectedLecture);
+          setIsFileFormOpen(false);
+          setSelectedLecture(null);
+        }}
+      />
+    );
+  }
+
+  if (isVideoFormOpen) {
+    return (
+      <VideoForm
+        lectureId={selectedLecture}
+        onClose={() => {
+          setIsVideoFormOpen(false);
+          setSelectedLecture(null);
+        }}
+        onSave={(videoData) => {
+          console.log(
+            "Save video:",
+            videoData,
+            "for lecture:",
+            selectedLecture,
+          );
+          setIsVideoFormOpen(false);
+          setSelectedLecture(null);
         }}
       />
     );
@@ -500,10 +588,21 @@ export default function Years() {
                 className="border-l-4 border-l-blue-500"
               >
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5 text-blue-600" />
-                    Year {yearData.year}
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <GraduationCap className="h-5 w-5 text-blue-600" />
+                      Year {yearData.year}
+                    </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddSubject(yearData.year, "basic")}
+                      className="flex items-center gap-2"
+                    >
+                      <FolderPlus className="h-4 w-4" />
+                      Add Subject
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <Accordion type="multiple" className="space-y-4">
@@ -710,10 +809,23 @@ export default function Years() {
             {yearsData.clinical.map((yearData) => (
               <Card key={yearData.year} className="border-l-4 border-l-red-500">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Stethoscope className="h-5 w-5 text-red-600" />
-                    Year {yearData.year}
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Stethoscope className="h-5 w-5 text-red-600" />
+                      Year {yearData.year}
+                    </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        handleAddSubject(yearData.year, "clinical")
+                      }
+                      className="flex items-center gap-2"
+                    >
+                      <FolderPlus className="h-4 w-4" />
+                      Add Subject
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <Accordion type="multiple" className="space-y-4">
