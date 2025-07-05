@@ -99,12 +99,6 @@ const yearsData = {
                   url: "https://youtube.com/watch?v=abc",
                   duration: "45:30",
                 },
-                {
-                  id: "v2",
-                  title: "Anatomical Positions",
-                  url: "https://youtube.com/watch?v=def",
-                  duration: "30:15",
-                },
               ],
               files: [
                 {
@@ -114,13 +108,6 @@ const yearsData = {
                   type: "PDF",
                   size: "15MB",
                 },
-                {
-                  id: "f2",
-                  title: "Study Guide.docx",
-                  url: "/files/study-guide.docx",
-                  type: "DOCX",
-                  size: "2MB",
-                },
               ],
               quizzes: [
                 {
@@ -128,74 +115,6 @@ const yearsData = {
                   title: "Basic Anatomy Quiz",
                   questions: 20,
                   duration: 30,
-                  passingScore: 75,
-                },
-              ],
-            },
-            {
-              id: "lec-2",
-              title: "Musculoskeletal System",
-              description: "Bones, joints, and muscles",
-              videos: [
-                {
-                  id: "v3",
-                  title: "Bone Structure",
-                  url: "https://youtube.com/watch?v=ghi",
-                  duration: "55:20",
-                },
-              ],
-              files: [
-                {
-                  id: "f3",
-                  title: "Bone Diagrams.pdf",
-                  url: "/files/bones.pdf",
-                  type: "PDF",
-                  size: "8MB",
-                },
-              ],
-              quizzes: [
-                {
-                  id: "q2",
-                  title: "Skeletal System Quiz",
-                  questions: 15,
-                  duration: 25,
-                  passingScore: 70,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          id: "phys-1",
-          name: "Physiology",
-          lectures: [
-            {
-              id: "lec-3",
-              title: "Cell Physiology",
-              description: "Basic cellular functions and processes",
-              videos: [
-                {
-                  id: "v4",
-                  title: "Cell Membrane Function",
-                  url: "https://youtube.com/watch?v=jkl",
-                  duration: "40:00",
-                },
-              ],
-              files: [
-                {
-                  id: "f4",
-                  title: "Cell Biology Notes.pdf",
-                  url: "/files/cell-bio.pdf",
-                  type: "PDF",
-                  size: "5MB",
-                },
-              ],
-              quizzes: [
-                {
-                  id: "q3",
-                  title: "Cell Function Quiz",
-                  questions: 12,
-                  duration: 20,
                   passingScore: 75,
                 },
               ],
@@ -215,32 +134,9 @@ const yearsData = {
               id: "lec-4",
               title: "General Pathology",
               description: "Introduction to disease processes",
-              videos: [
-                {
-                  id: "v5",
-                  title: "Inflammation Process",
-                  url: "https://youtube.com/watch?v=mno",
-                  duration: "50:15",
-                },
-              ],
-              files: [
-                {
-                  id: "f5",
-                  title: "Pathology Handbook.pdf",
-                  url: "/files/pathology.pdf",
-                  type: "PDF",
-                  size: "12MB",
-                },
-              ],
-              quizzes: [
-                {
-                  id: "q4",
-                  title: "Pathology Basics",
-                  questions: 25,
-                  duration: 40,
-                  passingScore: 80,
-                },
-              ],
+              videos: [],
+              files: [],
+              quizzes: [],
             },
           ],
         },
@@ -257,32 +153,9 @@ const yearsData = {
               id: "lec-5",
               title: "Drug Mechanisms",
               description: "How drugs work in the body",
-              videos: [
-                {
-                  id: "v6",
-                  title: "Pharmacokinetics",
-                  url: "https://youtube.com/watch?v=pqr",
-                  duration: "60:00",
-                },
-              ],
-              files: [
-                {
-                  id: "f6",
-                  title: "Drug Reference.pdf",
-                  url: "/files/drugs.pdf",
-                  type: "PDF",
-                  size: "20MB",
-                },
-              ],
-              quizzes: [
-                {
-                  id: "q5",
-                  title: "Pharmacology Quiz",
-                  questions: 30,
-                  duration: 45,
-                  passingScore: 85,
-                },
-              ],
+              videos: [],
+              files: [],
+              quizzes: [],
             },
           ],
         },
@@ -301,32 +174,9 @@ const yearsData = {
               id: "lec-6",
               title: "Cardiovascular Diseases",
               description: "Heart and vascular disorders",
-              videos: [
-                {
-                  id: "v7",
-                  title: "Heart Failure Management",
-                  url: "https://youtube.com/watch?v=stu",
-                  duration: "75:30",
-                },
-              ],
-              files: [
-                {
-                  id: "f7",
-                  title: "Cardiology Guidelines.pdf",
-                  url: "/files/cardiology.pdf",
-                  type: "PDF",
-                  size: "18MB",
-                },
-              ],
-              quizzes: [
-                {
-                  id: "q6",
-                  title: "Cardiology Assessment",
-                  questions: 35,
-                  duration: 60,
-                  passingScore: 80,
-                },
-              ],
+              videos: [],
+              files: [],
+              quizzes: [],
             },
           ],
         },
@@ -343,32 +193,9 @@ const yearsData = {
               id: "lec-7",
               title: "Surgical Principles",
               description: "Basic surgical techniques and patient care",
-              videos: [
-                {
-                  id: "v8",
-                  title: "Suturing Techniques",
-                  url: "https://youtube.com/watch?v=vwx",
-                  duration: "45:00",
-                },
-              ],
-              files: [
-                {
-                  id: "f8",
-                  title: "Surgical Manual.pdf",
-                  url: "/files/surgery.pdf",
-                  type: "PDF",
-                  size: "25MB",
-                },
-              ],
-              quizzes: [
-                {
-                  id: "q7",
-                  title: "Surgery Fundamentals",
-                  questions: 40,
-                  duration: 90,
-                  passingScore: 85,
-                },
-              ],
+              videos: [],
+              files: [],
+              quizzes: [],
             },
           ],
         },
@@ -385,32 +212,9 @@ const yearsData = {
               id: "lec-8",
               title: "Emergency Medicine",
               description: "Emergency care and trauma management",
-              videos: [
-                {
-                  id: "v9",
-                  title: "Trauma Assessment",
-                  url: "https://youtube.com/watch?v=yz1",
-                  duration: "90:00",
-                },
-              ],
-              files: [
-                {
-                  id: "f9",
-                  title: "Emergency Protocols.pdf",
-                  url: "/files/emergency.pdf",
-                  type: "PDF",
-                  size: "30MB",
-                },
-              ],
-              quizzes: [
-                {
-                  id: "q8",
-                  title: "Emergency Medicine Quiz",
-                  questions: 50,
-                  duration: 120,
-                  passingScore: 90,
-                },
-              ],
+              videos: [],
+              files: [],
+              quizzes: [],
             },
           ],
         },
@@ -649,6 +453,17 @@ export default function Years() {
                                           <PlayCircle className="h-4 w-4 text-green-600" />
                                           Videos ({lecture.videos.length})
                                         </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleAddVideo(lecture.id)
+                                          }
+                                          className="h-6 px-2 text-xs"
+                                        >
+                                          <Video className="h-3 w-3 mr-1" />
+                                          Add Video
+                                        </Button>
                                       </div>
                                       {lecture.videos.length > 0 ? (
                                         <div className="space-y-2">
@@ -690,6 +505,17 @@ export default function Years() {
                                           <FileText className="h-4 w-4 text-blue-600" />
                                           Files ({lecture.files.length})
                                         </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleAddFile(lecture.id)
+                                          }
+                                          className="h-6 px-2 text-xs"
+                                        >
+                                          <Upload className="h-3 w-3 mr-1" />
+                                          Add File
+                                        </Button>
                                       </div>
                                       {lecture.files.length > 0 ? (
                                         <div className="space-y-2">
@@ -872,6 +698,17 @@ export default function Years() {
                                           <PlayCircle className="h-4 w-4 text-green-600" />
                                           Videos ({lecture.videos.length})
                                         </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleAddVideo(lecture.id)
+                                          }
+                                          className="h-6 px-2 text-xs"
+                                        >
+                                          <Video className="h-3 w-3 mr-1" />
+                                          Add Video
+                                        </Button>
                                       </div>
                                       {lecture.videos.length > 0 ? (
                                         <div className="space-y-2">
@@ -913,6 +750,17 @@ export default function Years() {
                                           <FileText className="h-4 w-4 text-blue-600" />
                                           Files ({lecture.files.length})
                                         </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleAddFile(lecture.id)
+                                          }
+                                          className="h-6 px-2 text-xs"
+                                        >
+                                          <Upload className="h-3 w-3 mr-1" />
+                                          Add File
+                                        </Button>
                                       </div>
                                       {lecture.files.length > 0 ? (
                                         <div className="space-y-2">
