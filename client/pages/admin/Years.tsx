@@ -29,14 +29,9 @@ import {
   PlayCircle,
   FileText,
   HelpCircle,
-  Edit2,
   Trash2,
-  Clock,
-  Users,
-  Calendar,
   GraduationCap,
   Stethoscope,
-  Download,
   Upload,
   Video,
   FolderPlus,
@@ -65,18 +60,6 @@ export default function Years() {
     createLecture,
     deleteLecture,
   } = useYears();
-
-  const handleVideoClick = (url: string) => {
-    window.open(url, "_blank");
-  };
-
-  const handleFileClick = (url: string) => {
-    window.open(url, "_blank");
-  };
-
-  const handleQuizClick = (quiz: any) => {
-    alert(`Starting Quiz: ${quiz.title}`);
-  };
 
   const handleAddQuiz = (lectureId: string) => {
     setSelectedLecture(lectureId);
@@ -215,6 +198,205 @@ export default function Years() {
     );
   }
 
+  const renderYearCard = (yearData: any, type: "basic" | "clinical") => (
+    <Card
+      key={yearData.yearNumber}
+      className={`border-l-4 ${
+        type === "basic" ? "border-l-blue-500" : "border-l-red-500"
+      }`}
+    >
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            {type === "basic" ? (
+              <GraduationCap className="h-5 w-5 text-blue-600" />
+            ) : (
+              <Stethoscope className="h-5 w-5 text-red-600" />
+            )}
+            Year {yearData.yearNumber}
+          </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleAddSubject(yearData.yearNumber, type)}
+            className="flex items-center gap-2"
+          >
+            <FolderPlus className="h-4 w-4" />
+            Add Subject
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {yearData.subjects.length === 0 ? (
+          <div className="text-center py-8">
+            <BookOpen className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+            <p className="text-muted-foreground">No subjects added yet</p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleAddSubject(yearData.yearNumber, type)}
+              className="mt-2"
+            >
+              Add your first subject
+            </Button>
+          </div>
+        ) : (
+          <Accordion type="multiple" className="space-y-4">
+            {yearData.subjects.map((subject: any) => (
+              <AccordionItem
+                key={subject.id}
+                value={subject.id || ""}
+                className="border rounded-lg px-4"
+              >
+                <AccordionTrigger className="text-left">
+                  <div className="flex items-center justify-between w-full pr-4">
+                    <div className="flex items-center gap-3">
+                      <BookOpen className="h-4 w-4 text-primary" />
+                      <span className="font-semibold">{subject.name}</span>
+                      <Badge variant="secondary">
+                        {subject.lectures.length} lectures
+                      </Badge>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddLecture(subject, type);
+                      }}
+                      className="h-6 px-2 text-xs"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Lecture
+                    </Button>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4">
+                  <div className="space-y-4">
+                    {subject.lectures.length === 0 ? (
+                      <div className="text-center py-6">
+                        <FileText className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          No lectures added yet
+                        </p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleAddLecture(subject, type)}
+                          className="mt-2"
+                        >
+                          Add your first lecture
+                        </Button>
+                      </div>
+                    ) : (
+                      subject.lectures.map((lecture: any) => (
+                        <Card key={lecture.id} className="bg-secondary/20">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <CardTitle className="text-lg">
+                                  {lecture.name}
+                                </CardTitle>
+                                {lecture.description && (
+                                  <CardDescription>
+                                    {lecture.description}
+                                  </CardDescription>
+                                )}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  deleteLecture(subject.id!, lecture.id!)
+                                }
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid gap-6 md:grid-cols-3">
+                              {/* Videos */}
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 text-sm font-medium">
+                                    <PlayCircle className="h-4 w-4 text-green-600" />
+                                    Videos (0)
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleAddVideo(lecture.id!)}
+                                    className="h-6 px-2 text-xs"
+                                  >
+                                    <Video className="h-3 w-3 mr-1" />
+                                    Add Video
+                                  </Button>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  No videos yet
+                                </p>
+                              </div>
+
+                              {/* Files */}
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 text-sm font-medium">
+                                    <FileText className="h-4 w-4 text-blue-600" />
+                                    Files (0)
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleAddFile(lecture.id!)}
+                                    className="h-6 px-2 text-xs"
+                                  >
+                                    <Upload className="h-3 w-3 mr-1" />
+                                    Add File
+                                  </Button>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  No files yet
+                                </p>
+                              </div>
+
+                              {/* Quizzes */}
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 text-sm font-medium">
+                                    <HelpCircle className="h-4 w-4 text-purple-600" />
+                                    Quizzes (0)
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleAddQuiz(lecture.id!)}
+                                    className="h-6 px-2 text-xs"
+                                  >
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    Add Quiz
+                                  </Button>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  No quizzes yet
+                                </p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -286,9 +468,12 @@ export default function Years() {
                   <Card>
                     <CardContent className="text-center py-12">
                       <GraduationCap className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-lg font-semibold mb-2">No Basic Years Found</h3>
+                      <h3 className="text-lg font-semibold mb-2">
+                        Setting Up Years...
+                      </h3>
                       <p className="text-muted-foreground mb-4">
-                        The academic years structure is being initialized. Please refresh the page in a moment.
+                        The academic years structure is being initialized.
+                        Please refresh the page in a moment.
                       </p>
                       <Button onClick={() => window.location.reload()}>
                         Refresh Page
@@ -298,182 +483,8 @@ export default function Years() {
                 ) : (
                   years
                     .filter((year) => year.type === "basic")
-                    .map((yearData) => (
-                    <Card
-                      key={yearData.yearNumber}
-                      className="border-l-4 border-l-blue-500"
-                    >
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="flex items-center gap-2">
-                            <GraduationCap className="h-5 w-5 text-blue-600" />
-                            Year {yearData.yearNumber}
-                          </CardTitle>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleAddSubject(yearData.yearNumber, "basic")
-                            }
-                            className="flex items-center gap-2"
-                          >
-                            <FolderPlus className="h-4 w-4" />
-                            Add Subject
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <Accordion type="multiple" className="space-y-4">
-                          {yearData.subjects.map((subject) => (
-                            <AccordionItem
-                              key={subject.id}
-                              value={subject.id || ""}
-                              className="border rounded-lg px-4"
-                            >
-                              <AccordionTrigger className="text-left">
-                                <div className="flex items-center justify-between w-full pr-4">
-                                  <div className="flex items-center gap-3">
-                                    <BookOpen className="h-4 w-4 text-primary" />
-                                    <span className="font-semibold">
-                                      {subject.name}
-                                    </span>
-                                    <Badge variant="secondary">
-                                      {subject.lectures.length} lectures
-                                    </Badge>
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleAddLecture(subject, "basic");
-                                    }}
-                                    className="h-6 px-2 text-xs"
-                                  >
-                                    <Plus className="h-3 w-3 mr-1" />
-                                    Add Lecture
-                                  </Button>
-                                </div>
-                              </AccordionTrigger>
-                              <AccordionContent className="pt-4">
-                                <div className="space-y-4">
-                                  {subject.lectures.map((lecture) => (
-                                    <Card
-                                      key={lecture.id}
-                                      className="bg-secondary/20"
-                                    >
-                                      <CardHeader className="pb-3">
-                                        <div className="flex items-start justify-between">
-                                          <div className="flex-1">
-                                            <CardTitle className="text-lg">
-                                              {lecture.name}
-                                            </CardTitle>
-                                            {lecture.description && (
-                                              <CardDescription>
-                                                {lecture.description}
-                                              </CardDescription>
-                                            )}
-                                          </div>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() =>
-                                              deleteLecture(
-                                                subject.id!,
-                                                lecture.id!,
-                                              )
-                                            }
-                                            className="text-destructive hover:text-destructive"
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                        </div>
-                                      </CardHeader>
-                                      <CardContent>
-                                        <div className="grid gap-6 md:grid-cols-3">
-                                          {/* Videos */}
-                                          <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                              <div className="flex items-center gap-2 text-sm font-medium">
-                                                <PlayCircle className="h-4 w-4 text-green-600" />
-                                                Videos (0)
-                                              </div>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() =>
-                                                  handleAddVideo(lecture.id!)
-                                                }
-                                                className="h-6 px-2 text-xs"
-                                              >
-                                                <Video className="h-3 w-3 mr-1" />
-                                                Add Video
-                                              </Button>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground">
-                                              No videos yet
-                                            </p>
-                                          </div>
-
-                                          {/* Files */}
-                                          <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                              <div className="flex items-center gap-2 text-sm font-medium">
-                                                <FileText className="h-4 w-4 text-blue-600" />
-                                                Files (0)
-                                              </div>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() =>
-                                                  handleAddFile(lecture.id!)
-                                                }
-                                                className="h-6 px-2 text-xs"
-                                              >
-                                                <Upload className="h-3 w-3 mr-1" />
-                                                Add File
-                                              </Button>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground">
-                                              No files yet
-                                            </p>
-                                          </div>
-
-                                          {/* Quizzes */}
-                                          <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                              <div className="flex items-center gap-2 text-sm font-medium">
-                                                <HelpCircle className="h-4 w-4 text-purple-600" />
-                                                Quizzes (0)
-                                              </div>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() =>
-                                                  handleAddQuiz(lecture.id!)
-                                                }
-                                                className="h-6 px-2 text-xs"
-                                              >
-                                                <Plus className="h-3 w-3 mr-1" />
-                                                Add Quiz
-                                              </Button>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground">
-                                              No quizzes yet
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-                                  ))}
-                                </div>
-                              </AccordionContent>
-                            </AccordionItem>
-                          ))}
-                        </Accordion>
-                      </CardContent>
-                    </Card>
-                  ))}
+                    .map((yearData) => renderYearCard(yearData, "basic"))
+                )}
               </div>
             </TabsContent>
 
@@ -483,9 +494,12 @@ export default function Years() {
                   <Card>
                     <CardContent className="text-center py-12">
                       <Stethoscope className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-lg font-semibold mb-2">No Clinical Years Found</h3>
+                      <h3 className="text-lg font-semibold mb-2">
+                        Setting Up Years...
+                      </h3>
                       <p className="text-muted-foreground mb-4">
-                        The academic years structure is being initialized. Please refresh the page in a moment.
+                        The academic years structure is being initialized.
+                        Please refresh the page in a moment.
                       </p>
                       <Button onClick={() => window.location.reload()}>
                         Refresh Page
@@ -495,182 +509,8 @@ export default function Years() {
                 ) : (
                   years
                     .filter((year) => year.type === "clinical")
-                    .map((yearData) => (
-                    <Card
-                      key={yearData.yearNumber}
-                      className="border-l-4 border-l-red-500"
-                    >
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="flex items-center gap-2">
-                            <Stethoscope className="h-5 w-5 text-red-600" />
-                            Year {yearData.yearNumber}
-                          </CardTitle>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleAddSubject(yearData.yearNumber, "clinical")
-                            }
-                            className="flex items-center gap-2"
-                          >
-                            <FolderPlus className="h-4 w-4" />
-                            Add Subject
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <Accordion type="multiple" className="space-y-4">
-                          {yearData.subjects.map((subject) => (
-                            <AccordionItem
-                              key={subject.id}
-                              value={subject.id || ""}
-                              className="border rounded-lg px-4"
-                            >
-                              <AccordionTrigger className="text-left">
-                                <div className="flex items-center justify-between w-full pr-4">
-                                  <div className="flex items-center gap-3">
-                                    <BookOpen className="h-4 w-4 text-primary" />
-                                    <span className="font-semibold">
-                                      {subject.name}
-                                    </span>
-                                    <Badge variant="secondary">
-                                      {subject.lectures.length} lectures
-                                    </Badge>
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleAddLecture(subject, "clinical");
-                                    }}
-                                    className="h-6 px-2 text-xs"
-                                  >
-                                    <Plus className="h-3 w-3 mr-1" />
-                                    Add Lecture
-                                  </Button>
-                                </div>
-                              </AccordionTrigger>
-                              <AccordionContent className="pt-4">
-                                <div className="space-y-4">
-                                  {subject.lectures.map((lecture) => (
-                                    <Card
-                                      key={lecture.id}
-                                      className="bg-secondary/20"
-                                    >
-                                      <CardHeader className="pb-3">
-                                        <div className="flex items-start justify-between">
-                                          <div className="flex-1">
-                                            <CardTitle className="text-lg">
-                                              {lecture.name}
-                                            </CardTitle>
-                                            {lecture.description && (
-                                              <CardDescription>
-                                                {lecture.description}
-                                              </CardDescription>
-                                            )}
-                                          </div>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() =>
-                                              deleteLecture(
-                                                subject.id!,
-                                                lecture.id!,
-                                              )
-                                            }
-                                            className="text-destructive hover:text-destructive"
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                        </div>
-                                      </CardHeader>
-                                      <CardContent>
-                                        <div className="grid gap-6 md:grid-cols-3">
-                                          {/* Videos */}
-                                          <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                              <div className="flex items-center gap-2 text-sm font-medium">
-                                                <PlayCircle className="h-4 w-4 text-green-600" />
-                                                Videos (0)
-                                              </div>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() =>
-                                                  handleAddVideo(lecture.id!)
-                                                }
-                                                className="h-6 px-2 text-xs"
-                                              >
-                                                <Video className="h-3 w-3 mr-1" />
-                                                Add Video
-                                              </Button>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground">
-                                              No videos yet
-                                            </p>
-                                          </div>
-
-                                          {/* Files */}
-                                          <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                              <div className="flex items-center gap-2 text-sm font-medium">
-                                                <FileText className="h-4 w-4 text-blue-600" />
-                                                Files (0)
-                                              </div>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() =>
-                                                  handleAddFile(lecture.id!)
-                                                }
-                                                className="h-6 px-2 text-xs"
-                                              >
-                                                <Upload className="h-3 w-3 mr-1" />
-                                                Add File
-                                              </Button>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground">
-                                              No files yet
-                                            </p>
-                                          </div>
-
-                                          {/* Quizzes */}
-                                          <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                              <div className="flex items-center gap-2 text-sm font-medium">
-                                                <HelpCircle className="h-4 w-4 text-purple-600" />
-                                                Quizzes (0)
-                                              </div>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() =>
-                                                  handleAddQuiz(lecture.id!)
-                                                }
-                                                className="h-6 px-2 text-xs"
-                                              >
-                                                <Plus className="h-3 w-3 mr-1" />
-                                                Add Quiz
-                                              </Button>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground">
-                                              No quizzes yet
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-                                  ))}
-                                </div>
-                              </AccordionContent>
-                            </AccordionItem>
-                          ))}
-                        </Accordion>
-                      </CardContent>
-                    </Card>
-                  ))}
+                    .map((yearData) => renderYearCard(yearData, "clinical"))
+                )}
               </div>
             </TabsContent>
           </Tabs>
