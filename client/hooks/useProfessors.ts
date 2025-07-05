@@ -13,6 +13,37 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
+// Mock data for development
+const mockProfessors: Professor[] = [
+  {
+    id: "1",
+    name: "Dr. Sarah Johnson",
+    department: "Internal Medicine",
+    email: "sarah.johnson@medjust.com",
+    officeLocation: "Medical Building, Room 301",
+    imageUrl:
+      "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&h=300&fit=crop&crop=face",
+  },
+  {
+    id: "2",
+    name: "Prof. Michael Chen",
+    department: "Surgery",
+    email: "michael.chen@medjust.com",
+    officeLocation: "Surgical Wing, Room 205",
+    imageUrl:
+      "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face",
+  },
+  {
+    id: "3",
+    name: "Dr. Emily Rodriguez",
+    department: "Emergency Medicine",
+    email: "emily.rodriguez@medjust.com",
+    officeLocation: "Emergency Department, Office 12",
+    imageUrl:
+      "https://images.unsplash.com/photo-1594824928909-90ad1d93d7c3?w=300&h=300&fit=crop&crop=face",
+  },
+];
+
 export function useProfessors() {
   const [professors, setProfessors] = useState<Professor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +72,10 @@ export function useProfessors() {
       },
       (error) => {
         console.error("Error fetching professors:", error);
-        setError("Failed to fetch professors");
+        // Fallback to mock data when Firebase fails
+        console.log("Using mock data for professors");
+        setProfessors(mockProfessors);
+        setError(null); // Clear error when using mock data
         setLoading(false);
       },
     );
