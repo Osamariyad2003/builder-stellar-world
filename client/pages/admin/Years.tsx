@@ -282,9 +282,23 @@ export default function Years() {
 
             <TabsContent value="basic" className="space-y-4">
               <div className="space-y-6">
-                {years
-                  .filter((year) => year.type === "basic")
-                  .map((yearData) => (
+                {years.length === 0 ? (
+                  <Card>
+                    <CardContent className="text-center py-12">
+                      <GraduationCap className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">No Basic Years Found</h3>
+                      <p className="text-muted-foreground mb-4">
+                        The academic years structure is being initialized. Please refresh the page in a moment.
+                      </p>
+                      <Button onClick={() => window.location.reload()}>
+                        Refresh Page
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  years
+                    .filter((year) => year.type === "basic")
+                    .map((yearData) => (
                     <Card
                       key={yearData.yearNumber}
                       className="border-l-4 border-l-blue-500"
@@ -465,9 +479,23 @@ export default function Years() {
 
             <TabsContent value="clinical" className="space-y-4">
               <div className="space-y-6">
-                {years
-                  .filter((year) => year.type === "clinical")
-                  .map((yearData) => (
+                {years.length === 0 ? (
+                  <Card>
+                    <CardContent className="text-center py-12">
+                      <Stethoscope className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">No Clinical Years Found</h3>
+                      <p className="text-muted-foreground mb-4">
+                        The academic years structure is being initialized. Please refresh the page in a moment.
+                      </p>
+                      <Button onClick={() => window.location.reload()}>
+                        Refresh Page
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  years
+                    .filter((year) => year.type === "clinical")
+                    .map((yearData) => (
                     <Card
                       key={yearData.yearNumber}
                       className="border-l-4 border-l-red-500"
