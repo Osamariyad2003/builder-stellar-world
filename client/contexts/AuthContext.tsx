@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-
-// Mock user interface for demo
-interface MockUser {
-  uid: string;
-  email: string;
-  displayName?: string;
-}
+import {
+  User,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 interface AuthContextType {
-  currentUser: MockUser | null;
+  currentUser: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
@@ -24,51 +24,25 @@ export function useAuth() {
   return context;
 }
 
-// Demo credentials for testing
-const DEMO_CREDENTIALS = {
-  email: "admin@medjust.com",
-  password: "demo123",
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<MockUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   const login = async (email: string, password: string) => {
-    // Mock authentication - accepts demo credentials or any email/password for demo
-    if (
-      (email === DEMO_CREDENTIALS.email &&
-        password === DEMO_CREDENTIALS.password) ||
-      (email.includes("@") && password.length >= 3)
-    ) {
-      const mockUser: MockUser = {
-        uid: "demo-user-123",
-        email: email,
-        displayName: "Admin User",
-      };
-      setCurrentUser(mockUser);
-      localStorage.setItem("mockUser", JSON.stringify(mockUser));
-    } else {
-      throw new Error("Invalid credentials");
-    }
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
-    setCurrentUser(null);
-    localStorage.removeItem("mockUser");
+    await signOut(auth);
   };
 
   useEffect(() => {
-    // Check for existing session
-    const storedUser = localStorage.getItem("mockUser");
-    if (storedUser) {
-      try {
-        setCurrentUser(JSON.parse(storedUser));
-      } catch (error) {
-        localStorage.removeItem("mockUser");
-      }
-    }
-    setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      setLoading(false);
+    });
+
+    return unsubscribe;
   }, []);
 
   const value = {
