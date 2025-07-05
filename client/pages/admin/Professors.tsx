@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfessors } from "@/hooks/useProfessors";
+import { ProfessorForm } from "@/components/admin/ProfessorForm";
 import {
   Users,
   Plus,
@@ -54,6 +55,32 @@ export default function Professors() {
       }
     }
   };
+
+  if (isFormOpen) {
+    return (
+      <ProfessorForm
+        professor={selectedProfessor}
+        onClose={() => {
+          setIsFormOpen(false);
+          setSelectedProfessor(null);
+        }}
+        onSave={async (professorData) => {
+          try {
+            if (selectedProfessor) {
+              await updateProfessor(selectedProfessor.id!, professorData);
+            } else {
+              await createProfessor(professorData as any);
+            }
+            setIsFormOpen(false);
+            setSelectedProfessor(null);
+          } catch (error) {
+            console.error("Error saving professor:", error);
+            alert("Failed to save professor. Please try again.");
+          }
+        }}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

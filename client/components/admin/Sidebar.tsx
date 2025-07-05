@@ -20,16 +20,7 @@ interface SidebarProps {
 const navItems = [
   { icon: Home, label: "Dashboard", path: "/admin" },
   { icon: Newspaper, label: "News", path: "/admin/news" },
-  {
-    icon: BookOpen,
-    label: "Resources",
-    path: "/admin/resources",
-    children: [
-      { icon: PlayCircle, label: "Videos", path: "/admin/resources/videos" },
-      { icon: FileText, label: "Files", path: "/admin/resources/files" },
-      { icon: HelpCircle, label: "Quizzes", path: "/admin/resources/quizzes" },
-    ],
-  },
+  { icon: BookOpen, label: "Years", path: "/admin/years" },
   { icon: Users, label: "Professors", path: "/admin/professors" },
   { icon: Store, label: "Store", path: "/admin/store" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },

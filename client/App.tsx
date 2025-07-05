@@ -11,7 +11,7 @@ import { AdminLayout } from "./components/admin/Layout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import News from "./pages/admin/News";
-import Resources from "./pages/admin/Resources";
+import Years from "./pages/admin/Years";
 import Professors from "./pages/admin/Professors";
 import Store from "./pages/admin/Store";
 import Settings from "./pages/admin/Settings";
@@ -43,10 +43,7 @@ const App = () => (
             >
               <Route index element={<Dashboard />} />
               <Route path="news" element={<News />} />
-              <Route path="resources" element={<Resources />} />
-              <Route path="resources/videos" element={<Resources />} />
-              <Route path="resources/files" element={<Resources />} />
-              <Route path="resources/quizzes" element={<Resources />} />
+              <Route path="years" element={<Years />} />
               <Route path="professors" element={<Professors />} />
               <Route path="store" element={<Store />} />
               <Route path="settings" element={<Settings />} />
