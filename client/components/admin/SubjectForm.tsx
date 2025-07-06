@@ -70,10 +70,18 @@ export function SubjectForm({
             Back
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Add Subject</h1>
-            <p className="text-muted-foreground">
-              Add a new subject to Year {year} ({yearType} years)
-            </p>
+            <h1 className="text-2xl font-bold">Add Subject to Year {year}</h1>
+            <div className="flex items-center gap-2 mt-1">
+              {yearType === "basic" ? (
+                <GraduationCap className="h-4 w-4 text-blue-600" />
+              ) : (
+                <Stethoscope className="h-4 w-4 text-red-600" />
+              )}
+              <p className="text-muted-foreground">
+                Adding to {yearType === "basic" ? "Basic" : "Clinical"} Years •
+                Year {year}
+              </p>
+            </div>
           </div>
         </div>
       </div>
