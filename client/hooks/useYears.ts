@@ -52,9 +52,26 @@ export function useYears() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Check network connectivity first
+      if (!navigator.onLine) {
+        console.log("🚫 No internet connection detected");
+        setIsOfflineMode(true);
+        setLoading(false);
+        setError("No internet connection");
+        setYears([]);
+        setSubjects([]);
+        return;
+      }
+
       try {
+        // Add timeout for Firebase requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
         // Try to fetch years
+        console.log("🔄 Fetching years from Firebase...");
         const yearsSnapshot = await getDocs(collection(db, "years"));
+        clearTimeout(timeoutId);
         let yearsData: YearData[] = [];
 
         if (!yearsSnapshot.empty) {
@@ -121,12 +138,34 @@ export function useYears() {
           completeYears.length,
           "years",
         );
-      } catch (error) {
+      } catch (error: any) {
         console.error("Firebase error:", error);
-        setError(`Failed to load data: ${error}`);
+
+        // Handle different types of errors
+        let errorMessage = "Failed to load data";
+
+        if (error.name === "AbortError") {
+          errorMessage = "Request timed out. Please check your connection.";
+        } else if (error.code === "permission-denied") {
+          errorMessage =
+            "Permission denied. Please check Firestore security rules.";
+        } else if (error.code === "unavailable") {
+          errorMessage =
+            "Firebase service unavailable. Please try again later.";
+        } else if (error.message && error.message.includes("fetch")) {
+          errorMessage =
+            "Network error. Please check your internet connection.";
+        }
+
+        setError(errorMessage);
         setLoading(false);
+        setIsOfflineMode(true);
+
+        // Provide empty structure instead of breaking
         setYears([]);
         setSubjects([]);
+
+        console.log("🔄 Switched to offline mode due to error");
       }
     };
 
