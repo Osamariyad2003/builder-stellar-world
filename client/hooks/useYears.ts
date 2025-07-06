@@ -50,6 +50,7 @@ export function useYears() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -209,7 +210,15 @@ export function useYears() {
     };
 
     fetchData();
-  }, []);
+  }, [retryCount]);
+
+  const retryConnection = () => {
+    console.log("🔄 Retrying Firebase connection...");
+    setLoading(true);
+    setError(null);
+    setIsOfflineMode(false);
+    setRetryCount((prev) => prev + 1);
+  };
 
   const retryOperation = async (
     operation: () => Promise<any>,
