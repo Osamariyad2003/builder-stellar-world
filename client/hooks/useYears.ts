@@ -77,6 +77,8 @@ export function useYears() {
         if (!yearsSnapshot.empty) {
           yearsSnapshot.forEach((doc) => {
             const data = doc.data();
+            console.log("📊 Firebase year doc:", doc.id, data);
+
             // Extract year number from name field or order field
             let yearNumber = data.order || 1;
             if (data.name) {
@@ -85,6 +87,15 @@ export function useYears() {
                 yearNumber = parseInt(match[0]);
               }
             }
+
+            console.log(
+              "🔢 Extracted yearNumber:",
+              yearNumber,
+              "from order:",
+              data.order,
+              "name:",
+              data.name,
+            );
 
             yearsData.push({
               id: doc.id,
