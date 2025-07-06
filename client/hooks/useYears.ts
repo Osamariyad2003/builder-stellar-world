@@ -312,22 +312,8 @@ export function useYears() {
       console.log("🔄 Creating subject with data:", subjectData);
 
       await retryOperation(async () => {
-        // Use the actual existing document ID from your Firebase console
-        const existingDocId = "faoMRHVqpltXNrGnBY";
-
-        // First check if this document exists, if not, find the first existing document
-        const subjectsSnapshot = await getDocs(collection(db, "Subjects"));
-        let targetDocId = existingDocId;
-
-        // If the hardcoded ID doesn't exist, use the first available document
-        const existingDoc = subjectsSnapshot.docs.find(
-          (doc) => doc.id === existingDocId,
-        );
-        if (!existingDoc && subjectsSnapshot.docs.length > 0) {
-          targetDocId = subjectsSnapshot.docs[0].id;
-          console.log("📝 Using existing document ID:", targetDocId);
-        }
-
+        // Always use this specific document ID from your Firebase console
+        const targetDocId = "faoMRHVqpltXNrGnBY";
         const subjectDocRef = doc(db, "Subjects", targetDocId);
 
         // Update the existing subject document
@@ -338,12 +324,15 @@ export function useYears() {
           imageUrl: subjectData.imageUrl || "",
         };
 
-        console.log("📝 Updating existing subject:", updatedSubject);
+        console.log(
+          "📝 Updating document faoMRHVqpltXNrGnBY with:",
+          updatedSubject,
+        );
 
         // Use setDoc with merge to update the existing document
         await setDoc(subjectDocRef, updatedSubject, { merge: true });
 
-        console.log("✅ Updated existing subject document:", targetDocId);
+        console.log("✅ Updated document faoMRHVqpltXNrGnBY successfully");
 
         // Refresh data
         window.location.reload();
