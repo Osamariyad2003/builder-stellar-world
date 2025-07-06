@@ -145,56 +145,35 @@ export function useYears() {
           });
         }
 
-        // Try to fetch subjects
-        const subjectsSnapshot = await getDocs(collection(db, "Subjects"));
-        const subjectsData: SubjectData[] = [];
+        // Process subjects from the year documents
+        const completeYears = yearsData.map((year) => {
+          const yearDoc = yearsSnapshot.docs.find((doc) => doc.id === year.id);
+          const yearData = yearDoc?.data();
+          const subjects: SubjectData[] = [];
 
-        for (const subjectDoc of subjectsSnapshot.docs) {
-          const subjectData = subjectDoc.data();
-
-          // Fetch lectures for this subject
-          const lecturesSnapshot = await getDocs(
-            collection(subjectDoc.ref, "lectures"),
-          );
-          const lectures: LectureData[] = [];
-
-          lecturesSnapshot.forEach((lectureDoc) => {
-            const lectureData = lectureDoc.data();
-            lectures.push({
-              id: lectureDoc.id,
-              name: lectureData.name || lectureData.title || "",
-              description: lectureData.description || "",
-              subjectId: subjectDoc.id,
-              order: lectureData.order || 1,
-              imageUrl: lectureData.imageUrl || "",
-              createdAt: lectureData.createdAt?.toDate() || new Date(),
-              uploadedBy: lectureData.uploadedBy || "Unknown",
+          if (yearData?.subjects && Array.isArray(yearData.subjects)) {
+            // Process subjects array from year document
+            yearData.subjects.forEach((subject: any, index: number) => {
+              if (subject && typeof subject === "object") {
+                subjects.push({
+                  id: subject.id || `subject_${year.id}_${index}`,
+                  name: subject.name || "",
+                  code: subject.code || "",
+                  description: subject.description || "",
+                  credits: subject.credits || 3,
+                  yearId: year.id!,
+                  order: subject.order || index + 1,
+                  lectures: subject.lectures || [],
+                });
+              }
             });
-          });
+          }
 
-          subjectsData.push({
-            id: subjectDoc.id,
-            name: subjectData.name || "",
-            code: subjectData.code || "",
-            description: subjectData.description || "",
-            credits: subjectData.credits || 3,
-            yearId: subjectData.yearId || subjectData.subjectId || "",
-            order: subjectData.order || 1,
-            lectures: lectures.sort((a, b) => a.order - b.order),
-          });
-        }
-
-        // Combine years with their subjects
-        const completeYears = yearsData.map((year) => ({
-          ...year,
-          subjects: subjectsData
-            .filter(
-              (subject) =>
-                subject.yearId === year.id ||
-                subject.yearId === `year${year.yearNumber}`,
-            )
-            .sort((a, b) => a.order - b.order),
-        }));
+          return {
+            ...year,
+            subjects: subjects.sort((a, b) => a.order - b.order),
+          };
+        });
 
         setYears(completeYears.sort((a, b) => a.yearNumber - b.yearNumber));
         setSubjects(subjectsData);
