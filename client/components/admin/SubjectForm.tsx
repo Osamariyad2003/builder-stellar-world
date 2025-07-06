@@ -145,52 +145,19 @@ export function SubjectForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="code">Subject Code</Label>
+                <Label htmlFor="imageUrl">Image URL (Optional)</Label>
                 <Input
-                  id="code"
-                  placeholder="e.g., ANAT101"
-                  value={formData.code}
+                  id="imageUrl"
+                  placeholder="https://example.com/image.jpg"
+                  value={formData.imageUrl}
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      code: e.target.value,
+                      imageUrl: e.target.value,
                     }))
                   }
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Describe what this subject covers..."
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-                rows={4}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="credits">Credit Hours</Label>
-              <Input
-                id="credits"
-                type="number"
-                min="1"
-                max="10"
-                value={formData.credits}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    credits: parseInt(e.target.value) || 3,
-                  }))
-                }
-              />
             </div>
           </CardContent>
         </Card>
