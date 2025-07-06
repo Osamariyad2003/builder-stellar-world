@@ -191,11 +191,20 @@ export function useYears() {
         setLoading(false);
         setIsOfflineMode(true);
 
-        // Provide empty structure instead of breaking
-        setYears([]);
+        // Provide basic year structure for offline use
+        const basicYears: YearData[] = [
+          { id: "year1", yearNumber: 1, type: "basic", subjects: [] },
+          { id: "year2", yearNumber: 2, type: "basic", subjects: [] },
+          { id: "year3", yearNumber: 3, type: "basic", subjects: [] },
+          { id: "year4", yearNumber: 4, type: "clinical", subjects: [] },
+          { id: "year5", yearNumber: 5, type: "clinical", subjects: [] },
+          { id: "year6", yearNumber: 6, type: "clinical", subjects: [] },
+        ];
+
+        setYears(basicYears);
         setSubjects([]);
 
-        console.log("🔄 Switched to offline mode due to error");
+        console.log("🔄 Switched to offline mode with basic year structure");
       }
     };
 
