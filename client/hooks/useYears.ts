@@ -49,6 +49,9 @@ export function useYears() {
   const [error, setError] = useState<string | null>(null);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connecting" | "connected" | "offline"
+  >("connecting");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,12 +59,41 @@ export function useYears() {
       if (!navigator.onLine) {
         console.log("🚫 No internet connection detected");
         setIsOfflineMode(true);
+        setConnectionStatus("offline");
         setLoading(false);
         setError("No internet connection");
-        setYears([]);
+
+        // Provide offline year structure
+        const offlineYears: YearData[] = [
+          { id: "offline_year1", yearNumber: 1, type: "basic", subjects: [] },
+          { id: "offline_year2", yearNumber: 2, type: "basic", subjects: [] },
+          { id: "offline_year3", yearNumber: 3, type: "basic", subjects: [] },
+          {
+            id: "offline_year4",
+            yearNumber: 4,
+            type: "clinical",
+            subjects: [],
+          },
+          {
+            id: "offline_year5",
+            yearNumber: 5,
+            type: "clinical",
+            subjects: [],
+          },
+          {
+            id: "offline_year6",
+            yearNumber: 6,
+            type: "clinical",
+            subjects: [],
+          },
+        ];
+
+        setYears(offlineYears);
         setSubjects([]);
         return;
       }
+
+      setConnectionStatus("connecting");
 
       try {
         // Add timeout for Firebase requests
@@ -160,6 +192,7 @@ export function useYears() {
         setSubjects(completeYears.flatMap((year) => year.subjects));
         setLoading(false);
         setIsOfflineMode(false);
+        setConnectionStatus("connected");
         console.log(
           "✅ Years data loaded successfully:",
           completeYears.length,
@@ -187,15 +220,31 @@ export function useYears() {
         setError(errorMessage);
         setLoading(false);
         setIsOfflineMode(true);
+        setConnectionStatus("offline");
 
         // Provide basic year structure for offline use
         const basicYears: YearData[] = [
-          { id: "year1", yearNumber: 1, type: "basic", subjects: [] },
-          { id: "year2", yearNumber: 2, type: "basic", subjects: [] },
-          { id: "year3", yearNumber: 3, type: "basic", subjects: [] },
-          { id: "year4", yearNumber: 4, type: "clinical", subjects: [] },
-          { id: "year5", yearNumber: 5, type: "clinical", subjects: [] },
-          { id: "year6", yearNumber: 6, type: "clinical", subjects: [] },
+          { id: "offline_year1", yearNumber: 1, type: "basic", subjects: [] },
+          { id: "offline_year2", yearNumber: 2, type: "basic", subjects: [] },
+          { id: "offline_year3", yearNumber: 3, type: "basic", subjects: [] },
+          {
+            id: "offline_year4",
+            yearNumber: 4,
+            type: "clinical",
+            subjects: [],
+          },
+          {
+            id: "offline_year5",
+            yearNumber: 5,
+            type: "clinical",
+            subjects: [],
+          },
+          {
+            id: "offline_year6",
+            yearNumber: 6,
+            type: "clinical",
+            subjects: [],
+          },
         ];
 
         setYears(basicYears);
@@ -437,6 +486,7 @@ export function useYears() {
     loading,
     error,
     isOfflineMode,
+    connectionStatus,
     retryConnection,
     createSubject,
     createLecture,
