@@ -174,22 +174,22 @@ export function SubjectForm({
             <CardContent>
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center gap-3 mb-2">
-                  <BookOpen className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-lg">{formData.name}</h3>
-                  {formData.code && (
-                    <span className="text-sm text-muted-foreground">
-                      ({formData.code})
-                    </span>
+                  {formData.imageUrl ? (
+                    <img
+                      src={formData.imageUrl}
+                      alt={formData.name}
+                      className="w-8 h-8 object-cover rounded"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <BookOpen className="h-5 w-5 text-primary" />
                   )}
+                  <h3 className="font-semibold text-lg">{formData.name}</h3>
                 </div>
-                {formData.description && (
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {formData.description}
-                  </p>
-                )}
                 <div className="text-xs text-muted-foreground">
-                  {formData.credits} credit hours • Year {year} • {yearType}{" "}
-                  years
+                  Year {year} • {yearType} years
                 </div>
               </div>
             </CardContent>
