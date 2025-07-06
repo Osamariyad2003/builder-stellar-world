@@ -113,7 +113,7 @@ export function useYears() {
         });
 
         setYears(completeYears.sort((a, b) => a.yearNumber - b.yearNumber));
-        setSubjects(subjectsData);
+        setSubjects(completeYears.flatMap((year) => year.subjects));
         setLoading(false);
         setIsOfflineMode(false);
         console.log(
