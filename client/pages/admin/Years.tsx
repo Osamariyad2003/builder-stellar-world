@@ -119,7 +119,15 @@ export default function Years() {
     );
   }
 
+  console.log(
+    "🔍 Render check - isSubjectFormOpen:",
+    isSubjectFormOpen,
+    "selectedYear:",
+    selectedYear,
+  );
+
   if (isSubjectFormOpen) {
+    console.log("📝 Rendering SubjectForm");
     return (
       <SubjectForm
         year={selectedYear?.number}
