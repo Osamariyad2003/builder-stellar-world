@@ -87,6 +87,28 @@ export function SubjectForm({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Year Selection Display */}
+        <Card
+          className={`border-l-4 ${yearType === "basic" ? "border-l-blue-500 bg-blue-50/50" : "border-l-red-500 bg-red-50/50"}`}
+        >
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-3">
+              {yearType === "basic" ? (
+                <GraduationCap className="h-8 w-8 text-blue-600" />
+              ) : (
+                <Stethoscope className="h-8 w-8 text-red-600" />
+              )}
+              <div>
+                <h3 className="font-semibold text-lg">Year {year}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {yearType === "basic" ? "Basic Years" : "Clinical Years"}{" "}
+                  (Year {yearType === "basic" ? "1-3" : "4-6"})
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
