@@ -223,9 +223,12 @@ export function useYears() {
     }
 
     try {
+      console.log("🔄 Creating subject with data:", subjectData);
+
       await retryOperation(async () => {
         // Find the year document to update
         const yearDocRef = doc(db, "years", subjectData.yearId);
+        console.log("📄 Looking for year document:", subjectData.yearId);
 
         // Create the new subject object
         const newSubject = {
@@ -239,18 +242,21 @@ export function useYears() {
           createdAt: new Date(),
         };
 
-        // Get current year document
-        const yearDoc = await getDocs(collection(db, "years"));
-        const currentYearDoc = yearDoc.docs.find(
-          (doc) => doc.id === subjectData.yearId,
-        );
+        console.log("📝 New subject object:", newSubject);
 
-        if (currentYearDoc) {
-          const currentData = currentYearDoc.data();
+        // Get current year document using getDoc instead of getDocs
+        const yearDocSnapshot = await getDoc(yearDocRef);
+
+        if (yearDocSnapshot.exists()) {
+          const currentData = yearDocSnapshot.data();
           const currentSubjects = currentData.subjects || [];
+
+          console.log("📊 Current subjects in year:", currentSubjects.length);
 
           // Add new subject to the subjects array
           const updatedSubjects = [...currentSubjects, newSubject];
+
+          console.log("📈 Updated subjects count:", updatedSubjects.length);
 
           // Update the year document with the new subjects array
           await updateDoc(yearDocRef, {
@@ -265,6 +271,7 @@ export function useYears() {
           // Refresh data
           window.location.reload();
         } else {
+          console.error("❌ Year document not found:", subjectData.yearId);
           throw new Error("Year document not found");
         }
       });
