@@ -6,6 +6,7 @@ import {
   getDoc,
   addDoc,
   updateDoc,
+  setDoc,
   deleteDoc,
   query,
   orderBy,
@@ -323,12 +324,12 @@ export function useYears() {
           imageUrl: subjectData.imageUrl || "",
         };
 
-        console.log("📝 Updating existing subject:", updatedSubject);
+        console.log("📝 Creating/updating subject:", updatedSubject);
 
-        // Update the existing document instead of creating new one
-        await updateDoc(subjectDocRef, updatedSubject);
+        // Use setDoc with merge to create or update the document
+        await setDoc(subjectDocRef, updatedSubject, { merge: true });
 
-        console.log("✅ Updated existing subject document:", existingDocId);
+        console.log("✅ Created/updated subject document:", existingDocId);
 
         // Refresh data
         window.location.reload();
