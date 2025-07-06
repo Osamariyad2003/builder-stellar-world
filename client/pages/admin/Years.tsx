@@ -276,18 +276,16 @@ export default function Years() {
                         {subject.lectures.length} lectures
                       </Badge>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <div
                       onClick={(e) => {
                         e.stopPropagation();
                         handleAddLecture(subject, type);
                       }}
-                      className="h-6 px-2 text-xs"
+                      className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary rounded cursor-pointer transition-colors"
                     >
-                      <Plus className="h-3 w-3 mr-1" />
+                      <Plus className="h-3 w-3" />
                       Add Lecture
-                    </Button>
+                    </div>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pt-4">
