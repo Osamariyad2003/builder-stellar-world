@@ -255,15 +255,49 @@ export function useYears() {
     }
 
     try {
-      const docRef = await addDoc(collection(db, "Subjects"), {
-        ...subjectData,
+      // Find the year document to update
+      const yearDocRef = doc(db, "years", subjectData.yearId);
+
+      // Create the new subject object
+      const newSubject = {
+        id: `subject_${Date.now()}`,
+        name: subjectData.name,
+        code: subjectData.code || "",
+        description: subjectData.description || "",
+        credits: subjectData.credits || 3,
+        order: subjectData.order || 1,
+        lectures: [],
         createdAt: new Date(),
-      });
+      };
 
-      console.log("✅ Added subject to Firebase:", subjectData.name);
+      // Get current year document
+      const yearDoc = await getDocs(collection(db, "years"));
+      const currentYearDoc = yearDoc.docs.find(
+        (doc) => doc.id === subjectData.yearId,
+      );
 
-      // Refresh data
-      window.location.reload();
+      if (currentYearDoc) {
+        const currentData = currentYearDoc.data();
+        const currentSubjects = currentData.subjects || [];
+
+        // Add new subject to the subjects array
+        const updatedSubjects = [...currentSubjects, newSubject];
+
+        // Update the year document with the new subjects array
+        await updateDoc(yearDocRef, {
+          subjects: updatedSubjects,
+        });
+
+        console.log(
+          "✅ Added subject to Firebase year document:",
+          subjectData.name,
+        );
+
+        // Refresh data
+        window.location.reload();
+      } else {
+        throw new Error("Year document not found");
+      }
     } catch (error) {
       console.error("Error creating subject:", error);
       // Fall back to offline mode
