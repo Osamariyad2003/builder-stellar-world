@@ -33,9 +33,7 @@ export function SubjectForm({
 }: SubjectFormProps) {
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
-    code: "",
-    credits: 3,
+    imageUrl: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -46,11 +44,8 @@ export function SubjectForm({
 
     try {
       const subjectData = {
-        ...formData,
-        year: year,
-        yearType: yearType,
-        id: `subject_${Date.now()}`,
-        lectures: [],
+        name: formData.name,
+        imageUrl: formData.imageUrl || "",
       };
 
       onSave(subjectData);
