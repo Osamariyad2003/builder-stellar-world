@@ -311,23 +311,24 @@ export function useYears() {
       console.log("🔄 Creating subject with data:", subjectData);
 
       await retryOperation(async () => {
-        // Create the new subject object for Subjects collection to match Firebase structure
-        const newSubject = {
+        // Use the existing document ID from your Firebase
+        const existingDocId = "faoMRHVqpltXNrGnBY";
+        const subjectDocRef = doc(db, "Subjects", existingDocId);
+
+        // Update the existing subject document
+        const updatedSubject = {
           name: subjectData.name,
-          subjectId: `subject_${Date.now()}`,
+          subjectId: existingDocId,
           yearId: subjectData.yearId,
-          imageUrl: "",
+          imageUrl: subjectData.imageUrl || "",
         };
 
-        console.log("📝 New subject object:", newSubject);
+        console.log("📝 Updating existing subject:", updatedSubject);
 
-        // Add to Subjects collection
-        const docRef = await addDoc(collection(db, "Subjects"), newSubject);
+        // Update the existing document instead of creating new one
+        await updateDoc(subjectDocRef, updatedSubject);
 
-        console.log(
-          "✅ Added subject to Subjects collection with ID:",
-          docRef.id,
-        );
+        console.log("✅ Updated existing subject document:", existingDocId);
 
         // Refresh data
         window.location.reload();
