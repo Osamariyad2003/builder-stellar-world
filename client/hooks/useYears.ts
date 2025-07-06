@@ -337,18 +337,63 @@ export function useYears() {
     }
 
     try {
-      const subjectRef = doc(db, "Subjects", lectureData.subjectId);
-      const lecturesRef = collection(subjectRef, "lectures");
+      // Find the year that contains the subject
+      const yearsSnapshot = await getDocs(collection(db, "years"));
+      let targetYearId = "";
+      let targetSubjectIndex = -1;
 
-      await addDoc(lecturesRef, {
-        ...lectureData,
-        createdAt: new Date(),
-      });
+      for (const yearDoc of yearsSnapshot.docs) {
+        const yearData = yearDoc.data();
+        if (yearData.subjects && Array.isArray(yearData.subjects)) {
+          const subjectIndex = yearData.subjects.findIndex(
+            (subject: any) => subject.id === lectureData.subjectId,
+          );
+          if (subjectIndex !== -1) {
+            targetYearId = yearDoc.id;
+            targetSubjectIndex = subjectIndex;
+            break;
+          }
+        }
+      }
 
-      console.log("✅ Added lecture to Firebase:", lectureData.name);
+      if (targetYearId && targetSubjectIndex !== -1) {
+        const yearDocRef = doc(db, "years", targetYearId);
+        const yearDoc = yearsSnapshot.docs.find(
+          (doc) => doc.id === targetYearId,
+        );
+        const yearData = yearDoc?.data();
 
-      // Refresh data
-      window.location.reload();
+        if (yearData) {
+          const updatedSubjects = [...yearData.subjects];
+          const newLecture = {
+            id: `lecture_${Date.now()}`,
+            name: lectureData.name,
+            description: lectureData.description || "",
+            order: lectureData.order || 1,
+            imageUrl: lectureData.imageUrl || "",
+            createdAt: new Date(),
+            uploadedBy: lectureData.uploadedBy || "Current User",
+          };
+
+          // Add lecture to the subject's lectures array
+          if (!updatedSubjects[targetSubjectIndex].lectures) {
+            updatedSubjects[targetSubjectIndex].lectures = [];
+          }
+          updatedSubjects[targetSubjectIndex].lectures.push(newLecture);
+
+          // Update the year document
+          await updateDoc(yearDocRef, {
+            subjects: updatedSubjects,
+          });
+
+          console.log("✅ Added lecture to Firebase:", lectureData.name);
+
+          // Refresh data
+          window.location.reload();
+        }
+      } else {
+        throw new Error("Subject not found in any year document");
+      }
     } catch (error) {
       console.error("Error creating lecture:", error);
       // Fall back to offline mode
