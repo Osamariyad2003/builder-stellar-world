@@ -71,9 +71,17 @@ export default function Years() {
   };
 
   const handleAddSubject = (yearData: any, type: "basic" | "clinical") => {
+    console.log(
+      "🔄 Opening subject form for year:",
+      yearData.yearNumber,
+      "type:",
+      type,
+    );
+    console.log("Year data:", yearData);
     setSelectedYear({ id: yearData.id, number: yearData.yearNumber });
     setYearType(type);
     setIsSubjectFormOpen(true);
+    console.log("✅ Subject form should be open now");
   };
 
   const handleAddLecture = (subject: any, type: "basic" | "clinical") => {
