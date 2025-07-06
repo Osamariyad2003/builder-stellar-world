@@ -144,14 +144,17 @@ export function useYears() {
         // Handle different types of errors
         let errorMessage = "Failed to load data";
 
-        if (error.name === 'AbortError') {
+        if (error.name === "AbortError") {
           errorMessage = "Request timed out. Please check your connection.";
-        } else if (error.code === 'permission-denied') {
-          errorMessage = "Permission denied. Please check Firestore security rules.";
-        } else if (error.code === 'unavailable') {
-          errorMessage = "Firebase service unavailable. Please try again later.";
-        } else if (error.message && error.message.includes('fetch')) {
-          errorMessage = "Network error. Please check your internet connection.";
+        } else if (error.code === "permission-denied") {
+          errorMessage =
+            "Permission denied. Please check Firestore security rules.";
+        } else if (error.code === "unavailable") {
+          errorMessage =
+            "Firebase service unavailable. Please try again later.";
+        } else if (error.message && error.message.includes("fetch")) {
+          errorMessage =
+            "Network error. Please check your internet connection.";
         }
 
         setError(errorMessage);
@@ -169,14 +172,17 @@ export function useYears() {
     fetchData();
   }, []);
 
-  const retryOperation = async (operation: () => Promise<any>, maxRetries = 3) => {
+  const retryOperation = async (
+    operation: () => Promise<any>,
+    maxRetries = 3,
+  ) => {
     for (let i = 0; i < maxRetries; i++) {
       try {
         return await operation();
       } catch (error: any) {
         console.log(`Attempt ${i + 1} failed:`, error.message);
         if (i === maxRetries - 1) throw error;
-        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
       }
     }
   };
@@ -210,46 +216,47 @@ export function useYears() {
         // Find the year document to update
         const yearDocRef = doc(db, "years", subjectData.yearId);
 
-      // Create the new subject object
-      const newSubject = {
-        id: `subject_${Date.now()}`,
-        name: subjectData.name,
-        code: subjectData.code || "",
-        description: subjectData.description || "",
-        credits: subjectData.credits || 3,
-        order: subjectData.order || 1,
-        lectures: [],
-        createdAt: new Date(),
-      };
+        // Create the new subject object
+        const newSubject = {
+          id: `subject_${Date.now()}`,
+          name: subjectData.name,
+          code: subjectData.code || "",
+          description: subjectData.description || "",
+          credits: subjectData.credits || 3,
+          order: subjectData.order || 1,
+          lectures: [],
+          createdAt: new Date(),
+        };
 
-      // Get current year document
-      const yearDoc = await getDocs(collection(db, "years"));
-      const currentYearDoc = yearDoc.docs.find(
-        (doc) => doc.id === subjectData.yearId,
-      );
-
-      if (currentYearDoc) {
-        const currentData = currentYearDoc.data();
-        const currentSubjects = currentData.subjects || [];
-
-        // Add new subject to the subjects array
-        const updatedSubjects = [...currentSubjects, newSubject];
-
-        // Update the year document with the new subjects array
-        await updateDoc(yearDocRef, {
-          subjects: updatedSubjects,
-        });
-
-        console.log(
-          "✅ Added subject to Firebase year document:",
-          subjectData.name,
+        // Get current year document
+        const yearDoc = await getDocs(collection(db, "years"));
+        const currentYearDoc = yearDoc.docs.find(
+          (doc) => doc.id === subjectData.yearId,
         );
 
-        // Refresh data
-        window.location.reload();
-      } else {
-        throw new Error("Year document not found");
-      }
+        if (currentYearDoc) {
+          const currentData = currentYearDoc.data();
+          const currentSubjects = currentData.subjects || [];
+
+          // Add new subject to the subjects array
+          const updatedSubjects = [...currentSubjects, newSubject];
+
+          // Update the year document with the new subjects array
+          await updateDoc(yearDocRef, {
+            subjects: updatedSubjects,
+          });
+
+          console.log(
+            "✅ Added subject to Firebase year document:",
+            subjectData.name,
+          );
+
+          // Refresh data
+          window.location.reload();
+        } else {
+          throw new Error("Year document not found");
+        }
+      });
     } catch (error) {
       console.error("Error creating subject:", error);
       // Fall back to offline mode
