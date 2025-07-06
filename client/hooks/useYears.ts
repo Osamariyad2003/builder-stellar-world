@@ -127,11 +127,19 @@ export function useYears() {
         } else {
           yearsSnapshot.forEach((doc) => {
             const data = doc.data();
+            // Extract year number from name field or order field
+            let yearNumber = data.order || 1;
+            if (data.name) {
+              const match = data.name.match(/\d+/);
+              if (match) {
+                yearNumber = parseInt(match[0]);
+              }
+            }
+
             yearsData.push({
               id: doc.id,
-              yearNumber:
-                data.yearNumber || parseInt(doc.id.replace("year", "")),
-              type: data.type || (data.yearNumber <= 3 ? "basic" : "clinical"),
+              yearNumber: yearNumber,
+              type: yearNumber <= 3 ? "basic" : "clinical",
               subjects: [],
             });
           });
