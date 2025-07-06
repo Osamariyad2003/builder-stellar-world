@@ -144,17 +144,14 @@ export function useYears() {
         // Handle different types of errors
         let errorMessage = "Failed to load data";
 
-        if (error.name === "AbortError") {
+        if (error.name === 'AbortError') {
           errorMessage = "Request timed out. Please check your connection.";
-        } else if (error.code === "permission-denied") {
-          errorMessage =
-            "Permission denied. Please check Firestore security rules.";
-        } else if (error.code === "unavailable") {
-          errorMessage =
-            "Firebase service unavailable. Please try again later.";
-        } else if (error.message && error.message.includes("fetch")) {
-          errorMessage =
-            "Network error. Please check your internet connection.";
+        } else if (error.code === 'permission-denied') {
+          errorMessage = "Permission denied. Please check Firestore security rules.";
+        } else if (error.code === 'unavailable') {
+          errorMessage = "Firebase service unavailable. Please try again later.";
+        } else if (error.message && error.message.includes('fetch')) {
+          errorMessage = "Network error. Please check your internet connection.";
         }
 
         setError(errorMessage);
@@ -172,10 +169,22 @@ export function useYears() {
     fetchData();
   }, []);
 
+  const retryOperation = async (operation: () => Promise<any>, maxRetries = 3) => {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        console.log(`Attempt ${i + 1} failed:`, error.message);
+        if (i === maxRetries - 1) throw error;
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
+      }
+    }
+  };
+
   const createSubject = async (
     subjectData: Omit<SubjectData, "id" | "lectures">,
   ) => {
-    if (isOfflineMode) {
+    if (isOfflineMode || !navigator.onLine) {
       const newSubject: SubjectData = {
         id: `subject_${Date.now()}`,
         ...subjectData,
@@ -197,8 +206,9 @@ export function useYears() {
     }
 
     try {
-      // Find the year document to update
-      const yearDocRef = doc(db, "years", subjectData.yearId);
+      await retryOperation(async () => {
+        // Find the year document to update
+        const yearDocRef = doc(db, "years", subjectData.yearId);
 
       // Create the new subject object
       const newSubject = {
