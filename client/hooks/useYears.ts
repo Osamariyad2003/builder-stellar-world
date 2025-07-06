@@ -227,54 +227,29 @@ export function useYears() {
       console.log("🔄 Creating subject with data:", subjectData);
 
       await retryOperation(async () => {
-        // Find the year document to update
-        const yearDocRef = doc(db, "years", subjectData.yearId);
-        console.log("📄 Looking for year document:", subjectData.yearId);
-
-        // Create the new subject object
+        // Create the new subject object for Subjects collection
         const newSubject = {
-          id: `subject_${Date.now()}`,
           name: subjectData.name,
           code: subjectData.code || "",
           description: subjectData.description || "",
           credits: subjectData.credits || 3,
           order: subjectData.order || 1,
-          lectures: [],
+          yearId: subjectData.yearId,
           createdAt: new Date(),
         };
 
         console.log("📝 New subject object:", newSubject);
 
-        // Get current year document using getDoc instead of getDocs
-        const yearDocSnapshot = await getDoc(yearDocRef);
+        // Add to Subjects collection
+        const docRef = await addDoc(collection(db, "Subjects"), newSubject);
 
-        if (yearDocSnapshot.exists()) {
-          const currentData = yearDocSnapshot.data();
-          const currentSubjects = currentData.subjects || [];
+        console.log(
+          "✅ Added subject to Subjects collection with ID:",
+          docRef.id,
+        );
 
-          console.log("📊 Current subjects in year:", currentSubjects.length);
-
-          // Add new subject to the subjects array
-          const updatedSubjects = [...currentSubjects, newSubject];
-
-          console.log("📈 Updated subjects count:", updatedSubjects.length);
-
-          // Update the year document with the new subjects array
-          await updateDoc(yearDocRef, {
-            subjects: updatedSubjects,
-          });
-
-          console.log(
-            "✅ Added subject to Firebase year document:",
-            subjectData.name,
-          );
-
-          // Refresh data
-          window.location.reload();
-        } else {
-          console.error("❌ Year document not found:", subjectData.yearId);
-          throw new Error("Year document not found");
-        }
+        // Refresh data
+        window.location.reload();
       });
     } catch (error) {
       console.error("Error creating subject:", error);
