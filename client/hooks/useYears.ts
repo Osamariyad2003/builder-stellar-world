@@ -442,6 +442,7 @@ export function useYears() {
     loading,
     error,
     isOfflineMode,
+    retryConnection,
     createSubject,
     createLecture,
     deleteLecture,
