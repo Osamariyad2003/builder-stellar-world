@@ -50,67 +50,6 @@ export function useYears() {
   const [error, setError] = useState<string | null>(null);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
 
-  // Mock data for offline mode
-  const mockYears: YearData[] = [
-    {
-      id: "year1",
-      yearNumber: 1,
-      type: "basic",
-      subjects: [
-        {
-          id: "anat1",
-          name: "Anatomy & Physiology",
-          code: "ANAT101",
-          description: "Basic human anatomy and physiology",
-          credits: 6,
-          yearId: "year1",
-          order: 1,
-          lectures: [
-            {
-              id: "lec1",
-              name: "Introduction to Anatomy",
-              description: "Basic anatomical terminology",
-              subjectId: "anat1",
-              order: 1,
-              createdAt: new Date(),
-              uploadedBy: "Dr. Smith",
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: "year2",
-      yearNumber: 2,
-      type: "basic",
-      subjects: [],
-    },
-    {
-      id: "year3",
-      yearNumber: 3,
-      type: "basic",
-      subjects: [],
-    },
-    {
-      id: "year4",
-      yearNumber: 4,
-      type: "clinical",
-      subjects: [],
-    },
-    {
-      id: "year5",
-      yearNumber: 5,
-      type: "clinical",
-      subjects: [],
-    },
-    {
-      id: "year6",
-      yearNumber: 6,
-      type: "clinical",
-      subjects: [],
-    },
-  ];
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -118,13 +57,7 @@ export function useYears() {
         const yearsSnapshot = await getDocs(collection(db, "years"));
         let yearsData: YearData[] = [];
 
-        if (yearsSnapshot.empty) {
-          // Initialize years structure if not exists
-          console.log("No years found, initializing years structure...");
-          await initializeYearsStructure();
-          // Create basic structure for display
-          yearsData = createDefaultYears();
-        } else {
+        if (!yearsSnapshot.empty) {
           yearsSnapshot.forEach((doc) => {
             const data = doc.data();
             // Extract year number from name field or order field
@@ -143,6 +76,10 @@ export function useYears() {
               subjects: [],
             });
           });
+        } else {
+          console.log("No years found in Firebase");
+          setYears([]);
+          setSubjects([]);
         }
 
         // Process subjects from the year documents
@@ -185,50 +122,16 @@ export function useYears() {
           "years",
         );
       } catch (error) {
-        console.error("Firebase error, switching to offline mode:", error);
-        setIsOfflineMode(true);
-        setYears(mockYears);
-        setSubjects(mockYears.flatMap((y) => y.subjects));
+        console.error("Firebase error:", error);
+        setError(`Failed to load data: ${error}`);
         setLoading(false);
-        setError(null);
+        setYears([]);
+        setSubjects([]);
       }
     };
 
     fetchData();
   }, []);
-
-  const createDefaultYears = (): YearData[] => {
-    return [
-      { id: "year1", yearNumber: 1, type: "basic", subjects: [] },
-      { id: "year2", yearNumber: 2, type: "basic", subjects: [] },
-      { id: "year3", yearNumber: 3, type: "basic", subjects: [] },
-      { id: "year4", yearNumber: 4, type: "clinical", subjects: [] },
-      { id: "year5", yearNumber: 5, type: "clinical", subjects: [] },
-      { id: "year6", yearNumber: 6, type: "clinical", subjects: [] },
-    ];
-  };
-
-  const initializeYearsStructure = async () => {
-    try {
-      const batch = writeBatch(db);
-
-      // Create year documents
-      for (let i = 1; i <= 6; i++) {
-        const yearRef = doc(db, "years", `year${i}`);
-        batch.set(yearRef, {
-          yearNumber: i,
-          type: i <= 3 ? "basic" : "clinical",
-          name: `Year ${i}`,
-          createdAt: new Date(),
-        });
-      }
-
-      await batch.commit();
-      console.log("✅ Years structure initialized in Firebase");
-    } catch (error) {
-      console.error("❌ Failed to initialize years structure:", error);
-    }
-  };
 
   const createSubject = async (
     subjectData: Omit<SubjectData, "id" | "lectures">,
