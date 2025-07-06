@@ -59,6 +59,7 @@ export default function Years() {
     loading,
     error,
     isOfflineMode,
+    retryConnection,
     createSubject,
     createLecture,
     deleteLecture,
@@ -120,7 +121,7 @@ export default function Years() {
   }
 
   console.log(
-    "🔍 Render check - isSubjectFormOpen:",
+    "���� Render check - isSubjectFormOpen:",
     isSubjectFormOpen,
     "selectedYear:",
     selectedYear,
@@ -445,7 +446,15 @@ export default function Years() {
         <Card>
           <CardContent className="text-center py-12">
             <div className="text-destructive mb-4">⚠️ Error loading years</div>
-            <p className="text-muted-foreground">{error}</p>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <div className="flex gap-2 justify-center">
+              <Button onClick={retryConnection} variant="outline">
+                Retry Connection
+              </Button>
+              <Button onClick={() => window.location.reload()} variant="ghost">
+                Refresh Page
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
