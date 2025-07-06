@@ -46,7 +46,10 @@ export default function Years() {
   const [isFileFormOpen, setIsFileFormOpen] = useState(false);
   const [isVideoFormOpen, setIsVideoFormOpen] = useState(false);
   const [isLectureFormOpen, setIsLectureFormOpen] = useState(false);
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<{
+    id: string;
+    number: number;
+  } | null>(null);
   const [selectedLecture, setSelectedLecture] = useState<string | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [yearType, setYearType] = useState<"basic" | "clinical">("basic");
@@ -67,8 +70,8 @@ export default function Years() {
     setIsQuizFormOpen(true);
   };
 
-  const handleAddSubject = (year: number, type: "basic" | "clinical") => {
-    setSelectedYear(year);
+  const handleAddSubject = (yearData: any, type: "basic" | "clinical") => {
+    setSelectedYear({ id: yearData.id, number: yearData.yearNumber });
     setYearType(type);
     setIsSubjectFormOpen(true);
   };
@@ -111,7 +114,7 @@ export default function Years() {
   if (isSubjectFormOpen) {
     return (
       <SubjectForm
-        year={selectedYear}
+        year={selectedYear?.number}
         yearType={yearType}
         onClose={() => {
           setIsSubjectFormOpen(false);
@@ -121,7 +124,7 @@ export default function Years() {
           try {
             await createSubject({
               ...subjectData,
-              yearId: `year${selectedYear}`,
+              yearId: selectedYear?.id || "",
               order: 1,
             });
             setIsSubjectFormOpen(false);
@@ -218,7 +221,7 @@ export default function Years() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handleAddSubject(yearData.yearNumber, type)}
+            onClick={() => handleAddSubject(yearData, type)}
             className="flex items-center gap-2"
           >
             <FolderPlus className="h-4 w-4" />
@@ -234,7 +237,7 @@ export default function Years() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleAddSubject(yearData.yearNumber, type)}
+              onClick={() => handleAddSubject(yearData, type)}
               className="mt-2"
             >
               Add your first subject
