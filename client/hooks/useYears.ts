@@ -262,6 +262,7 @@ export function useYears() {
     setLoading(true);
     setError(null);
     setIsOfflineMode(false);
+    setConnectionStatus("connecting");
     setRetryCount((prev) => prev + 1);
   };
 
