@@ -124,7 +124,16 @@ export function SubjectForm({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="year">Year</Label>
+                <Input
+                  id="year"
+                  value={`Year ${year} (${yearType === "basic" ? "Basic" : "Clinical"})`}
+                  disabled
+                  className="bg-muted"
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="name">Subject Name *</Label>
                 <Input
