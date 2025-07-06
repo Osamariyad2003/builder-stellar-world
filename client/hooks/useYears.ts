@@ -25,11 +25,9 @@ export interface YearData {
 export interface SubjectData {
   id?: string;
   name: string;
-  code?: string;
-  description?: string;
-  credits?: number;
+  subjectId?: string;
   yearId: string;
-  order: number;
+  imageUrl?: string;
   lectures: LectureData[];
 }
 
@@ -143,11 +141,9 @@ export function useYears() {
           allSubjects.push({
             id: subjectDoc.id,
             name: subjectData.name || "",
-            code: subjectData.code || "",
-            description: subjectData.description || "",
-            credits: subjectData.credits || 3,
+            subjectId: subjectData.subjectId || subjectDoc.id,
             yearId: subjectData.yearId || "",
-            order: subjectData.order || 1,
+            imageUrl: subjectData.imageUrl || "",
             lectures: lectures.sort((a, b) => a.order - b.order),
           });
         }
@@ -157,7 +153,7 @@ export function useYears() {
           ...year,
           subjects: allSubjects
             .filter((subject) => subject.yearId === year.id)
-            .sort((a, b) => a.order - b.order),
+            .sort((a, b) => a.name.localeCompare(b.name)),
         }));
 
         setYears(completeYears.sort((a, b) => a.yearNumber - b.yearNumber));
@@ -241,15 +237,17 @@ export function useYears() {
     if (isOfflineMode || !navigator.onLine) {
       const newSubject: SubjectData = {
         id: `subject_${Date.now()}`,
-        ...subjectData,
+        name: subjectData.name,
+        subjectId: `subject_${Date.now()}`,
+        yearId: subjectData.yearId,
+        imageUrl: "",
         lectures: [],
       };
 
       setSubjects((prev) => [...prev, newSubject]);
       setYears((prev) =>
         prev.map((year) =>
-          year.id === subjectData.yearId ||
-          `year${year.yearNumber}` === subjectData.yearId
+          year.id === subjectData.yearId
             ? { ...year, subjects: [...year.subjects, newSubject] }
             : year,
         ),
@@ -263,15 +261,12 @@ export function useYears() {
       console.log("🔄 Creating subject with data:", subjectData);
 
       await retryOperation(async () => {
-        // Create the new subject object for Subjects collection
+        // Create the new subject object for Subjects collection to match Firebase structure
         const newSubject = {
           name: subjectData.name,
-          code: subjectData.code || "",
-          description: subjectData.description || "",
-          credits: subjectData.credits || 3,
-          order: subjectData.order || 1,
+          subjectId: `subject_${Date.now()}`,
           yearId: subjectData.yearId,
-          createdAt: new Date(),
+          imageUrl: "",
         };
 
         console.log("📝 New subject object:", newSubject);
