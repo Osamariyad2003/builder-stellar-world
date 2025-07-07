@@ -376,63 +376,43 @@ export function useYears() {
     }
 
     try {
-      // Find the year that contains the subject
-      const yearsSnapshot = await getDocs(collection(db, "years"));
-      let targetYearId = "";
-      let targetSubjectIndex = -1;
+      await retryOperation(async () => {
+        // Create lecture document in the lectures subcollection under the subject
+        const subjectRef = doc(db, "Subjects", lectureData.subjectId);
+        const lecturesRef = collection(subjectRef, "lectures");
 
-      for (const yearDoc of yearsSnapshot.docs) {
-        const yearData = yearDoc.data();
-        if (yearData.subjects && Array.isArray(yearData.subjects)) {
-          const subjectIndex = yearData.subjects.findIndex(
-            (subject: any) => subject.id === lectureData.subjectId,
-          );
-          if (subjectIndex !== -1) {
-            targetYearId = yearDoc.id;
-            targetSubjectIndex = subjectIndex;
-            break;
-          }
-        }
-      }
+        // Create lecture with the exact structure you specified
+        const newLecture = {
+          title: lectureData.name, // Using 'title' as per your Firebase structure
+          description: lectureData.description || "",
+          imageUrl: lectureData.imageUrl || "",
+          order: lectureData.order || 1,
+          uploadedBy: lectureData.uploadedBy || "Current User",
+          createdAt: new Date(),
+          lectureId: "", // Will be updated with document ID after creation
+        };
 
-      if (targetYearId && targetSubjectIndex !== -1) {
-        const yearDocRef = doc(db, "years", targetYearId);
-        const yearDoc = yearsSnapshot.docs.find(
-          (doc) => doc.id === targetYearId,
+        console.log("📝 Creating lecture in subcollection:", newLecture);
+
+        // Add the lecture document to the lectures subcollection
+        const lectureDocRef = await addDoc(lecturesRef, newLecture);
+
+        // Update the document to include its own ID as lectureId
+        await updateDoc(lectureDocRef, {
+          lectureId: lectureDocRef.id,
+        });
+
+        console.log("✅ Created lecture document with ID:", lectureDocRef.id);
+        console.log(
+          "📁 Path: /Subjects/" +
+            lectureData.subjectId +
+            "/lectures/" +
+            lectureDocRef.id,
         );
-        const yearData = yearDoc?.data();
 
-        if (yearData) {
-          const updatedSubjects = [...yearData.subjects];
-          const newLecture = {
-            id: `lecture_${Date.now()}`,
-            name: lectureData.name,
-            description: lectureData.description || "",
-            order: lectureData.order || 1,
-            imageUrl: lectureData.imageUrl || "",
-            createdAt: new Date(),
-            uploadedBy: lectureData.uploadedBy || "Current User",
-          };
-
-          // Add lecture to the subject's lectures array
-          if (!updatedSubjects[targetSubjectIndex].lectures) {
-            updatedSubjects[targetSubjectIndex].lectures = [];
-          }
-          updatedSubjects[targetSubjectIndex].lectures.push(newLecture);
-
-          // Update the year document
-          await updateDoc(yearDocRef, {
-            subjects: updatedSubjects,
-          });
-
-          console.log("✅ Added lecture to Firebase:", lectureData.name);
-
-          // Refresh data
-          window.location.reload();
-        }
-      } else {
-        throw new Error("Subject not found in any year document");
-      }
+        // Refresh data
+        window.location.reload();
+      });
     } catch (error) {
       console.error("Error creating lecture:", error);
       // Fall back to offline mode
