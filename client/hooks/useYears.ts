@@ -312,8 +312,8 @@ export function useYears() {
       console.log("🔄 Creating subject with data:", subjectData);
 
       await retryOperation(async () => {
-        // Always use this specific document ID from your Firebase console
-        const targetDocId = "faoMRHVqpltXNrGnBY";
+        // Use the correct document ID that has the lectures subcollection
+        const targetDocId = "faoMRIHVqpIkXW3cWJBY";
         const subjectDocRef = doc(db, "Subjects", targetDocId);
 
         // Update the existing subject document
@@ -325,14 +325,14 @@ export function useYears() {
         };
 
         console.log(
-          "📝 Updating document faoMRHVqpltXNrGnBY with:",
+          "📝 Updating document faoMRIHVqpIkXW3cWJBY with:",
           updatedSubject,
         );
 
         // Use setDoc with merge to update the existing document
         await setDoc(subjectDocRef, updatedSubject, { merge: true });
 
-        console.log("✅ Updated document faoMRHVqpltXNrGnBY successfully");
+        console.log("✅ Updated document faoMRIHVqpIkXW3cWJBY successfully");
 
         // Refresh data
         window.location.reload();
