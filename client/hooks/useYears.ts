@@ -312,27 +312,27 @@ export function useYears() {
       console.log("🔄 Creating subject with data:", subjectData);
 
       await retryOperation(async () => {
-        // Use the correct document ID that has the lectures subcollection
-        const targetDocId = "faoMRIHVqpIkXW3cWJBY";
-        const subjectDocRef = doc(db, "Subjects", targetDocId);
-
-        // Update the existing subject document
-        const updatedSubject = {
+        // Create a new subject document with proper structure for lectures subcollection
+        const newSubject = {
           name: subjectData.name,
-          subjectId: targetDocId,
           yearId: subjectData.yearId,
           imageUrl: subjectData.imageUrl || "",
+          hours: 3, // Default hours as seen in your Firebase
+          createdAt: new Date(),
         };
 
-        console.log(
-          "📝 Updating document faoMRIHVqpIkXW3cWJBY with:",
-          updatedSubject,
-        );
+        console.log("📝 Creating new subject document:", newSubject);
 
-        // Use setDoc with merge to update the existing document
-        await setDoc(subjectDocRef, updatedSubject, { merge: true });
+        // Create new document in Subjects collection (Firebase will auto-generate ID)
+        const docRef = await addDoc(collection(db, "Subjects"), newSubject);
 
-        console.log("✅ Updated document faoMRIHVqpIkXW3cWJBY successfully");
+        // Update the document to include its own ID as subjectId
+        await updateDoc(docRef, {
+          subjectId: docRef.id,
+        });
+
+        console.log("✅ Created new subject document with ID:", docRef.id);
+        console.log("📚 Document structure ready for lectures subcollection");
 
         // Refresh data
         window.location.reload();
