@@ -236,59 +236,13 @@ export function useYears() {
           "years",
         );
       } catch (error: any) {
-        clearTimeout(quickTimeoutId);
-        console.error("Firebase error:", error);
+        console.error(
+          "Firebase error - activating offline mode immediately:",
+          error,
+        );
 
-        // Handle different types of errors
-        let errorMessage = "Failed to load data";
-
-        if (error.name === "AbortError") {
-          errorMessage = "Request timed out. Please check your connection.";
-        } else if (error.code === "permission-denied") {
-          errorMessage =
-            "Permission denied. Please check Firestore security rules.";
-        } else if (error.code === "unavailable") {
-          errorMessage =
-            "Firebase service unavailable. Please try again later.";
-        } else if (error.message && error.message.includes("fetch")) {
-          errorMessage =
-            "Network error. Please check your internet connection.";
-        }
-
-        setError(errorMessage);
-        setLoading(false);
-        setIsOfflineMode(true);
-        setConnectionStatus("offline");
-
-        // Provide basic year structure for offline use
-        const basicYears: YearData[] = [
-          { id: "offline_year1", yearNumber: 1, type: "basic", subjects: [] },
-          { id: "offline_year2", yearNumber: 2, type: "basic", subjects: [] },
-          { id: "offline_year3", yearNumber: 3, type: "basic", subjects: [] },
-          {
-            id: "offline_year4",
-            yearNumber: 4,
-            type: "clinical",
-            subjects: [],
-          },
-          {
-            id: "offline_year5",
-            yearNumber: 5,
-            type: "clinical",
-            subjects: [],
-          },
-          {
-            id: "offline_year6",
-            yearNumber: 6,
-            type: "clinical",
-            subjects: [],
-          },
-        ];
-
-        setYears(basicYears);
-        setSubjects([]);
-
-        console.log("🔄 Switched to offline mode with basic year structure");
+        // Immediately activate offline mode on any error
+        activateOfflineMode();
       }
     };
 
