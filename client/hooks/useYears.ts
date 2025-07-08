@@ -200,6 +200,7 @@ export function useYears() {
           "years",
         );
       } catch (error: any) {
+        clearTimeout(quickTimeoutId);
         console.error("Firebase error:", error);
 
         // Handle different types of errors
