@@ -349,11 +349,69 @@ export function useYears() {
           "✅ Created lectures subcollection with ID:",
           lectureDocRef.id,
         );
+
+        // Create videos subcollection under the lecture
+        const videosRef = collection(lectureDocRef, "videos");
+        const initialVideo = {
+          title: "Sample Video",
+          description: "",
+          thumbnailUrl: "",
+          url: "",
+          uploadedAt: new Date(),
+          videoId: "",
+        };
+        const videoDocRef = await addDoc(videosRef, initialVideo);
+        await updateDoc(videoDocRef, { videoId: videoDocRef.id });
+
+        // Create files subcollection under the lecture
+        const filesRef = collection(lectureDocRef, "files");
+        const initialFile = {
+          title: "Sample File",
+          description: "",
+          url: "",
+          uploadedAt: new Date(),
+          fileId: "",
+        };
+        const fileDocRef = await addDoc(filesRef, initialFile);
+        await updateDoc(fileDocRef, { fileId: fileDocRef.id });
+
+        // Create quizzes subcollection under the lecture
+        const quizzesRef = collection(lectureDocRef, "quizzes");
+        const initialQuiz = {
+          title: "Sample Quiz",
+          description: "",
+          duration: 30,
+          passRate: 70,
+          questions: [],
+          quizId: "",
+        };
+        const quizDocRef = await addDoc(quizzesRef, initialQuiz);
+        await updateDoc(quizDocRef, { quizId: quizDocRef.id });
+
+        console.log("✅ Created complete nested structure:");
         console.log(
-          "📁 Complete path: /Subjects/" +
+          "📁 Videos: /Subjects/" +
             docRef.id +
             "/lectures/" +
-            lectureDocRef.id,
+            lectureDocRef.id +
+            "/videos/" +
+            videoDocRef.id,
+        );
+        console.log(
+          "📁 Files: /Subjects/" +
+            docRef.id +
+            "/lectures/" +
+            lectureDocRef.id +
+            "/files/" +
+            fileDocRef.id,
+        );
+        console.log(
+          "📁 Quizzes: /Subjects/" +
+            docRef.id +
+            "/lectures/" +
+            lectureDocRef.id +
+            "/quizzes/" +
+            quizDocRef.id,
         );
 
         // Refresh data
