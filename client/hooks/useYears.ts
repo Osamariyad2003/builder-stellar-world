@@ -129,9 +129,13 @@ export function useYears() {
       setConnectionStatus("connecting");
 
       try {
-        // Add timeout for Firebase requests
+        // Add aggressive timeout for Firebase requests (shorter timeout for faster offline mode)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        const timeoutId = setTimeout(() => {
+          controller.abort();
+          console.log("⚡ Firebase timeout - activating offline mode");
+          activateOfflineMode();
+        }, 3000); // 3 second timeout
 
         // Try to fetch years
         console.log("🔄 Fetching years from Firebase...");
