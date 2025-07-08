@@ -54,6 +54,38 @@ export function useYears() {
     "connecting" | "connected" | "offline"
   >("connecting");
 
+  // Immediate offline mode for persistent Firebase issues
+  const activateOfflineMode = () => {
+    console.log("🔄 Activating offline mode immediately");
+    setIsOfflineMode(true);
+    setConnectionStatus("offline");
+    setLoading(false);
+    setError("Working in offline mode - Firebase unavailable");
+
+    const offlineYears: YearData[] = [
+      { id: "offline_year1", yearNumber: 1, type: "basic", subjects: [] },
+      { id: "offline_year2", yearNumber: 2, type: "basic", subjects: [] },
+      { id: "offline_year3", yearNumber: 3, type: "basic", subjects: [] },
+      { id: "offline_year4", yearNumber: 4, type: "clinical", subjects: [] },
+      { id: "offline_year5", yearNumber: 5, type: "clinical", subjects: [] },
+      { id: "offline_year6", yearNumber: 6, type: "clinical", subjects: [] },
+    ];
+
+    setYears(offlineYears);
+    setSubjects([]);
+  };
+
+  // Quick timeout to activate offline mode if Firebase is slow
+  useEffect(() => {
+    const quickTimeout = setTimeout(() => {
+      if (loading && !isOfflineMode) {
+        activateOfflineMode();
+      }
+    }, 2000); // 2 seconds
+
+    return () => clearTimeout(quickTimeout);
+  }, [loading, isOfflineMode]);
+
   useEffect(() => {
     const fetchData = async () => {
       // Check network connectivity first
