@@ -312,7 +312,7 @@ export function useYears() {
       console.log("🔄 Creating subject with data:", subjectData);
 
       await retryOperation(async () => {
-        // Create a new subject document with proper structure for lectures subcollection
+        // Create a new subject document with proper structure
         const newSubject = {
           name: subjectData.name,
           yearId: subjectData.yearId,
@@ -332,7 +332,38 @@ export function useYears() {
         });
 
         console.log("✅ Created new subject document with ID:", docRef.id);
-        console.log("📚 Document structure ready for lectures subcollection");
+
+        // Create the lectures subcollection structure
+        const lecturesRef = collection(docRef, "lectures");
+
+        // Create an initial lecture document to establish the subcollection
+        const initialLecture = {
+          title: "Sample Lecture",
+          description: "",
+          imageUrl: "",
+          order: 1,
+          uploadedBy: "System",
+          createdAt: new Date(),
+          lectureId: "", // Will be updated with document ID
+        };
+
+        const lectureDocRef = await addDoc(lecturesRef, initialLecture);
+
+        // Update lecture with its own ID
+        await updateDoc(lectureDocRef, {
+          lectureId: lectureDocRef.id,
+        });
+
+        console.log(
+          "✅ Created lectures subcollection with ID:",
+          lectureDocRef.id,
+        );
+        console.log(
+          "📁 Complete path: /Subjects/" +
+            docRef.id +
+            "/lectures/" +
+            lectureDocRef.id,
+        );
 
         // Refresh data
         window.location.reload();
