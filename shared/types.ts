@@ -86,10 +86,21 @@ export interface StoreCategory {
 
 export interface Product {
   id?: string;
-  title: string;
+  productId?: string;
+  name: string;
   description: string;
   price: number;
+  images: string[];
+  categoryId?: string;
+  createdAt: Date;
+}
+
+export interface Category {
+  id?: string;
+  categoryId?: string;
+  name: string;
+  description?: string;
   imageUrl?: string;
-  categoryId: string;
+  order: number;
   createdAt: Date;
 }
