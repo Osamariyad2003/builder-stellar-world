@@ -27,22 +27,66 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      setAuthError(null);
+    } catch (error: any) {
+      console.error("Login error:", error);
+      if (error.message && error.message.includes("fetch")) {
+        setAuthError("Network error - check your connection");
+      }
+      throw error;
+    }
   };
 
   const logout = async () => {
-    await signOut(auth);
+    try {
+      await signOut(auth);
+      setAuthError(null);
+    } catch (error: any) {
+      console.error("Logout error:", error);
+      // Even if logout fails, clear the user locally
+      setCurrentUser(null);
+    }
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-      setLoading(false);
-    });
+    // Add timeout for auth initialization
+    const authTimeout = setTimeout(() => {
+      if (loading) {
+        console.log(
+          "🔄 Auth taking too long - continuing without authentication",
+        );
+        setLoading(false);
+        // For development/offline mode, you could set a mock user here
+        // setCurrentUser({ email: "offline@medjust.com" } as User);
+      }
+    }, 5000); // 5 second timeout
 
-    return unsubscribe;
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (user) => {
+        clearTimeout(authTimeout);
+        setCurrentUser(user);
+        setLoading(false);
+        setAuthError(null);
+      },
+      (error) => {
+        clearTimeout(authTimeout);
+        console.error("Auth state change error:", error);
+        setAuthError("Authentication error - working offline");
+        setLoading(false);
+        // Continue without auth in offline mode
+      },
+    );
+
+    return () => {
+      clearTimeout(authTimeout);
+      unsubscribe();
+    };
   }, []);
 
   const value = {
