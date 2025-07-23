@@ -1,5 +1,5 @@
-// Global Firebase connection monitor - start in offline mode for safety
-let isFirebaseOffline = true;
+// Global Firebase connection monitor - start in online mode
+let isFirebaseOffline = false;
 let offlineListeners: Array<() => void> = [];
 
 // Monitor for persistent Firebase errors - reduced threshold for faster offline mode
@@ -36,7 +36,7 @@ export const reportFirebaseError = (error: any) => {
   }
 };
 
-// More aggressive approach - completely prevent Firebase requests when offline
+// Monitor Firebase requests and handle failures gracefully
 const originalFetch = window.fetch;
 window.fetch = (...args) => {
   // Check if this is a Firebase request
@@ -45,9 +45,9 @@ window.fetch = (...args) => {
                            url?.includes('firebase.googleapis.com') ||
                            url?.includes('identitytoolkit.googleapis.com');
 
+  // Only block Firebase requests if we're explicitly in offline mode due to previous failures
   if (isFirebaseRequest && isFirebaseOffline) {
     // Silently block Firebase requests when in offline mode (no console error)
-    // Create a custom error that can be caught and handled gracefully
     const offlineError = new Error('Firebase offline mode - request blocked');
     (offlineError as any).isFirebaseOfflineError = true;
     return Promise.reject(offlineError);
@@ -69,6 +69,7 @@ window.fetch = (...args) => {
     .catch(error => {
       // Handle Firebase request failures
       if (isFirebaseRequest) {
+        console.log("🔴 Firebase request failed:", error.message);
         reportFirebaseError(error);
       }
       throw error;
@@ -96,8 +97,8 @@ window.addEventListener('offline', () => {
   setFirebaseOffline(true);
 });
 
-// Start in offline mode by default, only enable Firebase when we know it works
-console.log("🔄 Starting Firebase monitoring in OFFLINE mode for safety");
+// Start in online mode, switch to offline only on failures
+console.log("🔄 Starting Firebase monitoring in ONLINE mode");
 
 // Suppress Firebase offline errors from appearing in console
 const originalConsoleError = console.error;
@@ -144,10 +145,10 @@ console.log = (...args) => {
 
 setTimeout(() => {
   if (!navigator.onLine) {
-    console.log("🚫 No internet connection detected");
+    console.log("🚫 No internet connection detected - switching to offline mode");
+    setFirebaseOffline(true);
   } else {
-    console.log("🌐 Internet available - Firebase will be enabled on first successful request");
-    // Don't enable Firebase yet, let it prove it works first
+    console.log("🌐 Internet available - Firebase enabled and ready");
   }
 }, 100);
 
