@@ -219,6 +219,12 @@ export default function Years() {
     );
   }
 
+  const semesters = [
+    { id: "1st", name: "1st Semester", color: "text-green-600" },
+    { id: "2nd", name: "2nd Semester", color: "text-blue-600" },
+    { id: "summer", name: "Summer Semester", color: "text-orange-600" },
+  ];
+
   const renderYearCard = (yearData: any, type: "basic" | "clinical") => (
     <Card
       key={yearData.yearNumber}
@@ -236,15 +242,6 @@ export default function Years() {
             )}
             Year {yearData.yearNumber}
           </CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleAddSubject(yearData, type)}
-            className="flex items-center gap-2"
-          >
-            <FolderPlus className="h-4 w-4" />
-            Add Subject
-          </Button>
         </div>
       </CardHeader>
       <CardContent>
