@@ -46,9 +46,11 @@ window.fetch = (...args) => {
                            url?.includes('identitytoolkit.googleapis.com');
 
   if (isFirebaseRequest && isFirebaseOffline) {
-    // Immediately reject Firebase requests when in offline mode
-    console.log("🚫 Blocking Firebase request:", url);
-    return Promise.reject(new Error('Firebase offline mode - request blocked'));
+    // Silently block Firebase requests when in offline mode (no console error)
+    // Create a custom error that can be caught and handled gracefully
+    const offlineError = new Error('Firebase offline mode - request blocked');
+    (offlineError as any).isFirebaseOfflineError = true;
+    return Promise.reject(offlineError);
   }
 
   // For non-Firebase requests or when online, use original fetch
@@ -96,6 +98,22 @@ window.addEventListener('offline', () => {
 
 // Start in offline mode by default, only enable Firebase when we know it works
 console.log("🔄 Starting Firebase monitoring in OFFLINE mode for safety");
+
+// Suppress Firebase offline errors from appearing in console
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  // Check if this is a Firebase offline error
+  const errorMessage = args.join(' ');
+  if (errorMessage.includes('Firebase offline mode - request blocked') ||
+      errorMessage.includes('FirebaseError: [code=unavailable]') ||
+      errorMessage.includes('Could not reach Cloud Firestore backend')) {
+    // These are expected errors when Firebase is offline - don't log them
+    return;
+  }
+
+  // Log all other errors normally
+  originalConsoleError.apply(console, args);
+};
 
 setTimeout(() => {
   if (!navigator.onLine) {

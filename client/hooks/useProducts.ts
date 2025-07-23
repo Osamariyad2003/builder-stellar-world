@@ -86,7 +86,15 @@ export function useProducts() {
         console.log("✅ Products loaded successfully:", productsData.length);
       } catch (error: any) {
         clearTimeout(quickTimeout);
-        console.error("Firebase error - switching to offline mode:", error);
+
+        // Handle Firebase offline errors gracefully
+        if (error.isFirebaseOfflineError) {
+          // Expected offline error - handle silently
+          console.log("🔄 Firebase offline mode detected - using mock data");
+        } else {
+          console.error("Firebase error - switching to offline mode:", error.message);
+        }
+
         setIsOfflineMode(true);
         setLoading(false);
         setError("Working in offline mode - Firebase unavailable");
