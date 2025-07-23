@@ -1,5 +1,5 @@
-// Global Firebase connection monitor
-let isFirebaseOffline = false;
+// Global Firebase connection monitor - start in offline mode for safety
+let isFirebaseOffline = true;
 let offlineListeners: Array<() => void> = [];
 
 // Monitor for persistent Firebase errors - reduced threshold for faster offline mode
@@ -94,13 +94,15 @@ window.addEventListener('offline', () => {
   setFirebaseOffline(true);
 });
 
-// Start in offline mode by default for safety, let real requests determine connectivity
+// Start in offline mode by default, only enable Firebase when we know it works
+console.log("🔄 Starting Firebase monitoring in OFFLINE mode for safety");
+
 setTimeout(() => {
   if (!navigator.onLine) {
-    console.log("🚫 No internet - starting in offline mode");
-    setFirebaseOffline(true);
+    console.log("🚫 No internet connection detected");
   } else {
-    console.log("🌐 Internet available - allowing Firebase requests (will switch to offline on first failure)");
+    console.log("🌐 Internet available - Firebase will be enabled on first successful request");
+    // Don't enable Firebase yet, let it prove it works first
   }
 }, 100);
 
