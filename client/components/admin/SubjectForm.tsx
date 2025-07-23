@@ -77,7 +77,7 @@ export function SubjectForm({
               )}
               <p className="text-muted-foreground">
                 Adding to {yearType === "basic" ? "Basic" : "Clinical"} Years •
-                Year {year}
+                Year {year} • {semester === "1st" ? "1st Semester" : semester === "2nd" ? "2nd Semester" : "Summer Semester"}
               </p>
             </div>
           </div>
