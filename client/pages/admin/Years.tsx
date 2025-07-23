@@ -49,6 +49,7 @@ export default function Years() {
   const [selectedYear, setSelectedYear] = useState<{
     id: string;
     number: number;
+    semester?: string;
   } | null>(null);
   const [selectedLecture, setSelectedLecture] = useState<string | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
@@ -76,11 +77,17 @@ export default function Years() {
     console.log(
       "🔄 Opening subject form for year:",
       yearData.yearNumber,
+      "semester:",
+      yearData.semester,
       "type:",
       type,
     );
     console.log("Year data:", yearData);
-    setSelectedYear({ id: yearData.id, number: yearData.yearNumber });
+    setSelectedYear({
+      id: yearData.id,
+      number: yearData.yearNumber,
+      semester: yearData.semester
+    });
     setYearType(type);
     setIsSubjectFormOpen(true);
     console.log("✅ Subject form should be open now");
@@ -134,6 +141,7 @@ export default function Years() {
       <SubjectForm
         year={selectedYear?.number}
         yearType={yearType}
+        semester={selectedYear?.semester}
         onClose={() => {
           setIsSubjectFormOpen(false);
           setSelectedYear(null);
