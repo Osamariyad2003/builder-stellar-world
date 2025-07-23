@@ -1,4 +1,5 @@
 import "./global.css";
+import "./lib/firebaseMonitor"; // Initialize Firebase monitoring early
 
 import { Toaster } from "@/components/ui/toaster";
 import { createRoot } from "react-dom/client";
