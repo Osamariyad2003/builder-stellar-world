@@ -48,11 +48,11 @@ export function useYears() {
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [isOfflineMode, setIsOfflineMode] = useState(true); // Start in offline mode to match firebaseMonitor
   const [retryCount, setRetryCount] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState<
     "connecting" | "connected" | "offline"
-  >("connecting");
+  >("offline"); // Start offline
 
   // Immediate offline mode for persistent Firebase issues
   const activateOfflineMode = () => {
@@ -60,7 +60,7 @@ export function useYears() {
     setIsOfflineMode(true);
     setConnectionStatus("offline");
     setLoading(false);
-    setError("Working in offline mode - Firebase unavailable");
+    setError(null); // Clear error in offline mode
 
     const offlineYears: YearData[] = [
       { id: "offline_year1", yearNumber: 1, type: "basic", subjects: [] },
@@ -75,70 +75,40 @@ export function useYears() {
     setSubjects([]);
   };
 
-  // Quick timeout to activate offline mode if Firebase is slow
+  // Initialize with offline data immediately
   useEffect(() => {
-    const quickTimeout = setTimeout(() => {
-      if (loading && !isOfflineMode) {
-        activateOfflineMode();
-      }
-    }, 2000); // 2 seconds
-
-    return () => clearTimeout(quickTimeout);
-  }, [loading, isOfflineMode]);
+    activateOfflineMode();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
-      // Check network connectivity first
+      // Skip Firebase entirely if offline mode is preferred
       if (!navigator.onLine) {
-        console.log("🚫 No internet connection detected");
-        setIsOfflineMode(true);
-        setConnectionStatus("offline");
-        setLoading(false);
-        setError("No internet connection");
+        console.log("🚫 No internet connection detected - staying in offline mode");
+        return;
+      }
 
-        // Provide offline year structure
-        const offlineYears: YearData[] = [
-          { id: "offline_year1", yearNumber: 1, type: "basic", subjects: [] },
-          { id: "offline_year2", yearNumber: 2, type: "basic", subjects: [] },
-          { id: "offline_year3", yearNumber: 3, type: "basic", subjects: [] },
-          {
-            id: "offline_year4",
-            yearNumber: 4,
-            type: "clinical",
-            subjects: [],
-          },
-          {
-            id: "offline_year5",
-            yearNumber: 5,
-            type: "clinical",
-            subjects: [],
-          },
-          {
-            id: "offline_year6",
-            yearNumber: 6,
-            type: "clinical",
-            subjects: [],
-          },
-        ];
-
-        setYears(offlineYears);
-        setSubjects([]);
+      // Only try Firebase if we want to retry connection
+      if (retryCount === 0) {
+        console.log("🔄 Staying in offline mode (use retry to attempt Firebase)");
         return;
       }
 
       setConnectionStatus("connecting");
+      setLoading(true);
 
       try {
-        // Add aggressive timeout for Firebase requests (shorter timeout for faster offline mode)
+        console.log("🔄 Attempting Firebase connection...");
+
+        // Quick timeout for Firebase requests
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
           controller.abort();
-          console.log("⚡ Firebase timeout - activating offline mode");
+          console.log("⚡ Firebase timeout - staying in offline mode");
           activateOfflineMode();
-        }, 3000); // 3 second timeout
+        }, 2000); // 2 second timeout
 
         // Try to fetch years
-        console.log("🔄 Fetching years from Firebase...");
         const yearsSnapshot = await getDocs(collection(db, "years"));
         clearTimeout(timeoutId);
         let yearsData: YearData[] = [];
@@ -146,9 +116,6 @@ export function useYears() {
         if (!yearsSnapshot.empty) {
           yearsSnapshot.forEach((doc) => {
             const data = doc.data();
-            console.log("📊 Firebase year doc:", doc.id, data);
-
-            // Extract year number from name field or order field
             let yearNumber = data.order || 1;
             if (data.name) {
               const match = data.name.match(/\d+/);
@@ -157,15 +124,6 @@ export function useYears() {
               }
             }
 
-            console.log(
-              "🔢 Extracted yearNumber:",
-              yearNumber,
-              "from order:",
-              data.order,
-              "name:",
-              data.name,
-            );
-
             yearsData.push({
               id: doc.id,
               yearNumber: yearNumber,
@@ -173,10 +131,6 @@ export function useYears() {
               subjects: [],
             });
           });
-        } else {
-          console.log("No years found in Firebase");
-          setYears([]);
-          setSubjects([]);
         }
 
         // Fetch subjects from Subjects collection
@@ -185,9 +139,6 @@ export function useYears() {
 
         for (const subjectDoc of subjectsSnapshot.docs) {
           const subjectData = subjectDoc.data();
-          console.log("📊 Subject doc:", subjectDoc.id, subjectData);
-
-          // Fetch lectures for this subject
           const lecturesSnapshot = await getDocs(
             collection(subjectDoc.ref, "lectures"),
           );
@@ -230,20 +181,11 @@ export function useYears() {
         setLoading(false);
         setIsOfflineMode(false);
         setConnectionStatus("connected");
-        console.log(
-          "✅ Years data loaded successfully:",
-          completeYears.length,
-          "years",
-        );
+        setError(null);
+        console.log("✅ Firebase data loaded successfully");
       } catch (error: any) {
-        // Handle Firebase offline errors gracefully (don't log expected errors)
-        if (error.isFirebaseOfflineError) {
-          // This is an expected error from Firebase monitor - just activate offline mode silently
-          activateOfflineMode();
-        } else {
-          console.error("Firebase error - activating offline mode:", error.message);
-          activateOfflineMode();
-        }
+        console.log("❌ Firebase connection failed - staying in offline mode");
+        activateOfflineMode();
       }
     };
 
@@ -452,7 +394,7 @@ export function useYears() {
         })),
       );
 
-      console.log("�� Added lecture to offline mode:", newLecture.name);
+      console.log("✅ Added lecture to offline mode:", newLecture.name);
       return;
     }
 

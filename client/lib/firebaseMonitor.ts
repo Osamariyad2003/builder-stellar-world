@@ -101,18 +101,45 @@ console.log("🔄 Starting Firebase monitoring in OFFLINE mode for safety");
 
 // Suppress Firebase offline errors from appearing in console
 const originalConsoleError = console.error;
+const originalConsoleWarn = console.warn;
+const originalConsoleLog = console.log;
+
 console.error = (...args) => {
-  // Check if this is a Firebase offline error
   const errorMessage = args.join(' ');
-  if (errorMessage.includes('Firebase offline mode - request blocked') ||
-      errorMessage.includes('FirebaseError: [code=unavailable]') ||
-      errorMessage.includes('Could not reach Cloud Firestore backend')) {
-    // These are expected errors when Firebase is offline - don't log them
-    return;
+  const suppressPatterns = [
+    'Firebase offline mode - request blocked',
+    'FirebaseError: [code=unavailable]',
+    'Could not reach Cloud Firestore backend',
+    'Connection failed',
+    'The operation could not be completed',
+    'device does not have a healthy Internet connection',
+    'client will operate in offline mode',
+    'Most recent error: FirebaseError',
+    '@firebase/firestore: Firestore'
+  ];
+
+  if (suppressPatterns.some(pattern => errorMessage.includes(pattern))) {
+    return; // Suppress Firebase offline errors
   }
 
-  // Log all other errors normally
   originalConsoleError.apply(console, args);
+};
+
+console.warn = (...args) => {
+  const warnMessage = args.join(' ');
+  if (warnMessage.includes('Firebase') && warnMessage.includes('offline')) {
+    return; // Suppress Firebase offline warnings
+  }
+  originalConsoleWarn.apply(console, args);
+};
+
+// Also suppress some Firebase log messages
+console.log = (...args) => {
+  const logMessage = args.join(' ');
+  if (logMessage.includes('@firebase/firestore') && logMessage.includes('offline')) {
+    return; // Suppress Firebase offline logs
+  }
+  originalConsoleLog.apply(console, args);
 };
 
 setTimeout(() => {
