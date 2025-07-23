@@ -48,11 +48,11 @@ export function useYears() {
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isOfflineMode, setIsOfflineMode] = useState(true); // Start in offline mode to match firebaseMonitor
-  const [retryCount, setRetryCount] = useState(0);
+  const [isOfflineMode, setIsOfflineMode] = useState(false); // Start in online mode
+  const [retryCount, setRetryCount] = useState(1); // Start with 1 to trigger Firebase attempt
   const [connectionStatus, setConnectionStatus] = useState<
     "connecting" | "connected" | "offline"
-  >("offline"); // Start offline
+  >("connecting"); // Start connecting
 
   // Immediate offline mode for persistent Firebase issues
   const activateOfflineMode = () => {
@@ -75,22 +75,17 @@ export function useYears() {
     setSubjects([]);
   };
 
-  // Initialize with offline data immediately
+  // Initialize with Firebase attempt, fallback to offline if needed
   useEffect(() => {
-    activateOfflineMode();
+    // Don't activate offline mode immediately, let fetchData try Firebase first
   }, []);
 
   useEffect(() => {
     const fetchData = async () => {
-      // Skip Firebase entirely if offline mode is preferred
+      // Check internet connection first
       if (!navigator.onLine) {
-        console.log("🚫 No internet connection detected - staying in offline mode");
-        return;
-      }
-
-      // Only try Firebase if we want to retry connection
-      if (retryCount === 0) {
-        console.log("🔄 Staying in offline mode (use retry to attempt Firebase)");
+        console.log("🚫 No internet connection detected - activating offline mode");
+        activateOfflineMode();
         return;
       }
 

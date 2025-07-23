@@ -74,23 +74,13 @@ export default function Years() {
   };
 
   const handleAddSubject = (yearData: any, type: "basic" | "clinical") => {
-    console.log(
-      "🔄 Opening subject form for year:",
-      yearData.yearNumber,
-      "semester:",
-      yearData.semester,
-      "type:",
-      type,
-    );
-    console.log("Year data:", yearData);
+    console.log("🔄 Opening subject form for year:", yearData.yearNumber, "type:", type);
     setSelectedYear({
       id: yearData.id,
       number: yearData.yearNumber,
-      semester: yearData.semester
     });
     setYearType(type);
     setIsSubjectFormOpen(true);
-    console.log("✅ Subject form should be open now");
   };
 
   const handleAddLecture = (subject: any, type: "basic" | "clinical") => {
@@ -141,7 +131,6 @@ export default function Years() {
       <SubjectForm
         year={selectedYear?.number}
         yearType={yearType}
-        semester={selectedYear?.semester}
         onClose={() => {
           setIsSubjectFormOpen(false);
           setSelectedYear(null);
@@ -227,11 +216,7 @@ export default function Years() {
     );
   }
 
-  const semesters = [
-    { id: "1st", name: "1st Semester", color: "text-green-600" },
-    { id: "2nd", name: "2nd Semester", color: "text-blue-600" },
-    { id: "summer", name: "Summer Semester", color: "text-orange-600" },
-  ];
+
 
   const renderYearCard = (yearData: any, type: "basic" | "clinical") => (
     <Card
@@ -253,111 +238,94 @@ export default function Years() {
         </div>
       </CardHeader>
       <CardContent>
-        <Accordion type="multiple" className="space-y-4">
-          {semesters.map((semester) => (
-            <AccordionItem
-              key={semester.id}
-              value={semester.id}
-              className="border rounded-lg px-4"
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BookOpen className="h-4 w-4 text-blue-600" />
+              <span className="font-semibold">Subjects</span>
+              <Badge variant="secondary">
+                {yearData.subjects?.length || 0} subjects
+              </Badge>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleAddSubject(yearData, type)}
+              className="flex items-center gap-1"
             >
-              <AccordionTrigger className="text-left">
-                <div className="flex items-center justify-between w-full pr-4">
-                  <div className="flex items-center gap-3">
-                    <BookOpen className={`h-4 w-4 ${semester.color}`} />
-                    <span className="font-semibold">{semester.name}</span>
-                    <Badge variant="secondary">
-                      {yearData.subjects?.filter((s: any) => s.semester === semester.id).length || 0} subjects
-                    </Badge>
-                  </div>
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddSubject({...yearData, semester: semester.id}, type);
-                    }}
-                    className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary rounded cursor-pointer transition-colors"
-                  >
-                    <Plus className="h-3 w-3" />
-                    Add Subject
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pt-4">
-                <div className="space-y-4">
-                  {(!yearData.subjects || yearData.subjects.filter((s: any) => s.semester === semester.id).length === 0) ? (
-                    <div className="text-center py-6">
-                      <BookOpen className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        No subjects in {semester.name} yet
-                      </p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleAddSubject({...yearData, semester: semester.id}, type)}
-                        className="mt-2"
-                      >
-                        Add first subject
-                      </Button>
+              <Plus className="h-3 w-3" />
+              Add Subject
+            </Button>
+          </div>
+
+          {(!yearData.subjects || yearData.subjects.length === 0) ? (
+            <div className="text-center py-8">
+              <BookOpen className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground mb-3">
+                No subjects added yet
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleAddSubject(yearData, type)}
+              >
+                Add first subject
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {yearData.subjects?.map((subject: any) => (
+                <Card key={subject.id} className="bg-secondary/10">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="font-medium text-lg">{subject.name}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {subject.lectures?.length || 0} lectures
+                        </Badge>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleAddLecture(subject, type)}
+                          className="h-8 px-3 text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Lecture
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {yearData.subjects
-                        ?.filter((subject: any) => subject.semester === semester.id)
-                        ?.map((subject: any) => (
-                          <Card key={subject.id} className="bg-secondary/10">
-                            <CardHeader className="pb-2">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <span className="font-medium">{subject.name}</span>
-                                  <Badge variant="outline" className="text-xs">
-                                    {subject.lectures?.length || 0} lectures
-                                  </Badge>
-                                </div>
-                                <div className="flex gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleAddLecture(subject, type)}
-                                    className="h-6 px-2 text-xs"
-                                  >
-                                    <Plus className="h-3 w-3 mr-1" />
-                                    Add Lecture
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 text-destructive hover:text-destructive"
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </CardHeader>
-                            {subject.lectures && subject.lectures.length > 0 && (
-                              <CardContent className="pt-0">
-                                <div className="text-xs text-muted-foreground space-y-1">
-                                  {subject.lectures.slice(0, 3).map((lecture: any) => (
-                                    <div key={lecture.id} className="flex items-center gap-2">
-                                      <PlayCircle className="h-3 w-3" />
-                                      <span>{lecture.name}</span>
-                                    </div>
-                                  ))}
-                                  {subject.lectures.length > 3 && (
-                                    <div className="text-muted-foreground">
-                                      +{subject.lectures.length - 3} more lectures
-                                    </div>
-                                  )}
-                                </div>
-                              </CardContent>
-                            )}
-                          </Card>
+                  </CardHeader>
+                  {subject.lectures && subject.lectures.length > 0 && (
+                    <CardContent className="pt-0">
+                      <div className="text-sm text-muted-foreground space-y-2">
+                        {subject.lectures.slice(0, 4).map((lecture: any) => (
+                          <div key={lecture.id} className="flex items-center gap-2 p-2 rounded bg-background">
+                            <PlayCircle className="h-4 w-4" />
+                            <span>{lecture.name}</span>
+                          </div>
                         ))}
-                    </div>
+                        {subject.lectures.length > 4 && (
+                          <div className="text-center text-muted-foreground text-xs pt-2">
+                            +{subject.lectures.length - 4} more lectures
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
                   )}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
