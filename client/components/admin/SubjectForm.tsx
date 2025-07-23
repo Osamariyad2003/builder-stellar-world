@@ -99,8 +99,7 @@ export function SubjectForm({
               <div>
                 <h3 className="font-semibold text-lg">Year {year}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {yearType === "basic" ? "Basic Years" : "Clinical Years"}{" "}
-                  (Year {yearType === "basic" ? "1-3" : "4-6"})
+                  {yearType === "basic" ? "Basic Years" : "Clinical Years"} • {semester === "1st" ? "1st Semester" : semester === "2nd" ? "2nd Semester" : "Summer Semester"}
                 </p>
               </div>
             </div>
