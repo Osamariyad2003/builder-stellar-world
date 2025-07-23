@@ -236,13 +236,14 @@ export function useYears() {
           "years",
         );
       } catch (error: any) {
-        console.error(
-          "Firebase error - activating offline mode immediately:",
-          error,
-        );
-
-        // Immediately activate offline mode on any error
-        activateOfflineMode();
+        // Handle Firebase offline errors gracefully (don't log expected errors)
+        if (error.isFirebaseOfflineError) {
+          // This is an expected error from Firebase monitor - just activate offline mode silently
+          activateOfflineMode();
+        } else {
+          console.error("Firebase error - activating offline mode:", error.message);
+          activateOfflineMode();
+        }
       }
     };
 
@@ -451,7 +452,7 @@ export function useYears() {
         })),
       );
 
-      console.log("✅ Added lecture to offline mode:", newLecture.name);
+      console.log("�� Added lecture to offline mode:", newLecture.name);
       return;
     }
 
