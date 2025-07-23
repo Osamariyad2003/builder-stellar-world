@@ -74,8 +74,7 @@ export function SubjectForm({
                 <Stethoscope className="h-4 w-4 text-red-600" />
               )}
               <p className="text-muted-foreground">
-                Adding to {yearType === "basic" ? "Basic" : "Clinical"} Years •
-                Year {year} • {semester === "1st" ? "1st Semester" : semester === "2nd" ? "2nd Semester" : "Summer Semester"}
+                Adding to {yearType === "basic" ? "Basic" : "Clinical"} Years • Year {year}
               </p>
             </div>
           </div>
@@ -97,7 +96,7 @@ export function SubjectForm({
               <div>
                 <h3 className="font-semibold text-lg">Year {year}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {yearType === "basic" ? "Basic Years" : "Clinical Years"} • {semester === "1st" ? "1st Semester" : semester === "2nd" ? "2nd Semester" : "Summer Semester"}
+                  {yearType === "basic" ? "Basic Years" : "Clinical Years"}
                 </p>
               </div>
             </div>
