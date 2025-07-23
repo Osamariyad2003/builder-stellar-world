@@ -269,18 +269,16 @@ export default function Years() {
                       {yearData.subjects?.filter((s: any) => s.semester === semester.id).length || 0} subjects
                     </Badge>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  <div
                     onClick={(e) => {
                       e.stopPropagation();
                       handleAddSubject({...yearData, semester: semester.id}, type);
                     }}
-                    className="h-6 px-2 text-xs"
+                    className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary rounded cursor-pointer transition-colors"
                   >
-                    <Plus className="h-3 w-3 mr-1" />
+                    <Plus className="h-3 w-3" />
                     Add Subject
-                  </Button>
+                  </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pt-4">
