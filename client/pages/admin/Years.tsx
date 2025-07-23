@@ -306,16 +306,66 @@ export default function Years() {
                   </CardHeader>
                   {subject.lectures && subject.lectures.length > 0 && (
                     <CardContent className="pt-0">
-                      <div className="text-sm text-muted-foreground space-y-2">
-                        {subject.lectures.slice(0, 4).map((lecture: any) => (
-                          <div key={lecture.id} className="flex items-center gap-2 p-2 rounded bg-background">
-                            <PlayCircle className="h-4 w-4" />
-                            <span>{lecture.name}</span>
-                          </div>
+                      <div className="grid gap-3">
+                        {subject.lectures.slice(0, 3).map((lecture: any) => (
+                          <Card key={lecture.id} className="bg-background border">
+                            <CardContent className="p-3">
+                              <div className="flex items-start gap-3">
+                                <div className="relative w-16 h-12 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                                  {lecture.imageUrl ? (
+                                    <img
+                                      src={lecture.imageUrl}
+                                      alt={lecture.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <PlayCircle className="h-6 w-6 text-muted-foreground" />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-medium text-sm mb-1 truncate">{lecture.name}</h4>
+                                  <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                                    {lecture.description || "No description available"}
+                                  </p>
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleAddVideo(lecture.id)}
+                                      className="h-6 px-2 text-xs"
+                                    >
+                                      <Video className="h-3 w-3 mr-1" />
+                                      Videos
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleAddFile(lecture.id)}
+                                      className="h-6 px-2 text-xs"
+                                    >
+                                      <FileText className="h-3 w-3 mr-1" />
+                                      Files
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleAddQuiz(lecture.id)}
+                                      className="h-6 px-2 text-xs"
+                                    >
+                                      <HelpCircle className="h-3 w-3 mr-1" />
+                                      Quizzes
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
                         ))}
-                        {subject.lectures.length > 4 && (
+                        {subject.lectures.length > 3 && (
                           <div className="text-center text-muted-foreground text-xs pt-2">
-                            +{subject.lectures.length - 4} more lectures
+                            +{subject.lectures.length - 3} more lectures
                           </div>
                         )}
                       </div>
