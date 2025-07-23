@@ -127,9 +127,30 @@ setTimeout(async () => {
   }
 }, 500); // Test after 500ms
 
+// Disable Firebase features when offline to prevent any initialization
+export const disableFirebaseWhenOffline = () => {
+  if (isFirebaseOffline) {
+    // Override Firebase initialization functions to prevent them from running
+    const noop = () => {
+      console.log("🚫 Firebase function called in offline mode - skipping");
+      return Promise.reject(new Error('Firebase is offline'));
+    };
+
+    // Intercept common Firebase function calls
+    if (typeof window !== 'undefined') {
+      const firebase = (window as any).firebase;
+      if (firebase) {
+        firebase.initializeApp = noop;
+        firebase.app = noop;
+      }
+    }
+  }
+};
+
 export default {
   setFirebaseOffline,
   isFirebaseInOfflineMode,
   addOfflineModeListener,
   reportFirebaseError,
+  disableFirebaseWhenOffline,
 };
