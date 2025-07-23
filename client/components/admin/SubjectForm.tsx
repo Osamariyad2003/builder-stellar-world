@@ -21,7 +21,6 @@ import {
 interface SubjectFormProps {
   year?: number | null;
   yearType?: "basic" | "clinical";
-  semester?: string;
   onClose: () => void;
   onSave: (subject: any) => void;
 }
@@ -29,7 +28,6 @@ interface SubjectFormProps {
 export function SubjectForm({
   year,
   yearType,
-  semester,
   onClose,
   onSave,
 }: SubjectFormProps) {
