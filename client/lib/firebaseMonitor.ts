@@ -36,51 +36,41 @@ export const reportFirebaseError = (error: any) => {
   }
 };
 
-// Override the global fetch for Firebase requests to catch errors early
+// More aggressive approach - completely prevent Firebase requests when offline
 const originalFetch = window.fetch;
-window.fetch = async (...args) => {
-  try {
-    // Check if this is a Firebase request
-    const url = typeof args[0] === 'string' ? args[0] : args[0]?.url;
-    const isFirebaseRequest = url?.includes('firestore.googleapis.com') ||
-                             url?.includes('firebase.googleapis.com') ||
-                             url?.includes('identitytoolkit.googleapis.com');
+window.fetch = (...args) => {
+  // Check if this is a Firebase request
+  const url = typeof args[0] === 'string' ? args[0] : args[0]?.url;
+  const isFirebaseRequest = url?.includes('firestore.googleapis.com') ||
+                           url?.includes('firebase.googleapis.com') ||
+                           url?.includes('identitytoolkit.googleapis.com');
 
-    if (isFirebaseRequest && isFirebaseOffline) {
-      // Immediately reject Firebase requests when in offline mode
-      console.log("🚫 Blocking Firebase request - in offline mode");
-      const rejectedResponse = new Response(null, {
-        status: 503,
-        statusText: 'Service Unavailable - Firebase Offline Mode'
-      });
-      return Promise.reject(new Error('Firebase is in offline mode - request blocked'));
-    }
-
-    const response = await originalFetch(...args);
-
-    // Reset error count on successful Firebase request
-    if (isFirebaseRequest && response.ok) {
-      errorCount = 0;
-      if (isFirebaseOffline) {
-        console.log("🟢 Firebase connection restored");
-        setFirebaseOffline(false);
-      }
-    }
-
-    return response;
-  } catch (error: any) {
-    // Check if this is a Firebase request that failed
-    const url = typeof args[0] === 'string' ? args[0] : args[0]?.url;
-    const isFirebaseRequest = url?.includes('firestore.googleapis.com') ||
-                             url?.includes('firebase.googleapis.com') ||
-                             url?.includes('identitytoolkit.googleapis.com');
-
-    if (isFirebaseRequest) {
-      reportFirebaseError(error);
-    }
-
-    throw error;
+  if (isFirebaseRequest && isFirebaseOffline) {
+    // Immediately reject Firebase requests when in offline mode
+    console.log("🚫 Blocking Firebase request:", url);
+    return Promise.reject(new Error('Firebase offline mode - request blocked'));
   }
+
+  // For non-Firebase requests or when online, use original fetch
+  return originalFetch(...args)
+    .then(response => {
+      // Reset error count on successful Firebase request
+      if (isFirebaseRequest && response.ok) {
+        errorCount = 0;
+        if (isFirebaseOffline) {
+          console.log("🟢 Firebase connection restored");
+          setFirebaseOffline(false);
+        }
+      }
+      return response;
+    })
+    .catch(error => {
+      // Handle Firebase request failures
+      if (isFirebaseRequest) {
+        reportFirebaseError(error);
+      }
+      throw error;
+    });
 };
 
 // Initial connection test - more aggressive
@@ -104,28 +94,15 @@ window.addEventListener('offline', () => {
   setFirebaseOffline(true);
 });
 
-// Very quick Firebase connectivity test
-setTimeout(async () => {
-  if (navigator.onLine) {
-    try {
-      // Try a quick fetch to Firebase to test connectivity
-      const testUrl = 'https://firestore.googleapis.com/v1/projects/test';
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
-
-      await fetch(testUrl, {
-        signal: controller.signal,
-        method: 'HEAD' // Just check if the service is reachable
-      });
-
-      clearTimeout(timeoutId);
-      console.log("✅ Firebase connectivity test passed");
-    } catch (error) {
-      console.log("❌ Firebase connectivity test failed - switching to offline mode");
-      setFirebaseOffline(true);
-    }
+// Start in offline mode by default for safety, let real requests determine connectivity
+setTimeout(() => {
+  if (!navigator.onLine) {
+    console.log("🚫 No internet - starting in offline mode");
+    setFirebaseOffline(true);
+  } else {
+    console.log("🌐 Internet available - allowing Firebase requests (will switch to offline on first failure)");
   }
-}, 500); // Test after 500ms
+}, 100);
 
 // Disable Firebase features when offline to prevent any initialization
 export const disableFirebaseWhenOffline = () => {
