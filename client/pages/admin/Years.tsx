@@ -311,7 +311,7 @@ export default function Years() {
                           <Card key={lecture.id} className="bg-background border">
                             <CardContent className="p-3">
                               <div className="flex items-start gap-3">
-                                <div className="relative w-16 h-12 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                                <div className="relative w-20 h-14 rounded-md overflow-hidden bg-muted flex-shrink-0">
                                   {lecture.imageUrl ? (
                                     <img
                                       src={lecture.imageUrl}
@@ -329,7 +329,9 @@ export default function Years() {
                                   <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
                                     {lecture.description || "No description available"}
                                   </p>
-                                  <div className="flex items-center gap-1">
+
+                                  {/* Stats and Actions */}
+                                  <div className="flex items-center gap-1 mb-2">
                                     <Button
                                       variant="ghost"
                                       size="sm"
@@ -337,7 +339,7 @@ export default function Years() {
                                       className="h-6 px-2 text-xs"
                                     >
                                       <Video className="h-3 w-3 mr-1" />
-                                      Videos
+                                      Videos ({lecture.videos?.length || 0})
                                     </Button>
                                     <Button
                                       variant="ghost"
@@ -346,7 +348,7 @@ export default function Years() {
                                       className="h-6 px-2 text-xs"
                                     >
                                       <FileText className="h-3 w-3 mr-1" />
-                                      Files
+                                      Files ({lecture.files?.length || 0})
                                     </Button>
                                     <Button
                                       variant="ghost"
@@ -355,9 +357,79 @@ export default function Years() {
                                       className="h-6 px-2 text-xs"
                                     >
                                       <HelpCircle className="h-3 w-3 mr-1" />
-                                      Quizzes
+                                      Quizzes ({lecture.quizzes?.length || 0})
                                     </Button>
                                   </div>
+
+                                  {/* Video Links */}
+                                  {lecture.videos && lecture.videos.length > 0 && (
+                                    <div className="mb-2">
+                                      <p className="text-xs font-medium text-muted-foreground mb-1">Videos:</p>
+                                      <div className="space-y-1">
+                                        {lecture.videos.slice(0, 2).map((video: any) => (
+                                          <div key={video.id} className="flex items-center gap-2">
+                                            <Video className="h-3 w-3 text-blue-600" />
+                                            <a
+                                              href={video.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-xs text-blue-600 hover:underline truncate"
+                                            >
+                                              {video.title || video.name || "Untitled Video"}
+                                            </a>
+                                          </div>
+                                        ))}
+                                        {lecture.videos.length > 2 && (
+                                          <p className="text-xs text-muted-foreground">+{lecture.videos.length - 2} more videos</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* File Links */}
+                                  {lecture.files && lecture.files.length > 0 && (
+                                    <div className="mb-2">
+                                      <p className="text-xs font-medium text-muted-foreground mb-1">Files:</p>
+                                      <div className="space-y-1">
+                                        {lecture.files.slice(0, 2).map((file: any) => (
+                                          <div key={file.id} className="flex items-center gap-2">
+                                            <FileText className="h-3 w-3 text-green-600" />
+                                            <a
+                                              href={file.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-xs text-green-600 hover:underline truncate"
+                                            >
+                                              {file.title || file.name || "Untitled File"}
+                                            </a>
+                                          </div>
+                                        ))}
+                                        {lecture.files.length > 2 && (
+                                          <p className="text-xs text-muted-foreground">+{lecture.files.length - 2} more files</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Quiz Info */}
+                                  {lecture.quizzes && lecture.quizzes.length > 0 && (
+                                    <div>
+                                      <p className="text-xs font-medium text-muted-foreground mb-1">Quizzes:</p>
+                                      <div className="space-y-1">
+                                        {lecture.quizzes.slice(0, 2).map((quiz: any) => (
+                                          <div key={quiz.id} className="flex items-center gap-2">
+                                            <HelpCircle className="h-3 w-3 text-purple-600" />
+                                            <span className="text-xs text-purple-600">
+                                              {quiz.title || quiz.name || "Untitled Quiz"}
+                                            </span>
+                                          </div>
+                                        ))}
+                                        {lecture.quizzes.length > 2 && (
+                                          <p className="text-xs text-muted-foreground">+{lecture.quizzes.length - 2} more quizzes</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </CardContent>

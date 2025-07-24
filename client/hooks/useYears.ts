@@ -41,6 +41,35 @@ export interface LectureData {
   imageUrl?: string;
   createdAt: Date;
   uploadedBy: string;
+  videos?: VideoData[];
+  files?: FileData[];
+  quizzes?: QuizData[];
+}
+
+export interface VideoData {
+  id?: string;
+  title: string;
+  url: string;
+  thumbnailUrl?: string;
+  description?: string;
+  uploadedAt: Date;
+}
+
+export interface FileData {
+  id?: string;
+  title: string;
+  url: string;
+  description?: string;
+  uploadedAt: Date;
+}
+
+export interface QuizData {
+  id?: string;
+  title: string;
+  description?: string;
+  duration: number;
+  passRate: number;
+  questions: any[];
 }
 
 export function useYears() {
@@ -139,8 +168,53 @@ export function useYears() {
           );
           const lectures: LectureData[] = [];
 
-          lecturesSnapshot.forEach((lectureDoc) => {
+          for (const lectureDoc of lecturesSnapshot.docs) {
             const lectureData = lectureDoc.data();
+
+            // Fetch videos for this lecture
+            const videosSnapshot = await getDocs(collection(lectureDoc.ref, "videos"));
+            const videos: VideoData[] = [];
+            videosSnapshot.forEach((videoDoc) => {
+              const videoData = videoDoc.data();
+              videos.push({
+                id: videoDoc.id,
+                title: videoData.title || videoData.name || "",
+                url: videoData.url || "",
+                thumbnailUrl: videoData.thumbnailUrl || "",
+                description: videoData.description || "",
+                uploadedAt: videoData.uploadedAt?.toDate() || new Date(),
+              });
+            });
+
+            // Fetch files for this lecture
+            const filesSnapshot = await getDocs(collection(lectureDoc.ref, "files"));
+            const files: FileData[] = [];
+            filesSnapshot.forEach((fileDoc) => {
+              const fileData = fileDoc.data();
+              files.push({
+                id: fileDoc.id,
+                title: fileData.title || fileData.name || "",
+                url: fileData.url || "",
+                description: fileData.description || "",
+                uploadedAt: fileData.uploadedAt?.toDate() || new Date(),
+              });
+            });
+
+            // Fetch quizzes for this lecture
+            const quizzesSnapshot = await getDocs(collection(lectureDoc.ref, "quizzes"));
+            const quizzes: QuizData[] = [];
+            quizzesSnapshot.forEach((quizDoc) => {
+              const quizData = quizDoc.data();
+              quizzes.push({
+                id: quizDoc.id,
+                title: quizData.title || quizData.name || "",
+                description: quizData.description || "",
+                duration: quizData.duration || 30,
+                passRate: quizData.passRate || 70,
+                questions: quizData.questions || [],
+              });
+            });
+
             lectures.push({
               id: lectureDoc.id,
               name: lectureData.name || lectureData.title || "",
@@ -150,8 +224,11 @@ export function useYears() {
               imageUrl: lectureData.imageUrl || "",
               createdAt: lectureData.createdAt?.toDate() || new Date(),
               uploadedBy: lectureData.uploadedBy || "Unknown",
+              videos: videos,
+              files: files,
+              quizzes: quizzes,
             });
-          });
+          }
 
           allSubjects.push({
             id: subjectDoc.id,
