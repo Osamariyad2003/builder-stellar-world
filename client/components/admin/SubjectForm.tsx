@@ -46,11 +46,9 @@ export function SubjectForm({
     try {
       const subjectData = {
         name: formData.name,
-        imageUrl: formData.imageUrl,
-        hours: 3, // Default hours
-        createdAt: new Date(),
         imageUrl: formData.imageUrl || "",
-        semester: semester || "1st",
+        hours: formData.hours || 3,
+        createdAt: new Date(),
       };
 
       onSave(subjectData);
@@ -122,7 +120,7 @@ export function SubjectForm({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
                 <Label htmlFor="year">Year</Label>
                 <Input
@@ -145,6 +143,23 @@ export function SubjectForm({
                     }))
                   }
                   required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="hours">Credit Hours</Label>
+                <Input
+                  id="hours"
+                  type="number"
+                  placeholder="3"
+                  value={formData.hours}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      hours: parseInt(e.target.value) || 3,
+                    }))
+                  }
+                  min="1"
+                  max="12"
                 />
               </div>
               <div className="space-y-2">
