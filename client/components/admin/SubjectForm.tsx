@@ -34,6 +34,7 @@ export function SubjectForm({
   const [formData, setFormData] = useState({
     name: "",
     imageUrl: "",
+    hours: 3,
   });
 
   const [loading, setLoading] = useState(false);
@@ -45,6 +46,9 @@ export function SubjectForm({
     try {
       const subjectData = {
         name: formData.name,
+        imageUrl: formData.imageUrl,
+        hours: 3, // Default hours
+        createdAt: new Date(),
         imageUrl: formData.imageUrl || "",
         semester: semester || "1st",
       };

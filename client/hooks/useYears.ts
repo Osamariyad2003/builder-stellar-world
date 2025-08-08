@@ -297,7 +297,7 @@ export function useYears() {
         name: subjectData.name,
         subjectId: `subject_${Date.now()}`,
         yearId: subjectData.yearId,
-        imageUrl: "",
+        imageUrl: subjectData.imageUrl || "",
         lectures: [],
       };
 
@@ -318,118 +318,90 @@ export function useYears() {
       console.log("🔄 Creating subject with data:", subjectData);
 
       await retryOperation(async () => {
-        // Create a new subject document with proper structure
-        const newSubject = {
+        // Use the existing Subjects document structure from your Firebase
+        // Based on your screenshots, we should add to existing documents, not create new ones
+        const existingSubjectId = "7RpQaRoWKFLKiPA7A9Aq"; // Use your existing subject document ID
+
+        const subjectRef = doc(db, "Subjects", existingSubjectId);
+
+        // Update the existing subject document with new data
+        await updateDoc(subjectRef, {
           name: subjectData.name,
-          yearId: subjectData.yearId,
           imageUrl: subjectData.imageUrl || "",
-          hours: 3, // Default hours as seen in your Firebase
-          createdAt: new Date(),
-        };
-
-        console.log("📝 Creating new subject document:", newSubject);
-
-        // Create new document in Subjects collection (Firebase will auto-generate ID)
-        const docRef = await addDoc(collection(db, "Subjects"), newSubject);
-
-        // Update the document to include its own ID as subjectId
-        await updateDoc(docRef, {
-          subjectId: docRef.id,
+          hours: subjectData.hours || 3,
+          yearId: subjectData.yearId,
+          subjectId: existingSubjectId,
+          updatedAt: new Date(),
         });
 
-        console.log("✅ Created new subject document with ID:", docRef.id);
+        console.log("✅ Updated existing subject document:", existingSubjectId);
 
-        // Create the lectures subcollection structure
-        const lecturesRef = collection(docRef, "lectures");
+        // Check if lectures subcollection exists, if not create the structure
+        const lecturesRef = collection(subjectRef, "lectures");
+        const lecturesSnapshot = await getDocs(lecturesRef);
 
-        // Create an initial lecture document to establish the subcollection
-        const initialLecture = {
-          title: "Sample Lecture",
-          description: "",
-          imageUrl: "",
-          order: 1,
-          uploadedBy: "System",
-          createdAt: new Date(),
-          lectureId: "", // Will be updated with document ID
-        };
+        if (lecturesSnapshot.empty) {
+          // Create an initial lecture to establish the subcollection
+          const initialLecture = {
+            name: "Sample Lecture",
+            title: "Sample Lecture",
+            description: "",
+            imageUrl: "",
+            order: 1,
+            uploadedBy: "System",
+            createdAt: new Date(),
+            lectureId: "", // Will be updated with document ID
+          };
 
-        const lectureDocRef = await addDoc(lecturesRef, initialLecture);
+          const lectureDocRef = await addDoc(lecturesRef, initialLecture);
+          await updateDoc(lectureDocRef, {
+            lectureId: lectureDocRef.id,
+          });
 
-        // Update lecture with its own ID
-        await updateDoc(lectureDocRef, {
-          lectureId: lectureDocRef.id,
-        });
+          // Create the required subcollections under the lecture
+          const subCollections = ['videos', 'files', 'quizzes'];
 
-        console.log(
-          "✅ Created lectures subcollection with ID:",
-          lectureDocRef.id,
-        );
+          for (const collectionName of subCollections) {
+            const subCollectionRef = collection(lectureDocRef, collectionName);
+            let initialDoc: any = {};
 
-        // Create videos subcollection under the lecture
-        const videosRef = collection(lectureDocRef, "videos");
-        const initialVideo = {
-          title: "Sample Video",
-          description: "",
-          thumbnailUrl: "",
-          url: "",
-          uploadedAt: new Date(),
-          videoId: "",
-        };
-        const videoDocRef = await addDoc(videosRef, initialVideo);
-        await updateDoc(videoDocRef, { videoId: videoDocRef.id });
+            if (collectionName === 'videos') {
+              initialDoc = {
+                title: "Sample Video",
+                description: "",
+                thumbnailUrl: "",
+                url: "",
+                uploadedAt: new Date(),
+                videoId: "",
+              };
+            } else if (collectionName === 'files') {
+              initialDoc = {
+                title: "Sample File",
+                description: "",
+                url: "",
+                uploadedAt: new Date(),
+                fileId: "",
+              };
+            } else if (collectionName === 'quizzes') {
+              initialDoc = {
+                title: "Sample Quiz",
+                description: "",
+                duration: 30,
+                passRate: 70,
+                questions: [],
+                quizId: "",
+              };
+            }
 
-        // Create files subcollection under the lecture
-        const filesRef = collection(lectureDocRef, "files");
-        const initialFile = {
-          title: "Sample File",
-          description: "",
-          url: "",
-          uploadedAt: new Date(),
-          fileId: "",
-        };
-        const fileDocRef = await addDoc(filesRef, initialFile);
-        await updateDoc(fileDocRef, { fileId: fileDocRef.id });
+            const docRef = await addDoc(subCollectionRef, initialDoc);
+            const idField = `${collectionName.slice(0, -1)}Id`; // Remove 's' and add 'Id'
+            await updateDoc(docRef, { [idField]: docRef.id });
+          }
 
-        // Create quizzes subcollection under the lecture
-        const quizzesRef = collection(lectureDocRef, "quizzes");
-        const initialQuiz = {
-          title: "Sample Quiz",
-          description: "",
-          duration: 30,
-          passRate: 70,
-          questions: [],
-          quizId: "",
-        };
-        const quizDocRef = await addDoc(quizzesRef, initialQuiz);
-        await updateDoc(quizDocRef, { quizId: quizDocRef.id });
+          console.log("✅ Created complete lecture structure for subject:", existingSubjectId);
+        }
 
-        console.log("✅ Created complete nested structure:");
-        console.log(
-          "📁 Videos: /Subjects/" +
-            docRef.id +
-            "/lectures/" +
-            lectureDocRef.id +
-            "/videos/" +
-            videoDocRef.id,
-        );
-        console.log(
-          "📁 Files: /Subjects/" +
-            docRef.id +
-            "/lectures/" +
-            lectureDocRef.id +
-            "/files/" +
-            fileDocRef.id,
-        );
-        console.log(
-          "📁 Quizzes: /Subjects/" +
-            docRef.id +
-            "/lectures/" +
-            lectureDocRef.id +
-            "/quizzes/" +
-            quizDocRef.id,
-        );
-
-        // Refresh data
+        // Refresh data to show the updates
         window.location.reload();
       });
     } catch (error) {
