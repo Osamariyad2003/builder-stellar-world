@@ -35,15 +35,34 @@ export default function Maps() {
           <form onSubmit={submit} className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Name</Label>
-              <Input value={form.name} onChange={(e)=>setForm(f=>({...f,name:e.target.value}))} placeholder="Map name" required />
+              <Input
+                value={form.name}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, name: e.target.value }))
+                }
+                placeholder="Map name"
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label>Location</Label>
-              <Input value={form.location} onChange={(e)=>setForm(f=>({...f,location:e.target.value}))} placeholder="Location" />
+              <Input
+                value={form.location}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, location: e.target.value }))
+                }
+                placeholder="Location"
+              />
             </div>
             <div className="space-y-2">
               <Label>Video URL</Label>
-              <Input value={form.video_url} onChange={(e)=>setForm(f=>({...f,video_url:e.target.value}))} placeholder="https://..." />
+              <Input
+                value={form.video_url}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, video_url: e.target.value }))
+                }
+                placeholder="https://..."
+              />
             </div>
             <div className="md:col-span-3 flex justify-end">
               <Button type="submit" disabled={saving}>
@@ -69,15 +88,32 @@ export default function Maps() {
           ) : (
             <div className="grid gap-3">
               {maps.map((m) => (
-                <div key={m.id} className="p-3 border rounded flex items-center justify-between">
+                <div
+                  key={m.id}
+                  className="p-3 border rounded flex items-center justify-between"
+                >
                   <div className="min-w-0">
                     <div className="font-medium truncate">{m.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">{m.location}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {m.location}
+                    </div>
                     {m.video_url && (
-                      <a className="text-xs text-blue-600 hover:underline" href={m.video_url} target="_blank" rel="noreferrer">{m.video_url}</a>
+                      <a
+                        className="text-xs text-blue-600 hover:underline"
+                        href={m.video_url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {m.video_url}
+                      </a>
                     )}
                   </div>
-                  <Button variant="ghost" size="icon" onClick={()=>deleteMap(m.id)} className="text-destructive">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => deleteMap(m.id)}
+                    className="text-destructive"
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

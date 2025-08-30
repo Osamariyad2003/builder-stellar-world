@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, orderBy, query } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  orderBy,
+  query,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export interface MapItem {
@@ -38,12 +47,12 @@ export function useMaps() {
         console.error("Failed to load maps:", e);
         setError("Failed to load maps");
         setLoading(false);
-      }
+      },
     );
     return () => unsub();
   }, []);
 
-  const createMap = async (item: Omit<MapItem, "id"|"createdAt">) => {
+  const createMap = async (item: Omit<MapItem, "id" | "createdAt">) => {
     await addDoc(collection(db, "maps"), { ...item, createdAt: new Date() });
   };
   const updateMap = async (id: string, item: Partial<MapItem>) => {

@@ -60,15 +60,51 @@ export default function Dashboard() {
 
   const totalNews = news.length;
   const totalProfessors = professors.length;
-  const storeRevenue = products.reduce((s, p)=> s + (p.price || 0), 0);
-  const totalVideos = years.reduce((acc, y)=> acc + y.subjects.reduce((sa,s)=> sa + s.lectures.reduce((la,l)=> la + (l.videos?.length||0),0), 0), 0);
-  const totalSubjects = years.reduce((acc, y)=> acc + (y.subjects?.length || 0), 0);
+  const storeRevenue = products.reduce((s, p) => s + (p.price || 0), 0);
+  const totalVideos = years.reduce(
+    (acc, y) =>
+      acc +
+      y.subjects.reduce(
+        (sa, s) =>
+          sa + s.lectures.reduce((la, l) => la + (l.videos?.length || 0), 0),
+        0,
+      ),
+    0,
+  );
+  const totalSubjects = years.reduce(
+    (acc, y) => acc + (y.subjects?.length || 0),
+    0,
+  );
 
   const stats = [
-    { title: "Total News Articles", value: newsLoading ? "..." : String(totalNews), change: "+12%", icon: Newspaper, color: "text-blue-600" },
-    { title: "Subjects", value: yearsLoading ? "..." : String(totalSubjects), change: "+5%", icon: BookOpen, color: "text-green-600" },
-    { title: "Active Professors", value: professorsLoading ? "..." : String(totalProfessors), change: "+2%", icon: Users, color: "text-purple-600" },
-    { title: "Store Revenue", value: productsLoading ? "..." : `$${storeRevenue.toLocaleString()}`, change: "+18%", icon: DollarSign, color: "text-emerald-600" },
+    {
+      title: "Total News Articles",
+      value: newsLoading ? "..." : String(totalNews),
+      change: "+12%",
+      icon: Newspaper,
+      color: "text-blue-600",
+    },
+    {
+      title: "Subjects",
+      value: yearsLoading ? "..." : String(totalSubjects),
+      change: "+5%",
+      icon: BookOpen,
+      color: "text-green-600",
+    },
+    {
+      title: "Active Professors",
+      value: professorsLoading ? "..." : String(totalProfessors),
+      change: "+2%",
+      icon: Users,
+      color: "text-purple-600",
+    },
+    {
+      title: "Store Revenue",
+      value: productsLoading ? "..." : `$${storeRevenue.toLocaleString()}`,
+      change: "+18%",
+      icon: DollarSign,
+      color: "text-emerald-600",
+    },
   ];
 
   return (
