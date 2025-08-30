@@ -13,41 +13,12 @@ import {
   Users,
   Store,
   TrendingUp,
-  Eye,
-  FileText,
   DollarSign,
 } from "lucide-react";
-
-const stats = [
-  {
-    title: "Total News Articles",
-    value: "247",
-    change: "+12%",
-    icon: Newspaper,
-    color: "text-blue-600",
-  },
-  {
-    title: "Video Resources",
-    value: "89",
-    change: "+5%",
-    icon: PlayCircle,
-    color: "text-green-600",
-  },
-  {
-    title: "Active Professors",
-    value: "34",
-    change: "+2%",
-    icon: Users,
-    color: "text-purple-600",
-  },
-  {
-    title: "Store Revenue",
-    value: "$12,547",
-    change: "+18%",
-    icon: DollarSign,
-    color: "text-emerald-600",
-  },
-];
+import { useNews } from "@/hooks/useNews";
+import { useProducts } from "@/hooks/useProducts";
+import { useProfessors } from "@/hooks/useProfessors";
+import { useYears } from "@/hooks/useYears";
 
 const recentActivity = [
   {
@@ -81,6 +52,23 @@ const recentActivity = [
 ];
 
 export default function Dashboard() {
+  const { news, loading: newsLoading } = useNews();
+  const { products, loading: productsLoading } = useProducts();
+  const { professors, loading: professorsLoading } = useProfessors();
+  const { years, loading: yearsLoading } = useYears();
+
+  const totalNews = news.length;
+  const totalProfessors = professors.length;
+  const storeRevenue = products.reduce((s, p)=> s + (p.price || 0), 0);
+  const totalVideos = years.reduce((acc, y)=> acc + y.subjects.reduce((sa,s)=> sa + s.lectures.reduce((la,l)=> la + (l.videos?.length||0),0),0), 0);
+
+  const stats = [
+    { title: "Total News Articles", value: newsLoading ? "..." : String(totalNews), change: "+12%", icon: Newspaper, color: "text-blue-600" },
+    { title: "Video Resources", value: yearsLoading ? "..." : String(totalVideos), change: "+5%", icon: PlayCircle, color: "text-green-600" },
+    { title: "Active Professors", value: professorsLoading ? "..." : String(totalProfessors), change: "+2%", icon: Users, color: "text-purple-600" },
+    { title: "Store Revenue", value: productsLoading ? "..." : `$${storeRevenue.toLocaleString()}`, change: "+18%", icon: DollarSign, color: "text-emerald-600" },
+  ];
+
   return (
     <div className="space-y-6">
       <div>

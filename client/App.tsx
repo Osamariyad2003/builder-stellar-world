@@ -17,6 +17,7 @@ import Years from "./pages/admin/Years";
 import Professors from "./pages/admin/Professors";
 import Store from "./pages/admin/Store";
 import Settings from "./pages/admin/Settings";
+import Maps from "./pages/admin/Maps";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
                 />
                 <Route path="professors" element={<Professors />} />
                 <Route path="store" element={<Store />} />
+                <Route path="maps" element={<Maps />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
               <Route path="/" element={<Navigate to="/admin" />} />
