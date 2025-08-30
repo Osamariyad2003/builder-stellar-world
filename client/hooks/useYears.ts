@@ -393,7 +393,7 @@ export function useYears() {
         }
 
         // Refresh data to show the updates
-        window.location.reload();
+        setRetryCount((prev) => prev + 1);
       });
     } catch (error) {
       console.error("Error creating subject:", error);
@@ -469,7 +469,7 @@ export function useYears() {
         );
 
         // Refresh data
-        window.location.reload();
+        setRetryCount((prev) => prev + 1);
       });
     } catch (error) {
       console.error("Error creating lecture:", error);
