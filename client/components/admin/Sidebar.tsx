@@ -11,6 +11,7 @@ import {
   FileText,
   HelpCircle,
   BookOpen,
+  MapPin,
 } from "lucide-react";
 
 interface SidebarProps {
