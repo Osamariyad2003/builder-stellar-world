@@ -14,6 +14,7 @@ import {
   Store,
   TrendingUp,
   DollarSign,
+  BookOpen,
 } from "lucide-react";
 import { useNews } from "@/hooks/useNews";
 import { useProducts } from "@/hooks/useProducts";
