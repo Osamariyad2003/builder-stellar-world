@@ -54,6 +54,20 @@ export default function Years() {
   const [selectedLecture, setSelectedLecture] = useState<string | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [yearType, setYearType] = useState<"basic" | "clinical">("basic");
+  const [expanded, setExpanded] = useState<Record<string, { videos: boolean; files: boolean; quizzes: boolean }>>({});
+
+  const toggleSection = (lectureId: string, section: 'videos' | 'files' | 'quizzes') => {
+    setExpanded((prev) => ({
+      ...prev,
+      [lectureId]: {
+        videos: false,
+        files: false,
+        quizzes: false,
+        ...(prev[lectureId] || {}),
+        [section]: !(prev[lectureId]?.[section] || false),
+      },
+    }));
+  };
 
   const {
     years,
@@ -348,8 +362,8 @@ export default function Years() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleAddVideo(subject, lecture.id)}
-                                      className="h-6 px-2 text-xs"
+                                      onClick={() => toggleSection(lecture.id, 'videos')}
+                                      className={`h-6 px-2 text-xs ${expanded[lecture.id]?.videos ? 'bg-accent' : ''}`}
                                     >
                                       <Video className="h-3 w-3 mr-1" />
                                       Videos ({lecture.videos?.length || 0})
@@ -357,8 +371,8 @@ export default function Years() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleAddFile(subject, lecture.id)}
-                                      className="h-6 px-2 text-xs"
+                                      onClick={() => toggleSection(lecture.id, 'files')}
+                                      className={`h-6 px-2 text-xs ${expanded[lecture.id]?.files ? 'bg-accent' : ''}`}
                                     >
                                       <FileText className="h-3 w-3 mr-1" />
                                       Files ({lecture.files?.length || 0})
@@ -366,8 +380,8 @@ export default function Years() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleAddQuiz(subject, lecture.id)}
-                                      className="h-6 px-2 text-xs"
+                                      onClick={() => toggleSection(lecture.id, 'quizzes')}
+                                      className={`h-6 px-2 text-xs ${expanded[lecture.id]?.quizzes ? 'bg-accent' : ''}`}
                                     >
                                       <HelpCircle className="h-3 w-3 mr-1" />
                                       Quizzes ({lecture.quizzes?.length || 0})
@@ -375,11 +389,11 @@ export default function Years() {
                                   </div>
 
                                   {/* Video Links */}
-                                  {lecture.videos && lecture.videos.length > 0 && (
+                                  {lecture.videos && lecture.videos.length > 0 && expanded[lecture.id]?.videos && (
                                     <div className="mb-2">
                                       <p className="text-xs font-medium text-muted-foreground mb-1">Videos:</p>
                                       <div className="space-y-1">
-                                        {lecture.videos.slice(0, 2).map((video: any) => (
+                                        {lecture.videos.slice(0, 4).map((video: any) => (
                                           <div key={video.id} className="flex items-center gap-2">
                                             <Video className="h-3 w-3 text-blue-600" />
                                             <a
@@ -392,19 +406,19 @@ export default function Years() {
                                             </a>
                                           </div>
                                         ))}
-                                        {lecture.videos.length > 2 && (
-                                          <p className="text-xs text-muted-foreground">+{lecture.videos.length - 2} more videos</p>
+                                        {lecture.videos.length > 4 && (
+                                          <p className="text-xs text-muted-foreground">+{lecture.videos.length - 4} more videos</p>
                                         )}
                                       </div>
                                     </div>
                                   )}
 
                                   {/* File Links */}
-                                  {lecture.files && lecture.files.length > 0 && (
+                                  {lecture.files && lecture.files.length > 0 && expanded[lecture.id]?.files && (
                                     <div className="mb-2">
                                       <p className="text-xs font-medium text-muted-foreground mb-1">Files:</p>
                                       <div className="space-y-1">
-                                        {lecture.files.slice(0, 2).map((file: any) => (
+                                        {lecture.files.slice(0, 4).map((file: any) => (
                                           <div key={file.id} className="flex items-center gap-2">
                                             <FileText className="h-3 w-3 text-green-600" />
                                             <a
@@ -417,19 +431,19 @@ export default function Years() {
                                             </a>
                                           </div>
                                         ))}
-                                        {lecture.files.length > 2 && (
-                                          <p className="text-xs text-muted-foreground">+{lecture.files.length - 2} more files</p>
+                                        {lecture.files.length > 4 && (
+                                          <p className="text-xs text-muted-foreground">+{lecture.files.length - 4} more files</p>
                                         )}
                                       </div>
                                     </div>
                                   )}
 
                                   {/* Quiz Info */}
-                                  {lecture.quizzes && lecture.quizzes.length > 0 && (
+                                  {lecture.quizzes && lecture.quizzes.length > 0 && expanded[lecture.id]?.quizzes && (
                                     <div>
                                       <p className="text-xs font-medium text-muted-foreground mb-1">Quizzes:</p>
                                       <div className="space-y-1">
-                                        {lecture.quizzes.slice(0, 2).map((quiz: any) => (
+                                        {lecture.quizzes.slice(0, 4).map((quiz: any) => (
                                           <div key={quiz.id} className="flex items-center gap-2">
                                             <HelpCircle className="h-3 w-3 text-purple-600" />
                                             <span className="text-xs text-purple-600">
@@ -437,8 +451,8 @@ export default function Years() {
                                             </span>
                                           </div>
                                         ))}
-                                        {lecture.quizzes.length > 2 && (
-                                          <p className="text-xs text-muted-foreground">+{lecture.quizzes.length - 2} more quizzes</p>
+                                        {lecture.quizzes.length > 4 && (
+                                          <p className="text-xs text-muted-foreground">+{lecture.quizzes.length - 4} more quizzes</p>
                                         )}
                                       </div>
                                     </div>
