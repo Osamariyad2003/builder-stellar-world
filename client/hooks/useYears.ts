@@ -124,17 +124,8 @@ export function useYears() {
       try {
         console.log("🔄 Attempting Firebase connection...");
 
-        // Quick timeout for Firebase requests
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-          controller.abort();
-          console.log("⚡ Firebase timeout - staying in offline mode");
-          activateOfflineMode();
-        }, 2000); // 2 second timeout
-
-        // Try to fetch years
+        // Try to fetch years without aggressive aborts
         const yearsSnapshot = await getDocs(collection(db, "years"));
-        clearTimeout(timeoutId);
         let yearsData: YearData[] = [];
 
         if (!yearsSnapshot.empty) {
