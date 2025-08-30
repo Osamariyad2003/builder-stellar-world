@@ -104,6 +104,18 @@ window.addEventListener('offline', () => {
 // Start in online mode, switch to offline only on failures
 console.log("🔄 Starting Firebase monitoring in ONLINE mode");
 
+// Suppress unhandled promise rejections from noisy extensions/analytics
+window.addEventListener('unhandledrejection', (event) => {
+  const msg = String(event?.reason?.message || event?.reason || '');
+  const stack = String((event?.reason && (event.reason.stack || '')) || '');
+  if (
+    msg.includes('Failed to fetch') &&
+    (stack.includes('chrome-extension://') || stack.includes('fullstory.com'))
+  ) {
+    event.preventDefault();
+  }
+});
+
 // Suppress Firebase offline errors from appearing in console
 const originalConsoleError = console.error;
 const originalConsoleWarn = console.warn;
