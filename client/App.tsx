@@ -72,4 +72,11 @@ const App = () => (
   </ErrorBoundary>
 );
 
-createRoot(document.getElementById("root")!).render(<App />);
+const container = document.getElementById("root")! as any;
+if ((window as any).__appRoot) {
+  (window as any).__appRoot.render(<App />);
+} else {
+  const root = createRoot(container);
+  (window as any).__appRoot = root;
+  root.render(<App />);
+}
