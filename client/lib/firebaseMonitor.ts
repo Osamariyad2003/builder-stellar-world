@@ -36,46 +36,49 @@ export const reportFirebaseError = (error: any) => {
   }
 };
 
-// Monitor Firebase requests and handle failures gracefully
-const originalFetch = window.fetch;
-window.fetch = (...args) => {
-  // Check if this is a Firebase request
-  const url = typeof args[0] === 'string' ? args[0] : args[0]?.url;
-  const isFirebaseRequest = url?.includes('firestore.googleapis.com') ||
-                           url?.includes('firebase.googleapis.com') ||
-                           url?.includes('identitytoolkit.googleapis.com');
+// Monitor Firebase requests and handle failures gracefully (patch fetch once)
+if (!(window.fetch as any).__firebasePatched) {
+  const originalFetch = window.fetch;
+  const patchedFetch = (...args: Parameters<typeof fetch>) => {
+    const url = typeof args[0] === 'string' ? args[0] : (args[0] as Request)?.url;
+    const isFirebaseRequest = !!url && (
+      url.includes('firestore.googleapis.com') ||
+      url.includes('firebase.googleapis.com') ||
+      url.includes('identitytoolkit.googleapis.com')
+    );
 
-  // Only block Firebase requests if we're explicitly in offline mode due to previous failures
-  if (isFirebaseRequest && isFirebaseOffline) {
-    // Silently block Firebase requests when in offline mode (no console error)
-    const offlineError = new Error('Firebase offline mode - request blocked');
-    (offlineError as any).isFirebaseOfflineError = true;
-    return Promise.reject(offlineError);
-  }
+    // Bypass all non-Firebase requests completely
+    if (!isFirebaseRequest) {
+      return originalFetch(...args);
+    }
 
-  // For non-Firebase requests or when online, use original fetch
-  return originalFetch(...args)
-    .then(response => {
-      // Reset error count on successful Firebase request
-      if (isFirebaseRequest && response.ok) {
-        errorCount = 0;
-        if (isFirebaseOffline) {
-          console.log("🟢 Firebase connection restored");
-          setFirebaseOffline(false);
+    // Only block Firebase requests if explicitly offline
+    if (isFirebaseOffline) {
+      const offlineError = new Error('Firebase offline mode - request blocked');
+      (offlineError as any).isFirebaseOfflineError = true;
+      return Promise.reject(offlineError);
+    }
+
+    return originalFetch(...args)
+      .then((response) => {
+        if (response.ok) {
+          errorCount = 0;
+          if (isFirebaseOffline) {
+            console.log('🟢 Firebase connection restored');
+            setFirebaseOffline(false);
+          }
         }
-      }
-      return response;
-    })
-    .catch(error => {
-      // Handle Firebase request failures
-      if (isFirebaseRequest) {
-        console.log("🔴 Firebase request failed:", error?.message || String(error));
-        // Only count as an error if we are online (avoid extension/blocked noise)
+        return response;
+      })
+      .catch((error) => {
+        console.log('🔴 Firebase request failed:', error?.message || String(error));
         if (navigator.onLine) reportFirebaseError(error);
-      }
-      throw error;
-    });
-};
+        throw error;
+      });
+  };
+  (patchedFetch as any).__firebasePatched = true;
+  window.fetch = patchedFetch as any;
+}
 
 // Initial connection test - more aggressive
 console.log("🔄 Initializing Firebase monitoring...");
@@ -117,7 +120,10 @@ console.error = (...args) => {
     'device does not have a healthy Internet connection',
     'client will operate in offline mode',
     'Most recent error: FirebaseError',
-    '@firebase/firestore: Firestore'
+    '@firebase/firestore: Firestore',
+    'chrome-extension://',
+    'fullstory.com',
+    'TypeError: Failed to fetch (edge.fullstory.com)'
   ];
 
   if (suppressPatterns.some(pattern => errorMessage.includes(pattern))) {
