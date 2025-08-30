@@ -24,7 +24,7 @@ const navItems = [
   { icon: BookOpen, label: "Years", path: "/admin/years" },
   { icon: Users, label: "Professors", path: "/admin/professors" },
   { icon: Store, label: "Store", path: "/admin/store" },
-  { icon: BookOpen, label: "Maps", path: "/admin/maps" },
+  { icon: MapPin, label: "Maps", path: "/admin/maps" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },
 ];
 
