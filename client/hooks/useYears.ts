@@ -527,9 +527,206 @@ export function useYears() {
       console.log("✅ Deleted lecture from Firebase");
 
       // Refresh data
-      window.location.reload();
+      setRetryCount((prev) => prev + 1);
     } catch (error) {
       console.error("Error deleting lecture:", error);
+    }
+  };
+
+  const addVideo = async (
+    subjectId: string,
+    lectureId: string,
+    video: {
+      title: string;
+      description?: string;
+      url: string;
+      duration?: string;
+      thumbnailUrl?: string;
+      platform?: string;
+    },
+  ) => {
+    if (!subjectId || !lectureId) return;
+
+    if (isOfflineMode) {
+      // Update local state optimistically
+      setYears((prev) =>
+        prev.map((year) => ({
+          ...year,
+          subjects: year.subjects.map((s) =>
+            s.id === subjectId
+              ? {
+                  ...s,
+                  lectures: s.lectures.map((l) =>
+                    l.id === lectureId
+                      ? {
+                          ...l,
+                          videos: [
+                            ...(l.videos || []),
+                            {
+                              id: `video_${Date.now()}`,
+                              title: video.title,
+                              url: video.url,
+                              thumbnailUrl: video.thumbnailUrl || "",
+                              description: video.description || "",
+                              uploadedAt: new Date(),
+                            },
+                          ],
+                        }
+                      : l,
+                  ),
+                }
+              : s,
+          ),
+        })),
+      );
+      return;
+    }
+
+    try {
+      const subjectRef = doc(db, "Subjects", subjectId);
+      const lectureRef = doc(subjectRef, "lectures", lectureId);
+      await addDoc(collection(lectureRef, "videos"), {
+        title: video.title,
+        description: video.description || "",
+        url: video.url,
+        duration: video.duration || "",
+        thumbnailUrl: video.thumbnailUrl || "",
+        platform: video.platform || "",
+        uploadedAt: new Date(),
+        uploadedBy: "Current User",
+      });
+      setRetryCount((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error adding video:", error);
+    }
+  };
+
+  const addFile = async (
+    subjectId: string,
+    lectureId: string,
+    file: {
+      title: string;
+      description?: string;
+      fileUrl: string;
+      fileType?: string;
+      fileSize?: string;
+    },
+  ) => {
+    if (!subjectId || !lectureId) return;
+
+    if (isOfflineMode) {
+      setYears((prev) =>
+        prev.map((year) => ({
+          ...year,
+          subjects: year.subjects.map((s) =>
+            s.id === subjectId
+              ? {
+                  ...s,
+                  lectures: s.lectures.map((l) =>
+                    l.id === lectureId
+                      ? {
+                          ...l,
+                          files: [
+                            ...(l.files || []),
+                            {
+                              id: `file_${Date.now()}`,
+                              title: file.title,
+                              url: file.fileUrl,
+                              description: file.description || "",
+                              uploadedAt: new Date(),
+                            },
+                          ],
+                        }
+                      : l,
+                  ),
+                }
+              : s,
+          ),
+        })),
+      );
+      return;
+    }
+
+    try {
+      const subjectRef = doc(db, "Subjects", subjectId);
+      const lectureRef = doc(subjectRef, "lectures", lectureId);
+      await addDoc(collection(lectureRef, "files"), {
+        title: file.title,
+        description: file.description || "",
+        url: file.fileUrl,
+        fileType: file.fileType || "",
+        fileSize: file.fileSize || "",
+        uploadedAt: new Date(),
+        uploadedBy: "Current User",
+      });
+      setRetryCount((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error adding file:", error);
+    }
+  };
+
+  const addQuiz = async (
+    subjectId: string,
+    lectureId: string,
+    quiz: {
+      title: string;
+      description?: string;
+      questions: any[];
+      timeLimit?: number;
+      passingScore?: number;
+    },
+  ) => {
+    if (!subjectId || !lectureId) return;
+
+    if (isOfflineMode) {
+      setYears((prev) =>
+        prev.map((year) => ({
+          ...year,
+          subjects: year.subjects.map((s) =>
+            s.id === subjectId
+              ? {
+                  ...s,
+                  lectures: s.lectures.map((l) =>
+                    l.id === lectureId
+                      ? {
+                          ...l,
+                          quizzes: [
+                            ...(l.quizzes || []),
+                            {
+                              id: `quiz_${Date.now()}`,
+                              title: quiz.title,
+                              description: quiz.description || "",
+                              duration: quiz.timeLimit || 30,
+                              passRate: quiz.passingScore || 70,
+                              questions: quiz.questions || [],
+                            },
+                          ],
+                        }
+                      : l,
+                  ),
+                }
+              : s,
+          ),
+        })),
+      );
+      return;
+    }
+
+    try {
+      const subjectRef = doc(db, "Subjects", subjectId);
+      const lectureRef = doc(subjectRef, "lectures", lectureId);
+      await addDoc(collection(lectureRef, "quizzes"), {
+        title: quiz.title,
+        description: quiz.description || "",
+        duration: quiz.timeLimit || 30,
+        passRate: quiz.passingScore || 70,
+        questions: quiz.questions || [],
+        createdAt: new Date(),
+        uploadedBy: "Current User",
+      });
+      setRetryCount((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error adding quiz:", error);
     }
   };
 
@@ -544,5 +741,8 @@ export function useYears() {
     createSubject,
     createLecture,
     deleteLecture,
+    addVideo,
+    addFile,
+    addQuiz,
   };
 }
