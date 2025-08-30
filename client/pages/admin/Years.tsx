@@ -65,9 +65,13 @@ export default function Years() {
     createSubject,
     createLecture,
     deleteLecture,
+    addVideo,
+    addFile,
+    addQuiz,
   } = useYears();
 
-  const handleAddQuiz = (lectureId: string) => {
+  const handleAddQuiz = (subject: any, lectureId: string) => {
+    setSelectedSubject(subject);
     setSelectedLecture(lectureId);
     setSelectedQuiz(null);
     setIsQuizFormOpen(true);
@@ -89,12 +93,14 @@ export default function Years() {
     setIsLectureFormOpen(true);
   };
 
-  const handleAddFile = (lectureId: string) => {
+  const handleAddFile = (subject: any, lectureId: string) => {
+    setSelectedSubject(subject);
     setSelectedLecture(lectureId);
     setIsFileFormOpen(true);
   };
 
-  const handleAddVideo = (lectureId: string) => {
+  const handleAddVideo = (subject: any, lectureId: string) => {
+    setSelectedSubject(subject);
     setSelectedLecture(lectureId);
     setIsVideoFormOpen(true);
   };
@@ -108,8 +114,16 @@ export default function Years() {
           setSelectedQuiz(null);
           setSelectedLecture(null);
         }}
-        onSave={(quizData) => {
-          console.log("Save quiz:", quizData, "for lecture:", selectedLecture);
+        onSave={async (quizData) => {
+          if (selectedSubject?.id && selectedLecture) {
+            await addQuiz(selectedSubject.id, selectedLecture, {
+              title: quizData.title,
+              description: quizData.description,
+              questions: quizData.questions || [],
+              timeLimit: quizData.timeLimit,
+              passingScore: quizData.passingScore,
+            });
+          }
           setIsQuizFormOpen(false);
           setSelectedQuiz(null);
           setSelectedLecture(null);
@@ -185,8 +199,10 @@ export default function Years() {
           setIsFileFormOpen(false);
           setSelectedLecture(null);
         }}
-        onSave={(fileData) => {
-          console.log("Save file:", fileData, "for lecture:", selectedLecture);
+        onSave={async (fileData) => {
+          if (selectedSubject?.id && selectedLecture) {
+            await addFile(selectedSubject.id, selectedLecture, fileData);
+          }
           setIsFileFormOpen(false);
           setSelectedLecture(null);
         }}
@@ -202,13 +218,10 @@ export default function Years() {
           setIsVideoFormOpen(false);
           setSelectedLecture(null);
         }}
-        onSave={(videoData) => {
-          console.log(
-            "Save video:",
-            videoData,
-            "for lecture:",
-            selectedLecture,
-          );
+        onSave={async (videoData) => {
+          if (selectedSubject?.id && selectedLecture) {
+            await addVideo(selectedSubject.id, selectedLecture, videoData);
+          }
           setIsVideoFormOpen(false);
           setSelectedLecture(null);
         }}
@@ -335,7 +348,7 @@ export default function Years() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleAddVideo(lecture.id)}
+                                      onClick={() => handleAddVideo(subject, lecture.id)}
                                       className="h-6 px-2 text-xs"
                                     >
                                       <Video className="h-3 w-3 mr-1" />
@@ -344,7 +357,7 @@ export default function Years() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleAddFile(lecture.id)}
+                                      onClick={() => handleAddFile(subject, lecture.id)}
                                       className="h-6 px-2 text-xs"
                                     >
                                       <FileText className="h-3 w-3 mr-1" />
@@ -353,7 +366,7 @@ export default function Years() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleAddQuiz(lecture.id)}
+                                      onClick={() => handleAddQuiz(subject, lecture.id)}
                                       className="h-6 px-2 text-xs"
                                     >
                                       <HelpCircle className="h-3 w-3 mr-1" />
