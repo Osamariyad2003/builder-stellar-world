@@ -2,9 +2,9 @@
 let isFirebaseOffline = false;
 let offlineListeners: Array<() => void> = [];
 
-// Monitor for persistent Firebase errors - reduced threshold for faster offline mode
+// Monitor for persistent Firebase errors - be less aggressive to avoid false positives
 let errorCount = 0;
-const maxErrors = 1; // Switch to offline mode after just 1 error
+const maxErrors = 3; // Switch to offline mode after 3 consecutive errors
 
 export const setFirebaseOffline = (offline: boolean) => {
   if (isFirebaseOffline !== offline) {
@@ -69,8 +69,9 @@ window.fetch = (...args) => {
     .catch(error => {
       // Handle Firebase request failures
       if (isFirebaseRequest) {
-        console.log("🔴 Firebase request failed:", error.message);
-        reportFirebaseError(error);
+        console.log("🔴 Firebase request failed:", error?.message || String(error));
+        // Only count as an error if we are online (avoid extension/blocked noise)
+        if (navigator.onLine) reportFirebaseError(error);
       }
       throw error;
     });
