@@ -5,6 +5,7 @@ import { createServer } from "./server";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? '/builder-stellar-world/' : '/',
   server: {
     host: "::",
     port: 8080,
@@ -19,7 +20,7 @@ export default defineConfig(({ mode }) => ({
       "@shared": path.resolve(__dirname, "./shared"),
     },
   },
-}));
+}));​
 
 function expressPlugin(): Plugin {
   return {
