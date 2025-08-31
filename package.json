@@ -19,7 +19,7 @@
     "test": "vitest --run",
     "format.fix": "prettier --write .",
     "typecheck": "tsc",
-    "predeploy": "npm run build:client && cp dist/spa/index.html dist/spa/404.html || copy dist\\spa\\index.html dist\\spa\\404.html",
+    "predeploy": "npm run build:client && cp dist/spa/index.html dist/spa/404.html || copy dist\\spa\\index.html dist\\spa\\404.html && sh -c 'echo > dist/spa/.nojekyll' || type NUL > dist\\spa\\.nojekyll",
     "deploy": "gh-pages -d dist/spa"
   },
   "dependencies": {
