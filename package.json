@@ -19,8 +19,8 @@
     "test": "vitest --run",
     "format.fix": "prettier --write .",
     "typecheck": "tsc",
-    "predeploy": "npm run build:client",
-    "deploy": "gh-pages -d dist"
+    "predeploy": "npm run build:client && cp dist/spa/index.html dist/spa/404.html || copy dist\\spa\\index.html dist\\spa\\404.html",
+    "deploy": "gh-pages -d dist/spa"
   },
   "dependencies": {
     "express": "^4.18.2",
