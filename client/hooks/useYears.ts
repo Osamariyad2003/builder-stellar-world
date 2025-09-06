@@ -113,7 +113,9 @@ export function useYears() {
     const fetchData = async () => {
       // Check internet connection first
       if (!navigator.onLine) {
-        console.log("🚫 No internet connection detected - activating offline mode");
+        console.log(
+          "🚫 No internet connection detected - activating offline mode",
+        );
         activateOfflineMode();
         return;
       }
@@ -163,7 +165,9 @@ export function useYears() {
             const lectureData = lectureDoc.data();
 
             // Fetch videos for this lecture
-            const videosSnapshot = await getDocs(collection(lectureDoc.ref, "videos"));
+            const videosSnapshot = await getDocs(
+              collection(lectureDoc.ref, "videos"),
+            );
             const videos: VideoData[] = [];
             videosSnapshot.forEach((videoDoc) => {
               const videoData = videoDoc.data();
@@ -178,7 +182,9 @@ export function useYears() {
             });
 
             // Fetch files for this lecture
-            const filesSnapshot = await getDocs(collection(lectureDoc.ref, "files"));
+            const filesSnapshot = await getDocs(
+              collection(lectureDoc.ref, "files"),
+            );
             const files: FileData[] = [];
             filesSnapshot.forEach((fileDoc) => {
               const fileData = fileDoc.data();
@@ -192,7 +198,9 @@ export function useYears() {
             });
 
             // Fetch quizzes for this lecture
-            const quizzesSnapshot = await getDocs(collection(lectureDoc.ref, "quizzes"));
+            const quizzesSnapshot = await getDocs(
+              collection(lectureDoc.ref, "quizzes"),
+            );
             const quizzes: QuizData[] = [];
             quizzesSnapshot.forEach((quizDoc) => {
               const quizData = quizDoc.data();
@@ -350,13 +358,13 @@ export function useYears() {
           });
 
           // Create the required subcollections under the lecture
-          const subCollections = ['videos', 'files', 'quizzes'];
+          const subCollections = ["videos", "files", "quizzes"];
 
           for (const collectionName of subCollections) {
             const subCollectionRef = collection(lectureDocRef, collectionName);
             let initialDoc: any = {};
 
-            if (collectionName === 'videos') {
+            if (collectionName === "videos") {
               initialDoc = {
                 title: "Sample Video",
                 description: "",
@@ -365,7 +373,7 @@ export function useYears() {
                 uploadedAt: new Date(),
                 videoId: "",
               };
-            } else if (collectionName === 'files') {
+            } else if (collectionName === "files") {
               initialDoc = {
                 title: "Sample File",
                 description: "",
@@ -373,7 +381,7 @@ export function useYears() {
                 uploadedAt: new Date(),
                 fileId: "",
               };
-            } else if (collectionName === 'quizzes') {
+            } else if (collectionName === "quizzes") {
               initialDoc = {
                 title: "Sample Quiz",
                 description: "",
@@ -389,7 +397,10 @@ export function useYears() {
             await updateDoc(docRef, { [idField]: docRef.id });
           }
 
-          console.log("✅ Created complete lecture structure for subject:", existingSubjectId);
+          console.log(
+            "✅ Created complete lecture structure for subject:",
+            existingSubjectId,
+          );
         }
 
         // Refresh data to show the updates
