@@ -574,8 +574,7 @@ export function useYears() {
     }
 
     try {
-      const subjectRef = doc(db, "Subjects", subjectId);
-      const lectureRef = doc(subjectRef, "lectures", lectureId);
+      const lectureRef = doc(db, "Subjects", subjectId, "lectures", lectureId);
       await addDoc(collection(lectureRef, "videos"), {
         title: video.title,
         description: video.description || "",
@@ -639,8 +638,7 @@ export function useYears() {
     }
 
     try {
-      const subjectRef = doc(db, "Subjects", subjectId);
-      const lectureRef = doc(subjectRef, "lectures", lectureId);
+      const lectureRef = doc(db, "Subjects", subjectId, "lectures", lectureId);
       await addDoc(collection(lectureRef, "files"), {
         title: file.title,
         description: file.description || "",
@@ -704,8 +702,7 @@ export function useYears() {
     }
 
     try {
-      const subjectRef = doc(db, "Subjects", subjectId);
-      const lectureRef = doc(subjectRef, "lectures", lectureId);
+      const lectureRef = doc(db, "Subjects", subjectId, "lectures", lectureId);
       await addDoc(collection(lectureRef, "quizzes"), {
         title: quiz.title,
         description: quiz.description || "",
