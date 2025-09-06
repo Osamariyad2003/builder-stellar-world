@@ -389,24 +389,34 @@ export default function Years() {
                                   </div>
 
                                   {/* Video Links */}
-                                  {lecture.videos && lecture.videos.length > 0 && expanded[lecture.id]?.videos && (
+                                  {expanded[lecture.id]?.videos && (
                                     <div className="mb-2">
-                                      <p className="text-xs font-medium text-muted-foreground mb-1">Videos:</p>
+                                      <div className="flex items-center justify-between mb-1">
+                                        <p className="text-xs font-medium text-muted-foreground">Videos:</p>
+                                        <Button variant="ghost" size="xs" onClick={() => handleAddVideo(subject, lecture.id)} className="h-6 px-2 text-xs">
+                                          <Plus className="h-3 w-3 mr-1" /> Add
+                                        </Button>
+                                      </div>
                                       <div className="space-y-1">
-                                        {lecture.videos.slice(0, 4).map((video: any) => (
-                                          <div key={video.id} className="flex items-center gap-2">
-                                            <Video className="h-3 w-3 text-blue-600" />
-                                            <a
-                                              href={video.url}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-xs text-blue-600 hover:underline truncate"
-                                            >
-                                              {video.title || video.name || "Untitled Video"}
-                                            </a>
-                                          </div>
-                                        ))}
-                                        {lecture.videos.length > 4 && (
+                                        {lecture.videos && lecture.videos.length > 0 ? (
+                                          lecture.videos.slice(0, 4).map((video: any) => (
+                                            <div key={video.id} className="flex items-center gap-2">
+                                              <Video className="h-3 w-3 text-blue-600" />
+                                              <a
+                                                href={video.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs text-blue-600 hover:underline truncate"
+                                              >
+                                                {video.title || video.name || "Untitled Video"}
+                                              </a>
+                                            </div>
+                                          ))
+                                        ) : (
+                                          <p className="text-sm text-muted-foreground">No videos yet</p>
+                                        )}
+
+                                        {lecture.videos && lecture.videos.length > 4 && (
                                           <p className="text-xs text-muted-foreground">+{lecture.videos.length - 4} more videos</p>
                                         )}
                                       </div>
@@ -414,24 +424,34 @@ export default function Years() {
                                   )}
 
                                   {/* File Links */}
-                                  {lecture.files && lecture.files.length > 0 && expanded[lecture.id]?.files && (
+                                  {expanded[lecture.id]?.files && (
                                     <div className="mb-2">
-                                      <p className="text-xs font-medium text-muted-foreground mb-1">Files:</p>
+                                      <div className="flex items-center justify-between mb-1">
+                                        <p className="text-xs font-medium text-muted-foreground">Files:</p>
+                                        <Button variant="ghost" size="xs" onClick={() => handleAddFile(subject, lecture.id)} className="h-6 px-2 text-xs">
+                                          <Plus className="h-3 w-3 mr-1" /> Add
+                                        </Button>
+                                      </div>
                                       <div className="space-y-1">
-                                        {lecture.files.slice(0, 4).map((file: any) => (
-                                          <div key={file.id} className="flex items-center gap-2">
-                                            <FileText className="h-3 w-3 text-green-600" />
-                                            <a
-                                              href={file.url}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-xs text-green-600 hover:underline truncate"
-                                            >
-                                              {file.title || file.name || "Untitled File"}
-                                            </a>
-                                          </div>
-                                        ))}
-                                        {lecture.files.length > 4 && (
+                                        {lecture.files && lecture.files.length > 0 ? (
+                                          lecture.files.slice(0, 4).map((file: any) => (
+                                            <div key={file.id} className="flex items-center gap-2">
+                                              <FileText className="h-3 w-3 text-green-600" />
+                                              <a
+                                                href={file.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs text-green-600 hover:underline truncate"
+                                              >
+                                                {file.title || file.name || "Untitled File"}
+                                              </a>
+                                            </div>
+                                          ))
+                                        ) : (
+                                          <p className="text-sm text-muted-foreground">No files yet</p>
+                                        )}
+
+                                        {lecture.files && lecture.files.length > 4 && (
                                           <p className="text-xs text-muted-foreground">+{lecture.files.length - 4} more files</p>
                                         )}
                                       </div>
@@ -439,19 +459,29 @@ export default function Years() {
                                   )}
 
                                   {/* Quiz Info */}
-                                  {lecture.quizzes && lecture.quizzes.length > 0 && expanded[lecture.id]?.quizzes && (
+                                  {expanded[lecture.id]?.quizzes && (
                                     <div>
-                                      <p className="text-xs font-medium text-muted-foreground mb-1">Quizzes:</p>
+                                      <div className="flex items-center justify-between mb-1">
+                                        <p className="text-xs font-medium text-muted-foreground">Quizzes:</p>
+                                        <Button variant="ghost" size="xs" onClick={() => handleAddQuiz(subject, lecture.id)} className="h-6 px-2 text-xs">
+                                          <Plus className="h-3 w-3 mr-1" /> Add
+                                        </Button>
+                                      </div>
                                       <div className="space-y-1">
-                                        {lecture.quizzes.slice(0, 4).map((quiz: any) => (
-                                          <div key={quiz.id} className="flex items-center gap-2">
-                                            <HelpCircle className="h-3 w-3 text-purple-600" />
-                                            <span className="text-xs text-purple-600">
-                                              {quiz.title || quiz.name || "Untitled Quiz"}
-                                            </span>
-                                          </div>
-                                        ))}
-                                        {lecture.quizzes.length > 4 && (
+                                        {lecture.quizzes && lecture.quizzes.length > 0 ? (
+                                          lecture.quizzes.slice(0, 4).map((quiz: any) => (
+                                            <div key={quiz.id} className="flex items-center gap-2">
+                                              <HelpCircle className="h-3 w-3 text-purple-600" />
+                                              <span className="text-xs text-purple-600">
+                                                {quiz.title || quiz.name || "Untitled Quiz"}
+                                              </span>
+                                            </div>
+                                          ))
+                                        ) : (
+                                          <p className="text-sm text-muted-foreground">No quizzes yet</p>
+                                        )}
+
+                                        {lecture.quizzes && lecture.quizzes.length > 4 && (
                                           <p className="text-xs text-muted-foreground">+{lecture.quizzes.length - 4} more quizzes</p>
                                         )}
                                       </div>
