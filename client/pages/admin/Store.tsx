@@ -42,6 +42,8 @@ export default function Store() {
     retryConnection,
   } = useProducts();
 
+  const { createOrder } = useOrders();
+
   const handleAddProduct = () => {
     setSelectedProduct(null);
     setIsProductFormOpen(true);
