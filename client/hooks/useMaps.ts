@@ -15,6 +15,7 @@ export interface MapItem {
   id: string;
   name: string;
   location: string;
+  type?: string;
   video_url?: string;
   createdAt?: Date;
 }
