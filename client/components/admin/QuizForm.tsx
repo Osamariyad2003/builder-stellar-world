@@ -130,7 +130,10 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
 
     if (
       hasQuestion &&
-      currentQuestion.options.every((opt) => opt.trim())
+      Array.isArray(currentQuestion.options) &&
+      currentQuestion.options.filter(opt => String(opt).trim()).length >= 2 &&
+      typeof currentQuestion.correctAnswer === 'number' &&
+      String(currentQuestion.options[currentQuestion.correctAnswer] || '').trim()
     ) {
       setFormData((prev) => ({
         ...prev,
@@ -154,9 +157,23 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
   };
 
   const updateQuestionOption = (index: number, value: string) => {
-    const newOptions = [...currentQuestion.options];
+    const newOptions = [...(currentQuestion.options || [])];
     newOptions[index] = value;
     setCurrentQuestion((prev) => ({ ...prev, options: newOptions }));
+  };
+
+  const addOptionField = () => {
+    setCurrentQuestion((prev) => ({ ...prev, options: [...(prev.options || []), ""] }));
+  };
+
+  const removeOptionField = (index: number) => {
+    setCurrentQuestion((prev) => {
+      const opts = [...(prev.options || [])];
+      opts.splice(index, 1);
+      let correct = prev.correctAnswer;
+      if (correct >= opts.length) correct = Math.max(0, opts.length - 1);
+      return { ...prev, options: opts, correctAnswer: correct } as any;
+    });
   };
 
   return (
@@ -345,27 +362,44 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                             }
                           />
                         </div>
-                        <Button
-                          type="button"
-                          variant={
-                            currentQuestion.correctAnswer === index
-                              ? "default"
-                              : "outline"
-                          }
-                          size="sm"
-                          onClick={() =>
-                            setCurrentQuestion((prev) => ({
-                              ...prev,
-                              correctAnswer: index,
-                            }))
-                          }
-                        >
-                          {currentQuestion.correctAnswer === index
-                            ? "Correct"
-                            : "Mark Correct"}
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant={
+                              currentQuestion.correctAnswer === index
+                                ? "default"
+                                : "outline"
+                            }
+                            size="sm"
+                            onClick={() =>
+                              setCurrentQuestion((prev) => ({
+                                ...prev,
+                                correctAnswer: index,
+                              }))
+                            }
+                          >
+                            {currentQuestion.correctAnswer === index
+                              ? "Correct"
+                              : "Mark Correct"}
+                          </Button>
+                          {currentQuestion.options.length > 2 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeOptionField(index)}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
+                    <div>
+                      <Button type="button" variant="outline" onClick={addOptionField} className="mt-2">
+                        Add Option
+                      </Button>
+                    </div>
                   </div>
                 </>
               )}
