@@ -22,6 +22,7 @@ import Orders from "./pages/admin/Orders";
 import VideosPage from "./pages/admin/Videos";
 import FilesPage from "./pages/admin/Files";
 import QuizzesPage from "./pages/admin/Quizzes";
+import FlashcardsPage from "./pages/admin/Flashcards";
 import Settings from "./pages/admin/Settings";
 import Maps from "./pages/admin/Maps";
 import NotFound from "./pages/NotFound";
