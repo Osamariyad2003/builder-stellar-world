@@ -159,6 +159,20 @@ export function ProfessorForm({
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  placeholder="e.g., Associate Professor"
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, title: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
                 <Label htmlFor="department" className="flex items-center gap-2">
                   <Building className="h-4 w-4" />
                   Department
@@ -174,6 +188,17 @@ export function ProfessorForm({
                     }))
                   }
                   required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  placeholder="+1 555-555-5555"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                  }
                 />
               </div>
             </div>
@@ -218,6 +243,48 @@ export function ProfessorForm({
                   }
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bio">Short Bio</Label>
+              <Textarea
+                id="bio"
+                placeholder="Add a short biography for the professor"
+                value={formData.bio}
+                onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))}
+                rows={4}
+              />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="researchAreas">Research Areas</Label>
+                <Input
+                  id="researchAreas"
+                  placeholder="e.g., Cardiology, Epidemiology"
+                  value={formData.researchAreas}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, researchAreas: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="website">Website</Label>
+                <Input
+                  id="website"
+                  placeholder="https://"
+                  value={formData.website}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, website: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="linkedin">LinkedIn</Label>
+              <Input
+                id="linkedin"
+                placeholder="https://linkedin.com/in/username"
+                value={formData.linkedin}
+                onChange={(e) => setFormData((prev) => ({ ...prev, linkedin: e.target.value }))}
+              />
             </div>
           </CardContent>
         </Card>
