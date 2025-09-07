@@ -106,8 +106,30 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
   };
 
   const addQuestion = () => {
+    const isFlash = (formData as any).type === 'flashcard';
+    const hasQuestion = currentQuestion.question.trim();
+    if (isFlash) {
+      const hasAnswer = (currentQuestion.options && String(currentQuestion.options[0]).trim()) || (currentQuestion as any).answer;
+      if (hasQuestion && hasAnswer) {
+        const q = {
+          ...currentQuestion,
+          options: [String(currentQuestion.options?.[0] || (currentQuestion as any).answer || '').trim()],
+          correctAnswer: 0,
+        };
+        setFormData((prev) => ({ ...prev, questions: [...prev.questions, q] }));
+        setCurrentQuestion({
+          question: "",
+          options: [""],
+          correctAnswer: 0,
+          imageUrl: "",
+          weight: 1,
+        });
+      }
+      return;
+    }
+
     if (
-      currentQuestion.question.trim() &&
+      hasQuestion &&
       currentQuestion.options.every((opt) => opt.trim())
     ) {
       setFormData((prev) => ({
@@ -119,6 +141,7 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
         options: ["", "", "", ""],
         correctAnswer: 0,
         imageUrl: "",
+        weight: 1,
       });
     }
   };
@@ -285,49 +308,67 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label>Answer Options</Label>
-              <div className="space-y-2">
-                {currentQuestion.options.map((option, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <div className="flex items-center gap-2 flex-1">
-                      <Label className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-sm">
-                        {String.fromCharCode(65 + index)}
-                      </Label>
-                      <Input
-                        placeholder={`Option ${String.fromCharCode(65 + index)}`}
-                        value={option}
-                        onChange={(e) =>
-                          updateQuestionOption(index, e.target.value)
-                        }
-                        className={
-                          currentQuestion.correctAnswer === index
-                            ? "ring-2 ring-green-500"
-                            : ""
-                        }
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant={
-                        currentQuestion.correctAnswer === index
-                          ? "default"
-                          : "outline"
-                      }
-                      size="sm"
-                      onClick={() =>
-                        setCurrentQuestion((prev) => ({
-                          ...prev,
-                          correctAnswer: index,
-                        }))
-                      }
-                    >
-                      {currentQuestion.correctAnswer === index
-                        ? "Correct"
-                        : "Mark Correct"}
-                    </Button>
+              {(formData as any).type === 'flashcard' ? (
+                <>
+                  <Label>Correct Answer</Label>
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="Correct answer"
+                      value={currentQuestion.options[0] ?? (currentQuestion as any).answer ?? ''}
+                      onChange={(e) => {
+                        setCurrentQuestion(prev => ({ ...prev, options: [e.target.value] }));
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">For flashcards enter the correct answer (single). Use [[answer]] in the question to create blanks.</p>
                   </div>
-                ))}
-              </div>
+                </>
+              ) : (
+                <>
+                  <Label>Answer Options</Label>
+                  <div className="space-y-2">
+                    {currentQuestion.options.map((option, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-1">
+                          <Label className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-sm">
+                            {String.fromCharCode(65 + index)}
+                          </Label>
+                          <Input
+                            placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                            value={option}
+                            onChange={(e) =>
+                              updateQuestionOption(index, e.target.value)
+                            }
+                            className={
+                              currentQuestion.correctAnswer === index
+                                ? "ring-2 ring-green-500"
+                                : ""
+                            }
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant={
+                            currentQuestion.correctAnswer === index
+                              ? "default"
+                              : "outline"
+                          }
+                          size="sm"
+                          onClick={() =>
+                            setCurrentQuestion((prev) => ({
+                              ...prev,
+                              correctAnswer: index,
+                            }))
+                          }
+                        >
+                          {currentQuestion.correctAnswer === index
+                            ? "Correct"
+                            : "Mark Correct"}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="space-y-2">
