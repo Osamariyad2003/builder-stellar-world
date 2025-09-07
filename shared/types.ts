@@ -57,6 +57,7 @@ export interface Quiz {
   title: string;
   description?: string;
   questions: QuizQuestion[];
+  type?: 'flashcard' | 'multiple_choice';
   timeLimit?: number;
   passingScore?: number;
   createdAt: Date;
