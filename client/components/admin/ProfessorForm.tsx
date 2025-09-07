@@ -53,9 +53,15 @@ export function ProfessorForm({
     if (professor) {
       setFormData({
         name: professor.name || "",
+        title: professor.title || "",
         department: professor.department || "",
         email: professor.email || "",
+        phone: professor.phone || "",
         officeLocation: professor.officeLocation || "",
+        bio: professor.bio || "",
+        researchAreas: (professor.researchAreas || []).join(", "),
+        website: professor.website || "",
+        linkedin: professor.linkedin || "",
         imageUrl: professor.imageUrl || "",
       });
     }
