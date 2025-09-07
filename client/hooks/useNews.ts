@@ -93,6 +93,8 @@ export function useNews() {
             isPinned: data.isPinned || false,
             viewsCount: data.viewsCount || 0,
             attachments: data.attachments || [],
+            yearId: data.yearId || "",
+            yearNumber: data.yearNumber || undefined,
           } as NewsItem);
         });
         setNews(newsData);
