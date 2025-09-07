@@ -254,13 +254,8 @@ export function ProfessorForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
-                <Input
-                  id="website"
-                  placeholder="https://"
-                  value={formData.website}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, website: e.target.value }))}
-                />
+                {/* placeholder for layout symmetry - removed website field */}
+                <div />
               </div>
             </div>
 
