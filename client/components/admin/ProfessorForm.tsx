@@ -56,7 +56,6 @@ export function ProfessorForm({
         others: (professor as any).others || "",
         officeLocation: professor.officeLocation || "",
         researchAreas: (professor.researchAreas || []).join(", "),
-        website: professor.website || "",
         imageUrl: professor.imageUrl || "",
       });
     }
