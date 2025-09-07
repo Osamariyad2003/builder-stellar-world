@@ -41,6 +41,18 @@ export default function FlashcardsPage() {
 
   const currentMark = marks[index] ?? 0;
 
+  // Fill-in-the-blank UI state
+  const [fillMode, setFillMode] = useState(false);
+  const [inputs, setInputs] = useState<string[]>([]);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Reset fill mode and inputs when question changes
+    setFillMode(false);
+    setInputs([]);
+    setFeedback(null);
+  }, [index]);
+
   const setMarkForIndex = (i: number, value: number) => {
     const copy = [...marks];
     copy[i] = value;
@@ -49,6 +61,67 @@ export default function FlashcardsPage() {
 
   const totalMarked = marks.reduce((s, m, i) => s + (m || 0), 0);
   const percent = Math.round((totalMarked / totalWeight) * 100);
+
+  // Parse blanks in the question using [[answer]] markers. Returns parts array where {type:'text'|'blank', value}
+  const parseBlanks = (text: string) => {
+    if (!text) return [{ type: 'text', value: '' }];
+    const parts: { type: 'text' | 'blank'; value: string }[] = [];
+    const regex = /\[\[(.+?)\]\]/g;
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push({ type: 'text', value: text.slice(lastIndex, match.index) });
+      }
+      parts.push({ type: 'blank', value: match[1] });
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < text.length) {
+      parts.push({ type: 'text', value: text.slice(lastIndex) });
+    }
+    return parts;
+  };
+
+  const startFillMode = () => {
+    // If there are [[...]] markers, create inputs accordingly; otherwise create a single input
+    const qText = current?.question || '';
+    const parts = parseBlanks(qText);
+    const blanks = parts.filter(p => p.type === 'blank');
+    if (blanks.length > 0) {
+      setInputs(blanks.map(() => ''));
+    } else {
+      setInputs(['']);
+    }
+    setFeedback(null);
+    setFillMode(true);
+  };
+
+  const checkAnswers = () => {
+    // Determine expected answers: from [[answer]] markers or from options/correctAnswer
+    const qText = current?.question || '';
+    const parts = parseBlanks(qText);
+    const blanks = parts.filter(p => p.type === 'blank').map(p => p.value);
+    let expected: string[] = [];
+    if (blanks.length > 0) {
+      expected = blanks;
+    } else if (current && Array.isArray(current.options) && typeof current.correctAnswer === 'number') {
+      expected = [current.options[current.correctAnswer] || ''];
+    } else if (current && (current.answer || current.correct)) {
+      expected = [String(current.answer || current.correct)];
+    }
+
+    // Compare inputs to expected
+    const results = inputs.map((v, i) => {
+      const exp = (expected[i] ?? expected[0] ?? '').toString().trim().toLowerCase();
+      return v.toString().trim().toLowerCase() === exp && exp !== '';
+    });
+
+    const allCorrect = results.every(Boolean);
+    setFeedback(allCorrect ? 'Correct' : 'Incorrect');
+
+    // If correct, auto-mark full weight; else leave mark as 0 so admin can grade
+    if (allCorrect) setMarkForIndex(index, currentWeight);
+  };
 
   return (
     <div className="space-y-6">
