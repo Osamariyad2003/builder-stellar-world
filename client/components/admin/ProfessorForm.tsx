@@ -38,12 +38,10 @@ export function ProfessorForm({
     title: "",
     department: "",
     email: "",
-    phone: "",
+    others: "",
     officeLocation: "",
-    bio: "",
     researchAreas: "",
     website: "",
-    linkedin: "",
     imageUrl: "",
   });
 
@@ -56,12 +54,10 @@ export function ProfessorForm({
         title: professor.title || "",
         department: professor.department || "",
         email: professor.email || "",
-        phone: professor.phone || "",
+        others: (professor as any).others || "",
         officeLocation: professor.officeLocation || "",
-        bio: professor.bio || "",
         researchAreas: (professor.researchAreas || []).join(", "),
         website: professor.website || "",
-        linkedin: professor.linkedin || "",
         imageUrl: professor.imageUrl || "",
       });
     }
@@ -77,7 +73,7 @@ export function ProfessorForm({
       researchAreas: formData.researchAreas
         ? formData.researchAreas.split(",").map((s: string) => s.trim()).filter(Boolean)
         : [],
-    };
+    } as any;
 
     onSave(professorData);
     } catch (error) {
@@ -194,13 +190,13 @@ export function ProfessorForm({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="others">Others</Label>
                 <Input
-                  id="phone"
-                  placeholder="+1 555-555-5555"
-                  value={formData.phone}
+                  id="others"
+                  placeholder="Other contact or notes"
+                  value={(formData as any).others}
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                    setFormData((prev) => ({ ...prev, others: e.target.value }))
                   }
                 />
               </div>
@@ -248,16 +244,6 @@ export function ProfessorForm({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="bio">Short Bio</Label>
-              <Textarea
-                id="bio"
-                placeholder="Add a short biography for the professor"
-                value={formData.bio}
-                onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))}
-                rows={4}
-              />
-            </div>
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
@@ -280,15 +266,6 @@ export function ProfessorForm({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="linkedin">LinkedIn</Label>
-              <Input
-                id="linkedin"
-                placeholder="https://linkedin.com/in/username"
-                value={formData.linkedin}
-                onChange={(e) => setFormData((prev) => ({ ...prev, linkedin: e.target.value }))}
-              />
-            </div>
           </CardContent>
         </Card>
 
@@ -325,6 +302,12 @@ export function ProfessorForm({
                       <div className="flex items-center gap-2">
                         <MapPin className="h-3 w-3" />
                         <span>{formData.officeLocation}</span>
+                      </div>
+                    )}
+                    {(formData as any).others && (
+                      <div className="flex items-center gap-2">
+                        <User className="h-3 w-3" />
+                        <span>{(formData as any).others}</span>
                       </div>
                     )}
                   </div>
