@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { useProducts } from "@/hooks/useProducts";
+import { useOrders } from "@/hooks/useOrders";
 import {
   Store as StoreIcon,
   Plus,
