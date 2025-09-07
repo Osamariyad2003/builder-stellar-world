@@ -68,6 +68,7 @@ export interface QuizQuestion {
   options: string[];
   correctAnswer: number;
   imageUrl?: string;
+  weight?: number; // weight of this question in the quiz
 }
 
 export interface Professor {
