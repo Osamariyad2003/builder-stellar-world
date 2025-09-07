@@ -88,6 +88,10 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
         if (selectedYear) newsData.yearNumber = selectedYear.yearNumber;
       }
 
+      if (formData.subjectId) {
+        (newsData as any).subjectId = formData.subjectId;
+      }
+
       onSave(newsData);
     } catch (error) {
       console.error("Error saving news:", error);
