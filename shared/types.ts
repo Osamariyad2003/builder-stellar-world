@@ -12,6 +12,8 @@ export interface NewsItem {
   viewsCount: number;
   attachments: string[];
   videoUrl?: string;
+  yearId?: string; // Reference to the academic year document id
+  yearNumber?: number; // Optional year number for convenience
 }
 
 export interface Lecture {
