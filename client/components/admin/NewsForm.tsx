@@ -304,7 +304,7 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
                     {years && years.length > 0 ? (
                       years.map((y) => (
                         <option key={y.id} value={y.id}>
-                          {`Year ${y.yearNumber} (${y.type})`}
+                          {`Year ${y.yearNumber} : ${y.id}`}
                         </option>
                       ))
                     ) : (
