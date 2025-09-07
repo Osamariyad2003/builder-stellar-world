@@ -9,10 +9,10 @@ const maxErrors = 3; // Switch to offline mode after 3 consecutive errors
 export const setFirebaseOffline = (offline: boolean) => {
   if (isFirebaseOffline !== offline) {
     isFirebaseOffline = offline;
-    console.log(`🔄 Firebase mode changed: ${offline ? 'OFFLINE' : 'ONLINE'}`);
+    console.log(`🔄 Firebase mode changed: ${offline ? "OFFLINE" : "ONLINE"}`);
 
     // Notify all listeners
-    offlineListeners.forEach(listener => listener());
+    offlineListeners.forEach((listener) => listener());
   }
 };
 
@@ -21,7 +21,7 @@ export const isFirebaseInOfflineMode = () => isFirebaseOffline;
 export const addOfflineModeListener = (listener: () => void) => {
   offlineListeners.push(listener);
   return () => {
-    offlineListeners = offlineListeners.filter(l => l !== listener);
+    offlineListeners = offlineListeners.filter((l) => l !== listener);
   };
 };
 
@@ -31,7 +31,9 @@ export const reportFirebaseError = (error: any) => {
 
   // If we get too many errors, switch to offline mode globally
   if (errorCount >= maxErrors) {
-    console.log("🔄 Too many Firebase errors - switching to global offline mode");
+    console.log(
+      "🔄 Too many Firebase errors - switching to global offline mode",
+    );
     setFirebaseOffline(true);
   }
 };
@@ -40,12 +42,13 @@ export const reportFirebaseError = (error: any) => {
 if (!(window.fetch as any).__firebasePatched) {
   const originalFetch = window.fetch;
   const patchedFetch = (...args: Parameters<typeof fetch>) => {
-    const url = typeof args[0] === 'string' ? args[0] : (args[0] as Request)?.url;
-    const isFirebaseRequest = !!url && (
-      url.includes('firestore.googleapis.com') ||
-      url.includes('firebase.googleapis.com') ||
-      url.includes('identitytoolkit.googleapis.com')
-    );
+    const url =
+      typeof args[0] === "string" ? args[0] : (args[0] as Request)?.url;
+    const isFirebaseRequest =
+      !!url &&
+      (url.includes("firestore.googleapis.com") ||
+        url.includes("firebase.googleapis.com") ||
+        url.includes("identitytoolkit.googleapis.com"));
 
     // Bypass all non-Firebase requests completely, but guard against synchronous throws (e.g., from extensions/invalid schemes)
     if (!isFirebaseRequest) {
@@ -59,7 +62,7 @@ if (!(window.fetch as any).__firebasePatched) {
 
     // Only block Firebase requests if explicitly offline
     if (isFirebaseOffline) {
-      const offlineError = new Error('Firebase offline mode - request blocked');
+      const offlineError = new Error("Firebase offline mode - request blocked");
       (offlineError as any).isFirebaseOfflineError = true;
       return Promise.reject(offlineError);
     }
@@ -71,20 +74,26 @@ if (!(window.fetch as any).__firebasePatched) {
           if (response.ok) {
             errorCount = 0;
             if (isFirebaseOffline) {
-              console.log('🟢 Firebase connection restored');
+              console.log("🟢 Firebase connection restored");
               setFirebaseOffline(false);
             }
           }
           return response;
         })
         .catch((error) => {
-          console.log('🔴 Firebase request failed:', error?.message || String(error));
+          console.log(
+            "🔴 Firebase request failed:",
+            error?.message || String(error),
+          );
           if (navigator.onLine) reportFirebaseError(error);
           throw error;
         });
     } catch (error) {
       // Handle synchronous errors thrown by fetch (e.g., invalid URL schemes)
-      console.log('🔴 Firebase request threw synchronously:', (error as any)?.message || String(error));
+      console.log(
+        "🔴 Firebase request threw synchronously:",
+        (error as any)?.message || String(error),
+      );
       if (navigator.onLine) reportFirebaseError(error);
       return Promise.reject(error);
     }
@@ -103,13 +112,13 @@ if (!navigator.onLine) {
 }
 
 // Add network event listeners
-window.addEventListener('online', () => {
+window.addEventListener("online", () => {
   console.log("🟢 Internet connection restored");
   errorCount = 0; // Reset error count
   setFirebaseOffline(false);
 });
 
-window.addEventListener('offline', () => {
+window.addEventListener("offline", () => {
   console.log("🔴 Internet connection lost");
   setFirebaseOffline(true);
 });
@@ -118,12 +127,12 @@ window.addEventListener('offline', () => {
 console.log("🔄 Starting Firebase monitoring in ONLINE mode");
 
 // Suppress unhandled promise rejections from noisy extensions/analytics
-window.addEventListener('unhandledrejection', (event) => {
-  const msg = String(event?.reason?.message || event?.reason || '');
-  const stack = String((event?.reason && (event.reason.stack || '')) || '');
+window.addEventListener("unhandledrejection", (event) => {
+  const msg = String(event?.reason?.message || event?.reason || "");
+  const stack = String((event?.reason && (event.reason.stack || "")) || "");
   if (
-    msg.includes('Failed to fetch') &&
-    (stack.includes('chrome-extension://') || stack.includes('fullstory.com'))
+    msg.includes("Failed to fetch") &&
+    (stack.includes("chrome-extension://") || stack.includes("fullstory.com"))
   ) {
     event.preventDefault();
   }
@@ -135,23 +144,23 @@ const originalConsoleWarn = console.warn;
 const originalConsoleLog = console.log;
 
 console.error = (...args) => {
-  const errorMessage = args.join(' ');
+  const errorMessage = args.join(" ");
   const suppressPatterns = [
-    'Firebase offline mode - request blocked',
-    'FirebaseError: [code=unavailable]',
-    'Could not reach Cloud Firestore backend',
-    'Connection failed',
-    'The operation could not be completed',
-    'device does not have a healthy Internet connection',
-    'client will operate in offline mode',
-    'Most recent error: FirebaseError',
-    '@firebase/firestore: Firestore',
-    'chrome-extension://',
-    'fullstory.com',
-    'TypeError: Failed to fetch (edge.fullstory.com)'
+    "Firebase offline mode - request blocked",
+    "FirebaseError: [code=unavailable]",
+    "Could not reach Cloud Firestore backend",
+    "Connection failed",
+    "The operation could not be completed",
+    "device does not have a healthy Internet connection",
+    "client will operate in offline mode",
+    "Most recent error: FirebaseError",
+    "@firebase/firestore: Firestore",
+    "chrome-extension://",
+    "fullstory.com",
+    "TypeError: Failed to fetch (edge.fullstory.com)",
   ];
 
-  if (suppressPatterns.some(pattern => errorMessage.includes(pattern))) {
+  if (suppressPatterns.some((pattern) => errorMessage.includes(pattern))) {
     return; // Suppress Firebase offline errors
   }
 
@@ -159,8 +168,8 @@ console.error = (...args) => {
 };
 
 console.warn = (...args) => {
-  const warnMessage = args.join(' ');
-  if (warnMessage.includes('Firebase') && warnMessage.includes('offline')) {
+  const warnMessage = args.join(" ");
+  if (warnMessage.includes("Firebase") && warnMessage.includes("offline")) {
     return; // Suppress Firebase offline warnings
   }
   originalConsoleWarn.apply(console, args);
@@ -168,8 +177,11 @@ console.warn = (...args) => {
 
 // Also suppress some Firebase log messages
 console.log = (...args) => {
-  const logMessage = args.join(' ');
-  if (logMessage.includes('@firebase/firestore') && logMessage.includes('offline')) {
+  const logMessage = args.join(" ");
+  if (
+    logMessage.includes("@firebase/firestore") &&
+    logMessage.includes("offline")
+  ) {
     return; // Suppress Firebase offline logs
   }
   originalConsoleLog.apply(console, args);
@@ -177,7 +189,9 @@ console.log = (...args) => {
 
 setTimeout(() => {
   if (!navigator.onLine) {
-    console.log("🚫 No internet connection detected - switching to offline mode");
+    console.log(
+      "🚫 No internet connection detected - switching to offline mode",
+    );
     setFirebaseOffline(true);
   } else {
     console.log("🌐 Internet available - Firebase enabled and ready");
@@ -190,11 +204,11 @@ export const disableFirebaseWhenOffline = () => {
     // Override Firebase initialization functions to prevent them from running
     const noop = () => {
       console.log("🚫 Firebase function called in offline mode - skipping");
-      return Promise.reject(new Error('Firebase is offline'));
+      return Promise.reject(new Error("Firebase is offline"));
     };
 
     // Intercept common Firebase function calls
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const firebase = (window as any).firebase;
       if (firebase) {
         firebase.initializeApp = noop;

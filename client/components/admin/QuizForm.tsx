@@ -74,7 +74,7 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
         timeLimit: quiz.timeLimit || 30,
         passingScore: quiz.passingScore || 70,
         questions: quiz.questions || [],
-        type: (quiz as any).type || 'multiple_choice',
+        type: (quiz as any).type || "multiple_choice",
       });
     }
   }, [quiz]);
@@ -95,7 +95,7 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
       };
 
       // Ensure type is present
-      if (!(quizData as any).type) (quizData as any).type = 'multiple_choice';
+      if (!(quizData as any).type) (quizData as any).type = "multiple_choice";
 
       onSave(quizData);
     } catch (error) {
@@ -106,14 +106,23 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
   };
 
   const addQuestion = () => {
-    const isFlash = (formData as any).type === 'flashcard';
+    const isFlash = (formData as any).type === "flashcard";
     const hasQuestion = currentQuestion.question.trim();
     if (isFlash) {
-      const hasAnswer = (currentQuestion.options && String(currentQuestion.options[0]).trim()) || (currentQuestion as any).answer;
+      const hasAnswer =
+        (currentQuestion.options &&
+          String(currentQuestion.options[0]).trim()) ||
+        (currentQuestion as any).answer;
       if (hasQuestion && hasAnswer) {
         const q = {
           ...currentQuestion,
-          options: [String(currentQuestion.options?.[0] || (currentQuestion as any).answer || '').trim()],
+          options: [
+            String(
+              currentQuestion.options?.[0] ||
+                (currentQuestion as any).answer ||
+                "",
+            ).trim(),
+          ],
           correctAnswer: 0,
         };
         setFormData((prev) => ({ ...prev, questions: [...prev.questions, q] }));
@@ -131,9 +140,11 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
     if (
       hasQuestion &&
       Array.isArray(currentQuestion.options) &&
-      currentQuestion.options.filter(opt => String(opt).trim()).length >= 2 &&
-      typeof currentQuestion.correctAnswer === 'number' &&
-      String(currentQuestion.options[currentQuestion.correctAnswer] || '').trim()
+      currentQuestion.options.filter((opt) => String(opt).trim()).length >= 2 &&
+      typeof currentQuestion.correctAnswer === "number" &&
+      String(
+        currentQuestion.options[currentQuestion.correctAnswer] || "",
+      ).trim()
     ) {
       setFormData((prev) => ({
         ...prev,
@@ -163,7 +174,10 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
   };
 
   const addOptionField = () => {
-    setCurrentQuestion((prev) => ({ ...prev, options: [...(prev.options || []), ""] }));
+    setCurrentQuestion((prev) => ({
+      ...prev,
+      options: [...(prev.options || []), ""],
+    }));
   };
 
   const removeOptionField = (index: number) => {
@@ -287,14 +301,21 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
               <Label htmlFor="quizType">Quiz Type</Label>
               <select
                 id="quizType"
-                value={(formData as any).type || 'multiple_choice'}
-                onChange={(e) => setFormData((prev) => ({ ...prev, type: e.target.value as any }))}
+                value={(formData as any).type || "multiple_choice"}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    type: e.target.value as any,
+                  }))
+                }
                 className="w-full border rounded px-3 py-2"
               >
                 <option value="multiple_choice">Multiple Choice</option>
                 <option value="flashcard">Flashcard</option>
               </select>
-              <p className="text-xs text-muted-foreground">Choose how this quiz will be presented to students.</p>
+              <p className="text-xs text-muted-foreground">
+                Choose how this quiz will be presented to students.
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -325,18 +346,28 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
             </div>
 
             <div className="space-y-2">
-              {(formData as any).type === 'flashcard' ? (
+              {(formData as any).type === "flashcard" ? (
                 <>
                   <Label>Correct Answer</Label>
                   <div className="space-y-2">
                     <Input
                       placeholder="Correct answer"
-                      value={currentQuestion.options[0] ?? (currentQuestion as any).answer ?? ''}
+                      value={
+                        currentQuestion.options[0] ??
+                        (currentQuestion as any).answer ??
+                        ""
+                      }
                       onChange={(e) => {
-                        setCurrentQuestion(prev => ({ ...prev, options: [e.target.value] }));
+                        setCurrentQuestion((prev) => ({
+                          ...prev,
+                          options: [e.target.value],
+                        }));
                       }}
                     />
-                    <p className="text-xs text-muted-foreground">For flashcards enter the correct answer (single). Use [[answer]] in the question to create blanks.</p>
+                    <p className="text-xs text-muted-foreground">
+                      For flashcards enter the correct answer (single). Use
+                      [[answer]] in the question to create blanks.
+                    </p>
                   </div>
                 </>
               ) : (
@@ -396,7 +427,12 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                       </div>
                     ))}
                     <div>
-                      <Button type="button" variant="outline" onClick={addOptionField} className="mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addOptionField}
+                        className="mt-2"
+                      >
                         Add Option
                       </Button>
                     </div>
@@ -458,7 +494,9 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
-                          <p className="font-medium">{index + 1}. {question.question}</p>
+                          <p className="font-medium">
+                            {index + 1}. {question.question}
+                          </p>
                           <div className="flex items-center gap-2">
                             <Label className="text-sm">Weight</Label>
                             <Input
@@ -470,7 +508,9 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                                 setFormData((prev) => ({
                                   ...prev,
                                   questions: prev.questions.map((q, i) =>
-                                    i === index ? ({ ...(q as any), weight: w } as any) : q,
+                                    i === index
+                                      ? ({ ...(q as any), weight: w } as any)
+                                      : q,
                                   ),
                                 }));
                               }}

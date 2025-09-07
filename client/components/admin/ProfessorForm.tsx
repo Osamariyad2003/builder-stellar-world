@@ -67,13 +67,16 @@ export function ProfessorForm({
 
     try {
       const professorData: Partial<Professor> = {
-      ...formData,
-      researchAreas: formData.researchAreas
-        ? formData.researchAreas.split(",").map((s: string) => s.trim()).filter(Boolean)
-        : [],
-    } as any;
+        ...formData,
+        researchAreas: formData.researchAreas
+          ? formData.researchAreas
+              .split(",")
+              .map((s: string) => s.trim())
+              .filter(Boolean)
+          : [],
+      } as any;
 
-    onSave(professorData);
+      onSave(professorData);
     } catch (error) {
       console.error("Error saving professor:", error);
     } finally {
@@ -242,7 +245,6 @@ export function ProfessorForm({
               </div>
             </div>
 
-
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="researchAreas">Research Areas</Label>
@@ -250,7 +252,12 @@ export function ProfessorForm({
                   id="researchAreas"
                   placeholder="e.g., Cardiology, Epidemiology"
                   value={formData.researchAreas}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, researchAreas: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      researchAreas: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -258,7 +265,6 @@ export function ProfessorForm({
                 <div />
               </div>
             </div>
-
           </CardContent>
         </Card>
 
