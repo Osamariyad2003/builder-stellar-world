@@ -39,6 +39,7 @@ export default function Orders() {
                 <div className="flex items-center justify-between">
                   <CardTitle>
                     Order #{order.id} • {order.userName}
+                    <div className="text-xs text-muted-foreground">{order.createdAt?.toLocaleString()}</div>
                   </CardTitle>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary">{order.status}</Badge>
