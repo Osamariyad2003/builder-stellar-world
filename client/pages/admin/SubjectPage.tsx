@@ -196,10 +196,6 @@ export default function SubjectPage() {
                         <span>Add Quiz</span>
                       </Button>
 
-                      //  <button onClick={() => navigate(`/admin/resources?lecture=${lecture.id}&subject=${subject.id}`//)}  className="text-xs text-blue-600 hover:underline flex items-center gap-1 px-2" title="View">
-                      //   <PlayCircle className="h-4 w-4" />
-                      //   <span className="sr-only">View</span>
-                      // </button>
 
                       <div className="flex items-center gap-2">
                         {/* Videos count + total duration */}
