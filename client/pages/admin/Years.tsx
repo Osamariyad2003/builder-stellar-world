@@ -90,6 +90,8 @@ export default function Years() {
     addQuiz,
   } = useYears();
 
+  const { news } = useNews();
+
   const handleAddQuiz = (subject: any, lectureId: string) => {
     setSelectedSubject(subject);
     setSelectedLecture(lectureId);
