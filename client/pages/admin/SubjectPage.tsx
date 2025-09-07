@@ -10,6 +10,7 @@ import { QuizForm } from "@/components/admin/QuizForm";
 
 export default function SubjectPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { subjects, loading, addVideo, addFile, addQuiz } = useYears();
 
   const [selectedLecture, setSelectedLecture] = useState<string | null>(null);
