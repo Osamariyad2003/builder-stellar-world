@@ -293,15 +293,38 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
                   <select
                     id="yearId"
                     value={formData.yearId}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, yearId: e.target.value }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, yearId: e.target.value, subjectId: "" }))}
                     className="w-full border rounded px-3 py-2"
                   >
                     <option value="">-- Not related to a specific year --</option>
-                    {years.map((y) => (
-                      <option key={y.id} value={y.id}>Year {y.yearNumber}</option>
-                    ))}
+                    {years && years.length > 0 ? (
+                      years.map((y) => (
+                        <option key={y.id} value={y.id}>
+                          {`Year ${y.yearNumber} (${y.type})`}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">No years available</option>
+                    )}
                   </select>
                 </div>
+
+                {formData.yearId && (
+                  <div className="space-y-2">
+                    <Label htmlFor="subjectId">Related Subject</Label>
+                    <select
+                      id="subjectId"
+                      value={formData.subjectId}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, subjectId: e.target.value }))}
+                      className="w-full border rounded px-3 py-2"
+                    >
+                      <option value="">-- Not related to a specific subject --</option>
+                      {(years.find(y => y.id === formData.yearId)?.subjects || []).map((s: any) => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {formData.imageUrl && (
                   <div className="space-y-2">
