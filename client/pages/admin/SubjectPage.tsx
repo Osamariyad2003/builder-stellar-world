@@ -201,15 +201,35 @@ export default function SubjectPage() {
                         <span className="sr-only">View</span>
                       </button>
 
-                      <button onClick={() => navigate(`/admin/resources?lecture=${lecture.id}&tab=files`)} className="text-xs text-green-600 flex items-center gap-1 px-2" title="Files">
-                        <FileText className="h-4 w-4" />
-                        <span>({lecture.files?.length || 0})</span>
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {/* Videos count + total duration */}
+                        {lecture.videos && lecture.videos.length > 0 ? (
+                          (() => {
+                            const totalSec = (lecture.videos || []).reduce((acc, v) => acc + parseDurationToSeconds(v.duration || v.time || v.durationSeconds || v.length), 0);
+                            return (
+                              <button onClick={() => navigate(`/admin/videos?lecture=${lecture.id}`)} className="text-xs text-blue-600 flex items-center gap-1 px-2" title="Videos">
+                                <PlayCircle className="h-4 w-4" />
+                                <span>({lecture.videos.length})</span>
+                                <span className="text-muted-foreground">{formatDuration(totalSec)}</span>
+                              </button>
+                            );
+                          })()
+                        ) : (
+                          <button onClick={() => navigate(`/admin/videos?lecture=${lecture.id}`)} className="text-xs text-blue-600 flex items-center gap-1 px-2" title="Videos">
+                            <PlayCircle className="h-4 w-4" />
+                          </button>
+                        )}
 
-                      <button onClick={() => navigate(`/admin/resources?lecture=${lecture.id}&tab=quizzes`)} className="text-xs text-purple-600 flex items-center gap-1 px-2" title="Quizzes">
-                        <HelpCircle className="h-4 w-4" />
-                        <span>({lecture.quizzes?.length || 0})</span>
-                      </button>
+                        <button onClick={() => navigate(`/admin/resources?lecture=${lecture.id}&tab=files`)} className="text-xs text-green-600 flex items-center gap-1 px-2" title="Files">
+                          <FileText className="h-4 w-4" />
+                          <span>({lecture.files?.length || 0})</span>
+                        </button>
+
+                        <button onClick={() => navigate(`/admin/resources?lecture=${lecture.id}&tab=quizzes`)} className="text-xs text-purple-600 flex items-center gap-1 px-2" title="Quizzes">
+                          <HelpCircle className="h-4 w-4" />
+                          <span>({lecture.quizzes?.length || 0})</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
