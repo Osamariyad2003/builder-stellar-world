@@ -74,6 +74,7 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
         timeLimit: quiz.timeLimit || 30,
         passingScore: quiz.passingScore || 70,
         questions: quiz.questions || [],
+        type: (quiz as any).type || 'multiple_choice',
       });
     }
   }, [quiz]);
