@@ -41,7 +41,6 @@ export function ProfessorForm({
     others: "",
     officeLocation: "",
     researchAreas: "",
-    website: "",
     imageUrl: "",
   });
 
