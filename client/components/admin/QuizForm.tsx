@@ -327,6 +327,22 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="weight">Question Weight</Label>
+              <Input
+                id="weight"
+                type="number"
+                min={1}
+                value={(currentQuestion as any).weight}
+                onChange={(e) =>
+                  setCurrentQuestion((prev) => ({
+                    ...prev,
+                    weight: parseFloat(e.target.value) || 1,
+                  }))
+                }
+              />
+            </div>
+
             <Button type="button" onClick={addQuestion} className="w-full">
               <Plus className="h-4 w-4 mr-2" />
               Add Question
@@ -348,9 +364,27 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                   <div key={index} className="p-4 border rounded-lg space-y-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <p className="font-medium mb-2">
-                          {index + 1}. {question.question}
-                        </p>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="font-medium">{index + 1}. {question.question}</p>
+                          <div className="flex items-center gap-2">
+                            <Label className="text-sm">Weight</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={(question as any).weight || 1}
+                              onChange={(e) => {
+                                const w = parseFloat(e.target.value) || 1;
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  questions: prev.questions.map((q, i) =>
+                                    i === index ? ({ ...(q as any), weight: w } as any) : q,
+                                  ),
+                                }));
+                              }}
+                              className="w-20 text-sm"
+                            />
+                          </div>
+                        </div>
                         <div className="grid gap-2 sm:grid-cols-2">
                           {question.options.map((option, optIndex) => (
                             <div
@@ -377,15 +411,17 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                           ))}
                         </div>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeQuestion(index)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex flex-col items-end gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeQuestion(index)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
