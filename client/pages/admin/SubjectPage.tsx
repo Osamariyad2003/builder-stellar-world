@@ -4,6 +4,32 @@ import { useYears } from "@/hooks/useYears";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlayCircle, FileText, HelpCircle, Plus } from "lucide-react";
+
+function parseDurationToSeconds(d: any) {
+  if (!d) return 0;
+  // if already number (seconds)
+  if (typeof d === 'number') return d;
+  // string like HH:MM:SS or MM:SS or seconds
+  const s = String(d).trim();
+  if (/^\d+$/.test(s)) return parseInt(s, 10);
+  const parts = s.split(":" ).map(p => parseInt(p, 10));
+  if (parts.length === 3) {
+    return parts[0]*3600 + (parts[1]||0)*60 + (parts[2]||0);
+  }
+  if (parts.length === 2) {
+    return (parts[0]||0)*60 + (parts[1]||0);
+  }
+  return 0;
+}
+
+function formatDuration(seconds: number) {
+  if (!seconds || seconds <= 0) return "0:00";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
 import { VideoForm } from "@/components/admin/VideoForm";
 import { FileForm } from "@/components/admin/FileForm";
 import { QuizForm } from "@/components/admin/QuizForm";
