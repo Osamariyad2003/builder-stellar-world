@@ -58,6 +58,7 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
         isPinned: news.isPinned || false,
         attachments: news.attachments || [],
         yearId: news.yearId || "",
+        subjectId: (news as any).subjectId || "",
       });
     }
   }, [news]);
