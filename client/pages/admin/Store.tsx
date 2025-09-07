@@ -304,6 +304,47 @@ export default function Store() {
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  const name = window.prompt("Your full name:");
+                                  if (!name) return;
+                                  const email = window.prompt("Your email:");
+                                  if (!email) return;
+                                  const qtyStr = window.prompt("Quantity:", "1") || "1";
+                                  const qty = parseInt(qtyStr) || 1;
+                                  const phone = window.prompt("Phone (optional):", "") || "";
+                                  const address = window.prompt("Address (optional):", "") || "";
+
+                                  await createOrder({
+                                    userName: name,
+                                    userEmail: email,
+                                    userPhone: phone,
+                                    address,
+                                    items: [
+                                      {
+                                        productId: product.id!,
+                                        name: product.name,
+                                        quantity: qty,
+                                        price: product.price,
+                                      },
+                                    ],
+                                    total: product.price * qty,
+                                    status: "pending",
+                                    createdAt: new Date(),
+                                  });
+
+                                  alert("Order placed successfully");
+                                } catch (e) {
+                                  console.error(e);
+                                  alert("Failed to place order");
+                                }
+                              }}
+                            >
+                              Buy
+                            </Button>
                           </div>
                         </div>
                         <div className="text-2xl font-bold text-green-600">
