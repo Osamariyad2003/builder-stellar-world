@@ -315,9 +315,9 @@ export default function Years() {
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="font-medium text-lg">
+                        <Link to={`/admin/subjects/${subject.id}`} className="font-medium text-lg text-blue-600 hover:underline">
                           {subject.name}
-                        </span>
+                        </Link>
                         <Badge variant="outline" className="text-xs">
                           {subject.lectures?.length || 0} lectures
                         </Badge>
