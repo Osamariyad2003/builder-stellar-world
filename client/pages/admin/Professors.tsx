@@ -192,17 +192,55 @@ export default function Professors() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Mail className="h-4 w-4" />
-                    <span>{professor.email}</span>
+                <div className="space-y-3 text-sm">
+                  <div className="">
+                    <div className="text-sm text-muted-foreground">{professor.title}</div>
+                    <div className="flex items-center gap-2 text-muted-foreground mt-1">
+                      <Mail className="h-4 w-4" />
+                      <span>{professor.email}</span>
+                    </div>
                   </div>
+
+                  {professor.phone && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <User className="h-4 w-4" />
+                      <span>{professor.phone}</span>
+                    </div>
+                  )}
+
                   {professor.officeLocation && (
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <MapPin className="h-4 w-4" />
                       <span>{professor.officeLocation}</span>
                     </div>
                   )}
+
+                  {professor.bio && (
+                    <div className="text-sm text-muted-foreground line-clamp-3">
+                      {professor.bio}
+                    </div>
+                  )}
+
+                  {professor.researchAreas && professor.researchAreas.length > 0 && (
+                    <div className="flex gap-2 flex-wrap">
+                      {professor.researchAreas.map((area: string) => (
+                        <Badge key={area}>{area}</Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 mt-1">
+                    {professor.website && (
+                      <a href={professor.website} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">
+                        Website
+                      </a>
+                    )}
+                    {professor.linkedin && (
+                      <a href={professor.linkedin} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">
+                        LinkedIn
+                      </a>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
