@@ -35,9 +35,15 @@ export function ProfessorForm({
 }: ProfessorFormProps) {
   const [formData, setFormData] = useState({
     name: "",
+    title: "",
     department: "",
     email: "",
+    phone: "",
     officeLocation: "",
+    bio: "",
+    researchAreas: "",
+    website: "",
+    linkedin: "",
     imageUrl: "",
   });
 
