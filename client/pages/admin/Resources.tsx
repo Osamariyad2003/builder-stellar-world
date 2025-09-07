@@ -43,11 +43,19 @@ export default function Resources() {
     deleteLecture,
   } = useLectures();
 
-  const filteredLectures = lectures.filter(
+  const [searchParams] = useSearchParams();
+  const lectureParam = searchParams.get("lecture");
+  const tabParam = searchParams.get("tab");
+
+  let filteredLectures = lectures.filter(
     (lecture) =>
       lecture.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lecture.subject.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  if (lectureParam) {
+    filteredLectures = lectures.filter((l) => l.id === lectureParam);
+  }
 
   const handleCreateNew = () => {
     setSelectedLecture(null);
