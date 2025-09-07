@@ -59,7 +59,7 @@ export default function QuizzesPage() {
                     </div>
                   </div>
                   <div>
-                    <Button onClick={() => alert(`Starting quiz: ${q.title}`)}>Start</Button>
+                    <Button onClick={() => window.location.href = `/admin/flashcards?lecture=${lectureId}&quiz=${q.id}`}>Start</Button>
                   </div>
                 </div>
               ))}
