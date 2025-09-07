@@ -9,10 +9,11 @@ import { PlayCircle } from "lucide-react";
 export default function VideosPage() {
   const [searchParams] = useSearchParams();
   const lectureId = searchParams.get("lecture");
-  const { lectures, loading, error } = useLectures();
+  const { lectures, loading: lecturesLoading, error: lecturesError } = useLectures();
+  const { items: videos, loading, error } = useLectureVideos(lectureId);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div className="text-destructive">{error}</div>;
+  if (loading || lecturesLoading) return <div>Loading...</div>;
+  if (error || lecturesError) return <div className="text-destructive">{error || lecturesError}</div>;
 
   const lecture = lectures.find((l) => l.id === lectureId);
   if (!lecture) {
