@@ -140,11 +140,11 @@ export default function SubjectPage() {
                           alt={lecture.name}
                           width={1280}
                           height={720}
-                          style={{ width: 320, height: 180, objectFit: "cover" }}
+                          style={{ width: 160, height: 90, objectFit: "cover" }}
                           className="rounded"
                         />
                       ) : (
-                        <div className="w-32 h-20 bg-muted rounded flex items-center justify-center">No image</div>
+                        <div className="w-40 h-24 bg-muted rounded flex items-center justify-center text-xs">No image</div>
                       )}
 
                       <div>
@@ -154,25 +154,29 @@ export default function SubjectPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => openVideoForm(lecture.id)} className="flex items-center gap-2">
-                        <Plus className="h-3 w-3" /> Add Video
+                      <Button variant="ghost" size="icon" onClick={() => openVideoForm(lecture.id)} aria-label="Add Video" title="Add Video">
+                        <PlayCircle className="h-4 w-4 text-blue-600" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => openFileForm(lecture.id)} className="flex items-center gap-2">
-                        <Plus className="h-3 w-3" /> Add File
+                      <Button variant="ghost" size="icon" onClick={() => openFileForm(lecture.id)} aria-label="Add File" title="Add File">
+                        <FileText className="h-4 w-4 text-green-600" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => openQuizForm(lecture.id)} className="flex items-center gap-2">
-                        <Plus className="h-3 w-3" /> Add Quiz
+                      <Button variant="ghost" size="icon" onClick={() => openQuizForm(lecture.id)} aria-label="Add Quiz" title="Add Quiz">
+                        <HelpCircle className="h-4 w-4 text-purple-600" />
                       </Button>
 
-                      <a href="#" onClick={(e) => e.preventDefault()} className="text-xs text-blue-600 hover:underline flex items-center gap-1">
-                        <PlayCircle className="h-4 w-4" /> View
+                      <a href="#" onClick={(e) => e.preventDefault()} className="text-xs text-blue-600 hover:underline flex items-center gap-1 px-2">
+                        <PlayCircle className="h-4 w-4" />
                       </a>
-                      <a href="#" onClick={(e) => e.preventDefault()} className="text-xs text-green-600 hover:underline flex items-center gap-1">
-                        <FileText className="h-4 w-4" /> Files ({lecture.files?.length || 0})
-                      </a>
-                      <a href="#" onClick={(e) => e.preventDefault()} className="text-xs text-purple-600 hover:underline flex items-center gap-1">
-                        <HelpCircle className="h-4 w-4" /> Quizzes ({lecture.quizzes?.length || 0})
-                      </a>
+
+                      <div className="text-xs text-green-600 flex items-center gap-1 px-2">
+                        <FileText className="h-4 w-4" />
+                        <span>({lecture.files?.length || 0})</span>
+                      </div>
+
+                      <div className="text-xs text-purple-600 flex items-center gap-1 px-2">
+                        <HelpCircle className="h-4 w-4" />
+                        <span>({lecture.quizzes?.length || 0})</span>
+                      </div>
                     </div>
                   </div>
                 );
