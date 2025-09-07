@@ -47,9 +47,9 @@ export default function QuizzesPage() {
           <CardTitle>Quizzes ({lecture.quizzes?.length || 0})</CardTitle>
         </CardHeader>
         <CardContent>
-          {lecture.quizzes && lecture.quizzes.length > 0 ? (
+          {quizzes && quizzes.length > 0 ? (
             <div className="space-y-3">
-              {lecture.quizzes.map((q: any) => (
+              {quizzes.map((q: any) => (
                 <div key={q.id} className="p-3 border rounded flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <HelpCircle className="h-6 w-6 text-purple-600" />
