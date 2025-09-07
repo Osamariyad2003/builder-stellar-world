@@ -61,15 +61,27 @@ export default function Orders() {
                   <div>
                     <div className="text-sm text-muted-foreground">Items</div>
                     <div className="space-y-2 mt-2">
-                      {order.items.map((it, idx) => (
-                        <div key={idx} className="flex items-center justify-between">
-                          <div className="text-sm">{it.name} x{it.quantity}</div>
-                          <div className="font-medium">${(it.price * it.quantity).toFixed(2)}</div>
+                      {order.items && order.items.length > 0 ? (
+                        order.items.map((it, idx) => (
+                          <div key={idx} className="flex items-center justify-between">
+                            <div className="text-sm">{it.name} x{it.quantity}</div>
+                            <div className="font-medium">${(it.price * it.quantity).toFixed(2)}</div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-sm text-muted-foreground">No item details. Products IDs may be attached in the raw order.</div>
+                      )}
+
+                      {/* If there is a raw productsIds field, show it too (fallback) */}
+                      {(order as any).productsIds && ((order as any).productsIds).length > 0 && (
+                        <div className="text-xs text-muted-foreground mt-2">
+                          Product IDs: {((order as any).productsIds || []).join(", ")}
                         </div>
-                      ))}
+                      )}
+
                       <div className="flex items-center justify-between pt-2 border-t mt-2">
                         <div className="font-medium">Total</div>
-                        <div className="font-bold">${order.total.toFixed(2)}</div>
+                        <div className="font-bold">${(order.total || 0).toFixed(2)}</div>
                       </div>
                     </div>
                   </div>
