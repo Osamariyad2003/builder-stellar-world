@@ -87,6 +87,9 @@ export function useLectures() {
           });
         }
 
+        // Sort client-side by order to avoid requiring a collection-group index in Firestore
+        lecturesData.sort((a, b) => (a.order || 0) - (b.order || 0));
+
         setLectures(lecturesData);
         setLoading(false);
       },
