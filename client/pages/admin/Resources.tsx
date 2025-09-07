@@ -93,6 +93,9 @@ export default function Resources() {
     );
   }
 
+  // If a specific lecture is requested and exists, show only its resource card expanded
+  const singleLecture = lectureParam ? lectures.find((l) => l.id === lectureParam) : null;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
