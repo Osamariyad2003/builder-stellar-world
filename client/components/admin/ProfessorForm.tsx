@@ -73,10 +73,13 @@ export function ProfessorForm({
 
     try {
       const professorData: Partial<Professor> = {
-        ...formData,
-      };
+      ...formData,
+      researchAreas: formData.researchAreas
+        ? formData.researchAreas.split(",").map((s: string) => s.trim()).filter(Boolean)
+        : [],
+    };
 
-      onSave(professorData);
+    onSave(professorData);
     } catch (error) {
       console.error("Error saving professor:", error);
     } finally {
