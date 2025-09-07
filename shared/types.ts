@@ -112,3 +112,24 @@ export interface Category {
   order: number;
   createdAt: Date;
 }
+
+export interface OrderItem {
+  productId: string;
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+export interface Order {
+  id?: string;
+  userId?: string;
+  userName: string;
+  userEmail: string;
+  userPhone?: string;
+  address?: string;
+  items: OrderItem[];
+  total: number;
+  status: "pending" | "paid" | "shipped" | "completed" | "cancelled";
+  createdAt: Date;
+  updatedAt?: Date;
+}
