@@ -69,9 +69,41 @@ export function useLectures() {
             });
           });
 
-          // For now, videos are stored as part of the lecture document
-          // You can modify this if you want videos in a separate subcollection
-          const videos: Video[] = data.videos || [];
+          // Try to fetch videos from a videos subcollection first (supports both subcollection and inline storage)
+          const videosSnapshot = await getDocs(collection(lectureRef, "videos"));
+          const videos: Video[] = [];
+          if (!videosSnapshot.empty) {
+            videosSnapshot.forEach((videoDoc) => {
+              const vd = videoDoc.data() as any;
+              videos.push({
+                id: videoDoc.id,
+                title: vd.title || vd.name || "",
+                youtubeUrl: vd.url || vd.youtubeUrl || "",
+                thumbnailUrl: vd.thumbnailUrl || vd.thumbnail || "",
+                duration: vd.duration || vd.time || "",
+                description: vd.description || "",
+                uploadedAt: vd.uploadedAt?.toDate?.() || new Date(),
+                uploadedBy: vd.uploadedBy || vd.uploader || "",
+                imageUrl: vd.thumbnailUrl || "",
+              });
+            });
+          } else {
+            // Fallback to videos stored inline in the lecture document
+            const inlineVideos: any[] = data.videos || [];
+            inlineVideos.forEach((iv) => {
+              videos.push({
+                id: iv.id || iv.videoId || "",
+                title: iv.title || iv.name || "",
+                youtubeUrl: iv.url || iv.youtubeUrl || "",
+                thumbnailUrl: iv.thumbnailUrl || iv.thumbnail || "",
+                duration: iv.duration || iv.time || "",
+                description: iv.description || "",
+                uploadedAt: iv.uploadedAt?.toDate?.() || new Date(),
+                uploadedBy: iv.uploadedBy || iv.uploader || "",
+                imageUrl: iv.thumbnailUrl || "",
+              });
+            });
+          }
 
           lecturesData.push({
             id: lectureId,
