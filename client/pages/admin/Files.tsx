@@ -47,19 +47,19 @@ export default function FilesPage() {
           <CardTitle>Files ({lecture.files?.length || 0})</CardTitle>
         </CardHeader>
         <CardContent>
-          {lecture.files && lecture.files.length > 0 ? (
+          {files && files.length > 0 ? (
             <div className="space-y-3">
-              {lecture.files.map((f: any) => (
+              {files.map((f: any) => (
                 <div key={f.id} className="p-3 border rounded flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <FileText className="h-6 w-6 text-blue-600" />
                     <div>
-                      <div className="font-medium">{f.title || "Untitled File"}</div>
+                      <div className="font-medium">{f.title || f.name || "Untitled File"}</div>
                       <div className="text-sm text-muted-foreground">{f.description}</div>
                     </div>
                   </div>
                   <div>
-                    <Button onClick={() => window.open(f.fileUrl || f.url || "", "_blank")}>Download</Button>
+                    <Button onClick={() => window.open(f.fileUrl || f.url || "_blank")}>Download</Button>
                   </div>
                 </div>
               ))}
