@@ -8,6 +8,7 @@ import {
   doc,
   query,
   orderBy,
+  getDocs,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Order } from "@shared/types";
@@ -21,26 +22,72 @@ export function useOrders() {
     const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(
       q,
-      (snap) => {
-        const data: Order[] = [];
-        snap.forEach((d) => {
-          const v = d.data() as any;
-          data.push({
-            id: d.id,
-            userId: v.userId || "",
-            userName: v.userName || "",
-            userEmail: v.userEmail || "",
-            userPhone: v.userPhone || "",
-            address: v.address || "",
-            items: v.items || [],
-            total: v.total || 0,
-            status: v.status || "pending",
-            createdAt: v.createdAt?.toDate?.() || new Date(),
-            updatedAt: v.updatedAt?.toDate?.(),
+      async (snap) => {
+        try {
+          // fetch products map to resolve productIds to names/prices
+          const productsSnap = await getDocs(collection(db, "products"));
+          const productsMap: Record<string, any> = {};
+          productsSnap.forEach((p) => {
+            const pd = p.data();
+            productsMap[p.id] = { id: p.id, name: pd.name || pd.title || "", price: pd.price || 0 };
           });
-        });
-        setOrders(data);
-        setLoading(false);
+
+          const data: Order[] = [];
+          snap.forEach((d) => {
+            const v = d.data() as any;
+
+            // Build items array either from v.items or from legacy v.productsIds
+            let items: any[] = [];
+            if (v.items && Array.isArray(v.items) && v.items.length > 0) {
+              items = v.items;
+            } else if (v.productsIds && Array.isArray(v.productsIds)) {
+              items = v.productsIds.map((pid: string) => ({
+                productId: pid,
+                name: productsMap[pid]?.name || pid,
+                quantity: 1,
+                price: productsMap[pid]?.price || 0,
+              }));
+            }
+
+            // Determine total from various possible fields
+            const total = v.total || v.totalAmount || v.totalPrice || 0;
+
+            // Address/phone fields may use different names
+            const address = v.address || v.shippingaddress || v.shippingAddress || "";
+            const userPhone = v.userPhone || v.user_phone || v.phone || "";
+
+            // Robust createdAt parsing
+            let createdAt = new Date();
+            if (v.createdAt && typeof v.createdAt.toDate === "function") {
+              createdAt = v.createdAt.toDate();
+            } else if (v.orderDate && typeof v.orderDate.toDate === "function") {
+              createdAt = v.orderDate.toDate();
+            } else if (v.orderDate) {
+              createdAt = new Date(v.orderDate);
+            }
+
+            data.push({
+              id: d.id,
+              userId: v.userId || v.user_id || "",
+              userName: v.userName || v.user_name || v.customerName || "",
+              userEmail: v.userEmail || v.email || "",
+              userPhone: userPhone,
+              address: address,
+              items: items,
+              total: total,
+              status: v.status || "pending",
+              createdAt: createdAt,
+              updatedAt: v.updatedAt?.toDate?.(),
+            });
+          });
+
+          setOrders(data);
+          setLoading(false);
+        } catch (e) {
+          console.error("Error processing orders:", e);
+          setError("Failed to load orders");
+          setLoading(false);
+        }
       },
       (e) => {
         console.error("Failed to load orders:", e);
