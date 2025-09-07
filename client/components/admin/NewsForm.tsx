@@ -315,18 +315,28 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
 
                 {formData.yearId && (
                   <div className="space-y-2">
-                    <Label htmlFor="subjectId">Related Subject</Label>
-                    <select
-                      id="subjectId"
-                      value={formData.subjectId}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, subjectId: e.target.value }))}
-                      className="w-full border rounded px-3 py-2"
-                    >
-                      <option value="">-- Not related to a specific subject --</option>
-                      {(years.find(y => y.id === formData.yearId)?.subjects || []).map((s: any) => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="subjectId">Related Subject</Label>
+                      <div className="text-xs text-muted-foreground">Selected year id: <span className="font-mono ml-2">{formData.yearId}</span></div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <select
+                        id="subjectId"
+                        value={formData.subjectId}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, subjectId: e.target.value }))}
+                        className="flex-1 border rounded px-3 py-2"
+                      >
+                        <option value="">-- Not related to a specific subject --</option>
+                        {(years.find(y => y.id === formData.yearId)?.subjects || []).map((s: any) => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+
+                      <Button type="button" variant="outline" size="sm" onClick={() => { navigator.clipboard?.writeText(formData.yearId || '') ; alert('Year id copied'); }}>
+                        Copy ID
+                      </Button>
+                    </div>
                   </div>
                 )}
 
