@@ -285,6 +285,7 @@ export default function Years() {
               <Badge variant="secondary">
                 {yearData.subjects?.length || 0} subjects
               </Badge>
+              <Badge variant="outline">{(news || []).filter(n => n.yearId === yearData.id).length} news</Badge>
             </div>
             <Button
               variant="ghost"
