@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { LectureForm } from "@/components/admin/LectureForm";
 import { useLectures } from "@/hooks/useLectures";
+import { useSearchParams } from "react-router-dom";
 import {
   Plus,
   Search,
