@@ -24,6 +24,8 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import { useYears } from "@/hooks/useYears";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface NewsFormProps {
   news?: NewsItem | null;
@@ -33,6 +35,7 @@ interface NewsFormProps {
 
 export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
   const { years } = useYears();
+  const [localYears, setLocalYears] = useState<any[] | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -62,6 +65,32 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
       });
     }
   }, [news]);
+
+  // Fallback: if useYears returns empty (e.g., offline), try fetching years directly once
+  useEffect(() => {
+    let mounted = true;
+    const fetchYearsDirect = async () => {
+      try {
+        if ((years && years.length > 0) || localYears) return;
+        const snap = await getDocs(collection(db, "years"));
+        const fetched: any[] = [];
+        snap.forEach((d) => {
+          const data = d.data() as any;
+          let yearNumber = data.order || 1;
+          if (data.name) {
+            const match = String(data.name).match(/\d+/);
+            if (match) yearNumber = parseInt(match[0]);
+          }
+          fetched.push({ id: d.id, yearNumber, type: yearNumber <= 3 ? "basic" : "clinical", subjects: data.subjects || [] });
+        });
+        if (mounted && fetched.length > 0) setLocalYears(fetched);
+      } catch (e) {
+        // ignore
+      }
+    };
+    fetchYearsDirect();
+    return () => { mounted = false; };
+  }, [years, localYears]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -301,8 +330,8 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
                     className="w-full border rounded px-3 py-2"
                   >
                     <option value="">-- Not related to a specific year --</option>
-                    {years && years.length > 0 ? (
-                      years.map((y) => (
+                    {(localYears && localYears.length > 0 ? localYears : years) && (localYears && localYears.length > 0 ? localYears : years).length > 0 ? (
+                      (localYears && localYears.length > 0 ? localYears : years).map((y: any) => (
                         <option key={y.id} value={y.id}>
                           {`Year ${y.yearNumber}`}
                         </option>
@@ -328,7 +357,7 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
                         className="flex-1 border rounded px-3 py-2"
                       >
                         <option value="">-- Not related to a specific subject --</option>
-                        {(years.find(y => y.id === formData.yearId)?.subjects || []).map((s: any) => (
+                        {((localYears && localYears.length > 0 ? localYears : years).find((y: any) => y.id === formData.yearId)?.subjects || []).map((s: any) => (
                           <option key={s.id} value={s.id}>{s.name}</option>
                         ))}
                       </select>
