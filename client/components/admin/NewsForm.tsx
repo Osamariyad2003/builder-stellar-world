@@ -23,6 +23,7 @@ import {
   Tag,
   Link as LinkIcon,
 } from "lucide-react";
+import { useYears } from "@/hooks/useYears";
 
 interface NewsFormProps {
   news?: NewsItem | null;
