@@ -238,6 +238,20 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                 />
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="quizType">Quiz Type</Label>
+              <select
+                id="quizType"
+                value={(formData as any).type || 'multiple_choice'}
+                onChange={(e) => setFormData((prev) => ({ ...prev, type: e.target.value as any }))}
+                className="w-full border rounded px-3 py-2"
+              >
+                <option value="multiple_choice">Multiple Choice</option>
+                <option value="flashcard">Flashcard</option>
+              </select>
+              <p className="text-xs text-muted-foreground">Choose how this quiz will be presented to students.</p>
+            </div>
           </CardContent>
         </Card>
 
