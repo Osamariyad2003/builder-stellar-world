@@ -8,7 +8,7 @@ import { MapPin, Plus, Trash2 } from "lucide-react";
 
 export default function Maps() {
   const { maps, loading, error, createMap, deleteMap } = useMaps();
-  const [form, setForm] = useState({ name: "", location: "", video_url: "" });
+  const [form, setForm] = useState({ name: "", location: "", video_url: "", type: "" });
   const [saving, setSaving] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
