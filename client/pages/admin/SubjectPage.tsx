@@ -154,26 +154,32 @@ export default function SubjectPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => openVideoForm(lecture.id)} aria-label="Add Video" title="Add Video">
-                        <PlayCircle className="h-4 w-4 text-blue-600" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => openFileForm(lecture.id)} aria-label="Add File" title="Add File">
-                        <FileText className="h-4 w-4 text-green-600" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => openQuizForm(lecture.id)} aria-label="Add Quiz" title="Add Quiz">
-                        <HelpCircle className="h-4 w-4 text-purple-600" />
+                      <Button variant="ghost" size="sm" onClick={() => openVideoForm(lecture.id)} className="flex items-center gap-1 px-2 py-1 text-xs" title="Add Video">
+                        <PlayCircle className="h-3 w-3 text-blue-600" />
+                        <span>Add Video</span>
                       </Button>
 
-                      <a href="#" onClick={(e) => e.preventDefault()} className="text-xs text-blue-600 hover:underline flex items-center gap-1 px-2">
+                      <Button variant="ghost" size="sm" onClick={() => openFileForm(lecture.id)} className="flex items-center gap-1 px-2 py-1 text-xs" title="Add File">
+                        <FileText className="h-3 w-3 text-green-600" />
+                        <span>Add File</span>
+                      </Button>
+
+                      <Button variant="ghost" size="sm" onClick={() => openQuizForm(lecture.id)} className="flex items-center gap-1 px-2 py-1 text-xs" title="Add Quiz">
+                        <HelpCircle className="h-3 w-3 text-purple-600" />
+                        <span>Add Quiz</span>
+                      </Button>
+
+                      <a href="#" onClick={(e) => e.preventDefault()} className="text-xs text-blue-600 hover:underline flex items-center gap-1 px-2" title="View">
                         <PlayCircle className="h-4 w-4" />
+                        <span className="sr-only">View</span>
                       </a>
 
-                      <div className="text-xs text-green-600 flex items-center gap-1 px-2">
+                      <div className="text-xs text-green-600 flex items-center gap-1 px-2" title="Files count">
                         <FileText className="h-4 w-4" />
                         <span>({lecture.files?.length || 0})</span>
                       </div>
 
-                      <div className="text-xs text-purple-600 flex items-center gap-1 px-2">
+                      <div className="text-xs text-purple-600 flex items-center gap-1 px-2" title="Quizzes count">
                         <HelpCircle className="h-4 w-4" />
                         <span>({lecture.quizzes?.length || 0})</span>
                       </div>
