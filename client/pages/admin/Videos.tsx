@@ -47,9 +47,9 @@ export default function VideosPage() {
           <CardTitle>Videos ({lecture.videos?.length || 0})</CardTitle>
         </CardHeader>
         <CardContent>
-          {lecture.videos && lecture.videos.length > 0 ? (
+          {videos && videos.length > 0 ? (
             <div className="space-y-3">
-              {lecture.videos.map((v: any) => (
+              {videos.map((v: any) => (
                 <div key={v.id} className="p-3 border rounded flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {v.thumbnailUrl ? (
