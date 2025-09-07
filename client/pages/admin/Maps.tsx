@@ -54,6 +54,22 @@ export default function Maps() {
                 placeholder="Location"
               />
             </div>
+
+            <div className="space-y-2">
+              <Label>Type</Label>
+              <select
+                className="w-full border rounded px-3 py-2"
+                value={form.type}
+                onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+              >
+                <option value="">Select type</option>
+                <option value="قاعة دراسية">قاعة دراسية</option>
+                <option value="لابات">لابات</option>
+                <option value="مدرج">مدرج</option>
+                <option value="قاعات امتحانات">قاعات امتحانات</option>
+              </select>
+            </div>
+
             <div className="space-y-2">
               <Label>Video URL</Label>
               <Input
@@ -97,6 +113,9 @@ export default function Maps() {
                     <div className="text-xs text-muted-foreground truncate">
                       {m.location}
                     </div>
+                    {m.type && (
+                      <div className="text-xs text-muted-foreground mt-1">Type: <span className="font-medium">{m.type}</span></div>
+                    )}
                     {m.video_url && (
                       <a
                         className="text-xs text-blue-600 hover:underline"
