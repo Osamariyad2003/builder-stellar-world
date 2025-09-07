@@ -17,6 +17,7 @@ import Years from "./pages/admin/Years";
 import Professors from "./pages/admin/Professors";
 import SubjectPage from "./pages/admin/SubjectPage";
 import Store from "./pages/admin/Store";
+import Orders from "./pages/admin/Orders";
 import Settings from "./pages/admin/Settings";
 import Maps from "./pages/admin/Maps";
 import NotFound from "./pages/NotFound";
