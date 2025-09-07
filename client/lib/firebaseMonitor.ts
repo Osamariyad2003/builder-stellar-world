@@ -47,9 +47,14 @@ if (!(window.fetch as any).__firebasePatched) {
       url.includes('identitytoolkit.googleapis.com')
     );
 
-    // Bypass all non-Firebase requests completely
+    // Bypass all non-Firebase requests completely, but guard against synchronous throws (e.g., from extensions/invalid schemes)
     if (!isFirebaseRequest) {
-      return originalFetch(...args);
+      try {
+        return originalFetch(...args);
+      } catch (err) {
+        // Convert synchronous throws into a rejected promise so they behave like async fetch errors
+        return Promise.reject(err);
+      }
     }
 
     // Only block Firebase requests if explicitly offline
@@ -59,22 +64,30 @@ if (!(window.fetch as any).__firebasePatched) {
       return Promise.reject(offlineError);
     }
 
-    return originalFetch(...args)
-      .then((response) => {
-        if (response.ok) {
-          errorCount = 0;
-          if (isFirebaseOffline) {
-            console.log('🟢 Firebase connection restored');
-            setFirebaseOffline(false);
+    try {
+      const fetchPromise = originalFetch(...args);
+      return Promise.resolve(fetchPromise)
+        .then((response) => {
+          if (response.ok) {
+            errorCount = 0;
+            if (isFirebaseOffline) {
+              console.log('🟢 Firebase connection restored');
+              setFirebaseOffline(false);
+            }
           }
-        }
-        return response;
-      })
-      .catch((error) => {
-        console.log('🔴 Firebase request failed:', error?.message || String(error));
-        if (navigator.onLine) reportFirebaseError(error);
-        throw error;
-      });
+          return response;
+        })
+        .catch((error) => {
+          console.log('🔴 Firebase request failed:', error?.message || String(error));
+          if (navigator.onLine) reportFirebaseError(error);
+          throw error;
+        });
+    } catch (error) {
+      // Handle synchronous errors thrown by fetch (e.g., invalid URL schemes)
+      console.log('🔴 Firebase request threw synchronously:', (error as any)?.message || String(error));
+      if (navigator.onLine) reportFirebaseError(error);
+      return Promise.reject(error);
+    }
   };
   (patchedFetch as any).__firebasePatched = true;
   window.fetch = patchedFetch as any;
