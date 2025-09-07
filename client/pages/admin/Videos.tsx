@@ -1,6 +1,7 @@
 import React from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { useLectures } from "@/hooks/useLectures";
+import { useLectureVideos } from "@/hooks/useLectureResources";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlayCircle } from "lucide-react";
