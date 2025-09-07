@@ -155,7 +155,8 @@ export default function Resources() {
           {filteredLectures.map((lecture) => (
             <Card
               key={lecture.id}
-              className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary/20 hover:border-l-primary"
+              className={`hover:shadow-lg transition-all duration-200 border-l-4 ${lectureParam === lecture.id ? 'border-l-primary bg-primary/5' : 'border-l-primary/20 hover:border-l-primary'}`}
+
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
