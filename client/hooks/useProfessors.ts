@@ -69,9 +69,15 @@ export function useProfessors() {
               professorsData.push({
                 id: doc.id,
                 name: data.name || "",
+                title: data.title || "",
                 department: data.department || "",
                 email: data.email || "",
+                phone: data.phone || "",
                 officeLocation: data.officeLocation || "",
+                bio: data.bio || "",
+                researchAreas: data.researchAreas || [],
+                website: data.website || "",
+                linkedin: data.linkedin || "",
                 imageUrl: data.imageUrl || "",
               });
             });
