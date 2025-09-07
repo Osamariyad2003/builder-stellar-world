@@ -42,6 +42,7 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
     isPinned: false,
     attachments: [] as string[],
     yearId: "",
+    subjectId: "",
   });
   const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
