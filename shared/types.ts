@@ -71,9 +71,15 @@ export interface QuizQuestion {
 export interface Professor {
   id?: string;
   name: string;
+  title?: string;
   department: string;
   email: string;
+  phone?: string;
   officeLocation: string;
+  bio?: string;
+  researchAreas?: string[];
+  website?: string;
+  linkedin?: string;
   imageUrl?: string;
 }
 
