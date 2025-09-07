@@ -56,10 +56,15 @@ export default function QuizzesPage() {
                     <div>
                       <div className="font-medium">{q.title || "Untitled Quiz"}</div>
                       <div className="text-sm text-muted-foreground">{q.description}</div>
+                      <div className="text-xs text-muted-foreground mt-1">Type: <strong>{(q as any).type || 'multiple_choice'}</strong></div>
                     </div>
                   </div>
                   <div>
-                    <Button onClick={() => window.location.href = `/admin/flashcards?lecture=${lectureId}&quiz=${q.id}`}>Start</Button>
+                    {((q as any).type || 'multiple_choice') === 'flashcard' ? (
+                      <Button onClick={() => window.location.href = `/admin/flashcards?lecture=${lectureId}&quiz=${q.id}`}>Flashcards</Button>
+                    ) : (
+                      <Button onClick={() => alert('Multiple choice runner not implemented. Use Flashcards or implement MCQ runner.')}>Start</Button>
+                    )}
                   </div>
                 </div>
               ))}
