@@ -32,6 +32,7 @@ interface NewsFormProps {
 }
 
 export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
+  const { years } = useYears();
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -40,6 +41,7 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
     tags: [] as string[],
     isPinned: false,
     attachments: [] as string[],
+    yearId: "",
   });
   const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,6 +56,7 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
         tags: news.tags || [],
         isPinned: news.isPinned || false,
         attachments: news.attachments || [],
+        yearId: news.yearId || "",
       });
     }
   }, [news]);
@@ -65,6 +68,7 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
     try {
       const newsData: Partial<NewsItem> = {
         ...formData,
+        yearNumber: undefined,
         updatedAt: new Date(),
         ...(news
           ? {}
@@ -75,6 +79,12 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
               viewsCount: 0,
             }),
       };
+
+      // if yearId selected, also include yearNumber for convenience
+      if (formData.yearId) {
+        const selectedYear = years.find((y) => y.id === formData.yearId);
+        if (selectedYear) newsData.yearNumber = selectedYear.yearNumber;
+      }
 
       onSave(newsData);
     } catch (error) {
@@ -274,6 +284,21 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
                       }))
                     }
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="yearId">Related Year</Label>
+                  <select
+                    id="yearId"
+                    value={formData.yearId}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, yearId: e.target.value }))}
+                    className="w-full border rounded px-3 py-2"
+                  >
+                    <option value="">-- Not related to a specific year --</option>
+                    {years.map((y) => (
+                      <option key={y.id} value={y.id}>Year {y.yearNumber}</option>
+                    ))}
+                  </select>
                 </div>
 
                 {formData.imageUrl && (
