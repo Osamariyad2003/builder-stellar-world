@@ -20,8 +20,8 @@ export function useLectures() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get all lectures from all subjects
-    const q = query(collectionGroup(db, "lectures"), orderBy("order", "asc"));
+    // Get all lectures from all subjects (avoid collection-group index requirement by sorting client-side)
+    const q = query(collectionGroup(db, "lectures"));
 
     const unsubscribe = onSnapshot(
       q,
