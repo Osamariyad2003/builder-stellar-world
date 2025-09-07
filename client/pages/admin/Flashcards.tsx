@@ -152,7 +152,56 @@ export default function FlashcardsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="font-medium">{current.question}</div>
+            <div className="font-medium">
+              {!fillMode ? (
+                <span role="button" tabIndex={0} onClick={startFillMode} onKeyDown={(e) => { if (e.key === 'Enter') startFillMode(); }}>
+                  {current.question}
+                </span>
+              ) : (
+                <div className="space-y-2">
+                  {/* Render blanks parsed from [[answer]] markers or a single input */}
+                  {(() => {
+                    const parts = parseBlanks(current.question || '');
+                    let blankIndex = 0;
+                    return (
+                      <div>
+                        {parts.map((p, i) => {
+                          if (p.type === 'text') {
+                            return <span key={i}>{p.value}</span>;
+                          }
+                          const idx = blankIndex++;
+                          return (
+                            <input
+                              key={i}
+                              value={inputs[idx] ?? ''}
+                              onChange={(e) => setInputs(iv => { const copy = [...iv]; copy[idx] = e.target.value; return copy; })}
+                              placeholder="Fill the blank"
+                              className="border-b-2 border-gray-300 px-1 mx-1"
+                            />
+                          );
+                        })}
+                        {parts.length === 1 && parts[0].type === 'text' && (
+                          <div>
+                            <input
+                              value={inputs[0] ?? ''}
+                              onChange={(e) => setInputs(iv => { const copy = [...iv]; copy[0] = e.target.value; return copy; })}
+                              placeholder="Answer"
+                              className="border-b-2 border-gray-300 px-1"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  <div className="flex items-center gap-2 mt-2">
+                    <Button onClick={checkAnswers}>Check</Button>
+                    <Button variant="outline" onClick={() => { setFillMode(false); setFeedback(null); }}>Cancel</Button>
+                    {feedback && <div className="ml-2 text-sm">{feedback}</div>}
+                  </div>
+                </div>
+              )}
+            </div>
             {current.imageUrl && (
               <img src={current.imageUrl} alt="question" className="w-full max-w-md object-contain" />
             )}
