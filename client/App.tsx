@@ -55,15 +55,8 @@ const App = () => (
                 <Route path="news" element={<News />} />
                 <Route path="years" element={<Years />} />
                 <Route path="subjects/:id" element={<SubjectPage />} />
-                {/* Redirect old resources routes to years */}
-                <Route
-                  path="resources"
-                  element={<Navigate to="/admin/years" replace />}
-                />
-                <Route
-                  path="resources/*"
-                  element={<Navigate to="/admin/years" replace />}
-                />
+                <Route path="resources" element={<Resources />} />
+                <Route path="resources/*" element={<Resources />} />
                 {/* Handle legacy uppercase route /admin/VIDEOS */}
                 <Route
                   path="VIDEOS"
