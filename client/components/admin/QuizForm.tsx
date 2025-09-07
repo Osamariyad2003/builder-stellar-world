@@ -94,6 +94,9 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
             }),
       };
 
+      // Ensure type is present
+      if (!(quizData as any).type) (quizData as any).type = 'multiple_choice';
+
       onSave(quizData);
     } catch (error) {
       console.error("Error saving quiz:", error);
