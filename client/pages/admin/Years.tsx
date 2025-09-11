@@ -286,7 +286,10 @@ export default function Years() {
               <Badge variant="secondary">
                 {yearData.subjects?.length || 0} subjects
               </Badge>
-              <Badge variant="outline">{(news || []).filter(n => n.yearId === yearData.id).length} news</Badge>
+              <Badge variant="outline">
+                {(news || []).filter((n) => n.yearId === yearData.id).length}{" "}
+                news
+              </Badge>
             </div>
             <Button
               variant="ghost"
@@ -320,7 +323,10 @@ export default function Years() {
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Link to={`/admin/subjects/${subject.id}`} className="font-medium text-lg text-blue-600 hover:underline">
+                        <Link
+                          to={`/admin/subjects/${subject.id}`}
+                          className="font-medium text-lg text-blue-600 hover:underline"
+                        >
                           {subject.name}
                         </Link>
                         <Badge variant="outline" className="text-xs">
@@ -342,12 +348,17 @@ export default function Years() {
                           size="icon"
                           className="h-8 w-8 text-destructive hover:text-destructive"
                           onClick={async () => {
-                            if (!confirm(`Delete subject "${subject.name}"? This will remove its lectures.`)) return;
+                            if (
+                              !confirm(
+                                `Delete subject "${subject.name}"? This will remove its lectures.`,
+                              )
+                            )
+                              return;
                             try {
                               await deleteSubject(subject.id);
                             } catch (e) {
                               console.error(e);
-                              alert('Failed to delete subject');
+                              alert("Failed to delete subject");
                             }
                           }}
                         >
@@ -429,12 +440,20 @@ export default function Years() {
                                       size="icon"
                                       className="h-6 w-6 text-destructive"
                                       onClick={async () => {
-                                        if (!confirm(`Delete lecture "${lecture.name}"?`)) return;
+                                        if (
+                                          !confirm(
+                                            `Delete lecture "${lecture.name}"?`,
+                                          )
+                                        )
+                                          return;
                                         try {
-                                          await deleteLecture(subject.id, lecture.id);
+                                          await deleteLecture(
+                                            subject.id,
+                                            lecture.id,
+                                          );
                                         } catch (e) {
                                           console.error(e);
-                                          alert('Failed to delete lecture');
+                                          alert("Failed to delete lecture");
                                         }
                                       }}
                                     >

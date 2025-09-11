@@ -189,17 +189,27 @@ export default function SubjectPage() {
             <Plus className="h-4 w-4" />
             Add Lecture
           </Button>
-          <Button variant="ghost" size="icon" className="text-destructive" onClick={async () => {
-            if (!subject) return;
-            if (!confirm(`Delete subject \"${subject.name}\"? This will remove all lectures.`)) return;
-            try {
-              await deleteSubject(subject.id);
-              navigate('/admin/years');
-            } catch (e) {
-              console.error(e);
-              alert('Failed to delete subject');
-            }
-          }}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-destructive"
+            onClick={async () => {
+              if (!subject) return;
+              if (
+                !confirm(
+                  `Delete subject \"${subject.name}\"? This will remove all lectures.`,
+                )
+              )
+                return;
+              try {
+                await deleteSubject(subject.id);
+                navigate("/admin/years");
+              } catch (e) {
+                console.error(e);
+                alert("Failed to delete subject");
+              }
+            }}
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
           <Link to="/admin/years">
@@ -286,16 +296,22 @@ export default function SubjectPage() {
                         <span>Add Quiz</span>
                       </Button>
 
-                      <Button variant="ghost" size="icon" className="text-destructive" onClick={async () => {
-                        if (!subject) return;
-                        if (!confirm(`Delete lecture \"${lecture.name}\"?`)) return;
-                        try {
-                          await deleteLecture(subject.id, lecture.id);
-                        } catch (e) {
-                          console.error(e);
-                          alert('Failed to delete lecture');
-                        }
-                      }}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive"
+                        onClick={async () => {
+                          if (!subject) return;
+                          if (!confirm(`Delete lecture \"${lecture.name}\"?`))
+                            return;
+                          try {
+                            await deleteLecture(subject.id, lecture.id);
+                          } catch (e) {
+                            console.error(e);
+                            alert("Failed to delete lecture");
+                          }
+                        }}
+                      >
                         <Trash2 className="h-3 w-3" />
                       </Button>
 
