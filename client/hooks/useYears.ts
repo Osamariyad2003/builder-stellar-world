@@ -765,6 +765,7 @@ export function useYears() {
     createSubject,
     createLecture,
     deleteLecture,
+    deleteSubject,
     addVideo,
     addFile,
     addQuiz,
