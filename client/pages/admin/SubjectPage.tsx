@@ -7,6 +7,7 @@ import { PlayCircle, FileText, HelpCircle, Plus } from "lucide-react";
 import { VideoForm } from "@/components/admin/VideoForm";
 import { FileForm } from "@/components/admin/FileForm";
 import { QuizForm } from "@/components/admin/QuizForm";
+import { LectureForm } from "@/components/admin/LectureForm";
 
 function parseDurationToSeconds(d: any) {
   if (!d) return 0;
@@ -37,12 +38,13 @@ function formatDuration(seconds: number) {
 export default function SubjectPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { subjects, loading, addVideo, addFile, addQuiz } = useYears();
+  const { years, subjects, loading, createLecture, addVideo, addFile, addQuiz } = useYears();
 
   const [selectedLecture, setSelectedLecture] = useState<string | null>(null);
   const [isVideoFormOpen, setIsVideoFormOpen] = useState(false);
   const [isFileFormOpen, setIsFileFormOpen] = useState(false);
   const [isQuizFormOpen, setIsQuizFormOpen] = useState(false);
+  const [isLectureFormOpen, setIsLectureFormOpen] = useState(false);
 
   const subject = subjects.find((s) => s.id === id);
 
@@ -116,6 +118,23 @@ export default function SubjectPage() {
     );
   }
 
+  if (isLectureFormOpen) {
+    return (
+      <LectureForm
+        subjectId={subject?.id || null}
+        subjectName={subject?.name}
+        yearType={years.find((y) => y.id === subject?.yearId)?.type}
+        onClose={() => setIsLectureFormOpen(false)}
+        onSave={async (lectureData) => {
+          if (subject?.id) {
+            await createLecture(lectureData);
+          }
+          setIsLectureFormOpen(false);
+        }}
+      />
+    );
+  }
+
   if (loading) return <div>Loading...</div>;
 
   if (!subject) {
@@ -141,7 +160,11 @@ export default function SubjectPage() {
           <h1 className="text-3xl font-bold">{subject.name}</h1>
           <p className="text-muted-foreground">Subject details and lectures</p>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setIsLectureFormOpen(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Lecture
+          </Button>
           <Link to="/admin/years">
             <Button variant="ghost">Back</Button>
           </Link>
