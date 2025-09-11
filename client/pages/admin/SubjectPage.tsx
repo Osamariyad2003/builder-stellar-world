@@ -50,6 +50,8 @@ export default function SubjectPage() {
     subjects,
     loading,
     createLecture,
+    deleteLecture,
+    deleteSubject,
     addVideo,
     addFile,
     addQuiz,
