@@ -86,6 +86,7 @@ export default function Years() {
     createSubject,
     createLecture,
     deleteLecture,
+    deleteSubject,
     addVideo,
     addFile,
     addQuiz,
@@ -340,6 +341,15 @@ export default function Years() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={async () => {
+                            if (!confirm(`Delete subject "${subject.name}"? This will remove its lectures.`)) return;
+                            try {
+                              await deleteSubject(subject.id);
+                            } catch (e) {
+                              console.error(e);
+                              alert('Failed to delete subject');
+                            }
+                          }}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -412,6 +422,23 @@ export default function Years() {
                                     >
                                       <HelpCircle className="h-3 w-3 mr-1" />
                                       Quizzes ({lecture.quizzes?.length || 0})
+                                    </Button>
+
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 text-destructive"
+                                      onClick={async () => {
+                                        if (!confirm(`Delete lecture "${lecture.name}"?`)) return;
+                                        try {
+                                          await deleteLecture(subject.id, lecture.id);
+                                        } catch (e) {
+                                          console.error(e);
+                                          alert('Failed to delete lecture');
+                                        }
+                                      }}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
                                     </Button>
                                   </div>
 
