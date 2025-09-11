@@ -535,6 +535,31 @@ export function useYears() {
     }
   };
 
+  const deleteSubject = async (subjectId: string) => {
+    if (!subjectId) return;
+
+    if (isOfflineMode) {
+      setSubjects((prev) => prev.filter((s) => s.id !== subjectId));
+      setYears((prev) =>
+        prev.map((year) => ({
+          ...year,
+          subjects: year.subjects.filter((s) => s.id !== subjectId),
+        })),
+      );
+      console.log("✅ Deleted subject in offline mode");
+      return;
+    }
+
+    try {
+      const subjectRef = doc(db, "Subjects", subjectId);
+      await deleteDoc(subjectRef);
+      console.log("✅ Deleted subject from Firebase");
+      setRetryCount((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error deleting subject:", error);
+    }
+  };
+
   const addVideo = async (
     subjectId: string,
     lectureId: string,
