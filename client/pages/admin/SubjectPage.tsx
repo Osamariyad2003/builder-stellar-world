@@ -286,6 +286,19 @@ export default function SubjectPage() {
                         <span>Add Quiz</span>
                       </Button>
 
+                      <Button variant="ghost" size="icon" className="text-destructive" onClick={async () => {
+                        if (!subject) return;
+                        if (!confirm(`Delete lecture \"${lecture.name}\"?`)) return;
+                        try {
+                          await deleteLecture(subject.id, lecture.id);
+                        } catch (e) {
+                          console.error(e);
+                          alert('Failed to delete lecture');
+                        }
+                      }}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+
                       <div className="flex items-center gap-2">
                         {/* Videos count + total duration */}
                         {lecture.videos && lecture.videos.length > 0 ? (
