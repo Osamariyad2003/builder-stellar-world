@@ -8,7 +8,7 @@ import { MapPin, Plus, Trash2 } from "lucide-react";
 
 export default function Maps() {
   const { maps, loading, error, createMap, deleteMap } = useMaps();
-  const [form, setForm] = useState({ name: "", location: "", video_url: "", type: "" });
+  const [form, setForm] = useState({ name: "", location: "", description: "", video_url: "", type: "" });
   const [saving, setSaving] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -16,7 +16,7 @@ export default function Maps() {
     if (!form.name.trim()) return;
     setSaving(true);
     await createMap(form);
-    setForm({ name: "", location: "", video_url: "" });
+    setForm({ name: "", location: "", description: "", video_url: "", type: "" });
     setSaving(false);
   };
 
@@ -52,6 +52,17 @@ export default function Maps() {
                   setForm((f) => ({ ...f, location: e.target.value }))
                 }
                 placeholder="Location"
+              />
+            </div>
+
+            <div className="space-y-2 md:col-span-3">
+              <Label>Description</Label>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="Short description"
+                className="w-full border rounded px-3 py-2"
+                rows={3}
               />
             </div>
 
@@ -115,6 +126,9 @@ export default function Maps() {
                     </div>
                     {m.type && (
                       <div className="text-xs text-muted-foreground mt-1">Type: <span className="font-medium">{m.type}</span></div>
+                    )}
+                    {m.description && (
+                      <div className="text-xs text-muted-foreground mt-1">{m.description}</div>
                     )}
                     {m.video_url && (
                       <a
