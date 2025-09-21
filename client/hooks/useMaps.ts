@@ -10,6 +10,7 @@ import {
   query,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useEffect, useState } from "react";
 
 export interface MapItem {
   id: string;
