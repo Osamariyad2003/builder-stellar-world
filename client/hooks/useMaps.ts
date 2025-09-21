@@ -38,6 +38,7 @@ export function useMaps() {
             id: d.id,
             name: v.name || "",
             location: v.location || "",
+            description: v.description || v.desc || "",
             type: v.type || v.mapType || "",
             video_url: v.video_url || v.videoUrl || "",
             createdAt: v.createdAt?.toDate?.() || undefined,
