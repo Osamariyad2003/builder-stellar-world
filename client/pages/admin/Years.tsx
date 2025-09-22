@@ -323,6 +323,19 @@ export default function Years() {
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
+                        {subject.imageUrl ? (
+                          <img
+                            src={subject.imageUrl}
+                            alt={subject.name}
+                            className="w-8 h-8 object-cover rounded"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <BookOpen className="h-5 w-5 text-blue-600" />
+                        )}
+
                         <Link
                           to={`/admin/subjects/${subject.id}`}
                           className="font-medium text-lg text-blue-600 hover:underline"
