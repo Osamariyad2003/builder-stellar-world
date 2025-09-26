@@ -20,6 +20,7 @@ export interface YearData {
   id?: string;
   yearNumber: number;
   type: "basic" | "clinical";
+  imageUrl?: string;
   subjects: SubjectData[];
 }
 
@@ -145,6 +146,7 @@ export function useYears() {
               id: doc.id,
               yearNumber: yearNumber,
               type: yearNumber <= 3 ? "basic" : "clinical",
+              imageUrl: data.imageUrl || "",
               subjects: [],
             });
           });
@@ -270,6 +272,25 @@ export function useYears() {
     setIsOfflineMode(false);
     setConnectionStatus("connecting");
     setRetryCount((prev) => prev + 1);
+  };
+
+  const updateYear = async (yearId: string, patch: Partial<YearData>) => {
+    if (!yearId) return;
+
+    if (isOfflineMode || !navigator.onLine) {
+      setYears((prev) => prev.map((y) => (y.id === yearId ? { ...y, ...patch } : y)));
+      return;
+    }
+
+    try {
+      const yearRef = doc(db, "years", yearId);
+      await updateDoc(yearRef, { ...patch, updatedAt: new Date() });
+      setRetryCount((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error updating year:", error);
+      // Fall back to offline update
+      setYears((prev) => prev.map((y) => (y.id === yearId ? { ...y, ...patch } : y)));
+    }
   };
 
   const retryOperation = async (
@@ -762,6 +783,7 @@ export function useYears() {
     isOfflineMode,
     connectionStatus,
     retryConnection,
+    updateYear,
     createSubject,
     createLecture,
     deleteLecture,
