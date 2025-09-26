@@ -83,6 +83,7 @@ export default function Years() {
     isOfflineMode,
     connectionStatus,
     retryConnection,
+    updateYear,
     createSubject,
     createLecture,
     deleteLecture,
