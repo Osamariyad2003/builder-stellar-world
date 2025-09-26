@@ -298,7 +298,9 @@ export function useYears() {
     if (!yearId) return;
 
     if (isOfflineMode || !navigator.onLine) {
-      setYears((prev) => prev.map((y) => (y.id === yearId ? { ...y, ...patch } : y)));
+      setYears((prev) =>
+        prev.map((y) => (y.id === yearId ? { ...y, ...patch } : y)),
+      );
       return;
     }
 
@@ -309,7 +311,9 @@ export function useYears() {
     } catch (error) {
       console.error("Error updating year:", error);
       // Fall back to offline update
-      setYears((prev) => prev.map((y) => (y.id === yearId ? { ...y, ...patch } : y)));
+      setYears((prev) =>
+        prev.map((y) => (y.id === yearId ? { ...y, ...patch } : y)),
+      );
     }
   };
 

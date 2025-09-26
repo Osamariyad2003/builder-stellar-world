@@ -8,11 +8,24 @@ import { MapPin, Plus, Trash2 } from "lucide-react";
 
 export default function Maps() {
   const { maps, loading, error, createMap, updateMap, deleteMap } = useMaps();
-  const [form, setForm] = useState({ name: "", location: "", description: "", video_url: "", type: "" });
+  const [form, setForm] = useState({
+    name: "",
+    location: "",
+    description: "",
+    video_url: "",
+    type: "",
+  });
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const resetForm = () => setForm({ name: "", location: "", description: "", video_url: "", type: "" });
+  const resetForm = () =>
+    setForm({
+      name: "",
+      location: "",
+      description: "",
+      video_url: "",
+      type: "",
+    });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +86,9 @@ export default function Maps() {
               <Label>Description</Label>
               <textarea
                 value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, description: e.target.value }))
+                }
                 placeholder="Short description"
                 className="w-full border rounded px-3 py-2"
                 rows={3}
@@ -85,7 +100,9 @@ export default function Maps() {
               <select
                 className="w-full border rounded px-3 py-2"
                 value={form.type}
-                onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, type: e.target.value }))
+                }
               >
                 <option value="">Select type</option>
                 <option value="قاعة دراسية">قاعة دراسية</option>
@@ -111,7 +128,14 @@ export default function Maps() {
             <div className="md:col-span-3 flex justify-end space-x-2">
               {editingId ? (
                 <>
-                  <Button type="button" variant="outline" onClick={() => { setEditingId(null); resetForm(); }}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingId(null);
+                      resetForm();
+                    }}
+                  >
                     Cancel
                   </Button>
                   <Button type="submit" disabled={saving}>
@@ -154,10 +178,14 @@ export default function Maps() {
                       {m.location}
                     </div>
                     {m.type && (
-                      <div className="text-xs text-muted-foreground mt-1">Type: <span className="font-medium">{m.type}</span></div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Type: <span className="font-medium">{m.type}</span>
+                      </div>
                     )}
                     {m.description && (
-                      <div className="text-xs text-muted-foreground mt-1">{m.description}</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {m.description}
+                      </div>
                     )}
                     {m.video_url && (
                       <a
@@ -176,8 +204,14 @@ export default function Maps() {
                       size="sm"
                       onClick={() => {
                         setEditingId(m.id);
-                        setForm({ name: m.name || "", location: m.location || "", description: m.description || "", video_url: m.video_url || "", type: m.type || "" });
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        setForm({
+                          name: m.name || "",
+                          location: m.location || "",
+                          description: m.description || "",
+                          video_url: m.video_url || "",
+                          type: m.type || "",
+                        });
+                        window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
                       className=""
                     >

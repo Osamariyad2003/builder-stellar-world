@@ -289,7 +289,12 @@ export default function Years() {
             )}
 
             <CardTitle className="flex items-center gap-2">
-              <Link to={`/admin/years/${yearData.id}`} className="text-lg font-medium text-blue-600 hover:underline">Year {yearData.yearNumber}</Link>
+              <Link
+                to={`/admin/years/${yearData.id}`}
+                className="text-lg font-medium text-blue-600 hover:underline"
+              >
+                Year {yearData.yearNumber}
+              </Link>
             </CardTitle>
           </div>
 
