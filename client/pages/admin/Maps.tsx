@@ -7,17 +7,31 @@ import { useMaps } from "@/hooks/useMaps";
 import { MapPin, Plus, Trash2 } from "lucide-react";
 
 export default function Maps() {
-  const { maps, loading, error, createMap, deleteMap } = useMaps();
+  const { maps, loading, error, createMap, updateMap, deleteMap } = useMaps();
   const [form, setForm] = useState({ name: "", location: "", description: "", video_url: "", type: "" });
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const resetForm = () => setForm({ name: "", location: "", description: "", video_url: "", type: "" });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return;
     setSaving(true);
-    await createMap(form);
-    setForm({ name: "", location: "", description: "", video_url: "", type: "" });
-    setSaving(false);
+    try {
+      if (editingId) {
+        await updateMap(editingId, form);
+      } else {
+        await createMap(form);
+      }
+      resetForm();
+      setEditingId(null);
+    } catch (err) {
+      console.error("Error saving map:", err);
+      alert("Failed to save map");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
