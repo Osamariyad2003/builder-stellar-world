@@ -108,11 +108,23 @@ export default function Maps() {
                 placeholder="https://..."
               />
             </div>
-            <div className="md:col-span-3 flex justify-end">
-              <Button type="submit" disabled={saving}>
-                <Plus className="h-4 w-4 mr-2" />
-                {saving ? "Adding..." : "Add"}
-              </Button>
+            <div className="md:col-span-3 flex justify-end space-x-2">
+              {editingId ? (
+                <>
+                  <Button type="button" variant="outline" onClick={() => { setEditingId(null); resetForm(); }}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={saving}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    {saving ? "Saving..." : "Save"}
+                  </Button>
+                </>
+              ) : (
+                <Button type="submit" disabled={saving}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  {saving ? "Adding..." : "Add"}
+                </Button>
+              )}
             </div>
           </form>
         </CardContent>
