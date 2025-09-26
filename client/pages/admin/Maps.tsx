@@ -78,6 +78,9 @@ export default function Maps() {
                 <option value="لابات">لابات</option>
                 <option value="مدرج">مدرج</option>
                 <option value="قاعات امتحانات">قاعات امتحانات</option>
+                <option value="مطعم">مطعم</option>
+                <option value="مصلى">مصلى</option>
+                <option value="أخرى">أخرى</option>
               </select>
             </div>
 
