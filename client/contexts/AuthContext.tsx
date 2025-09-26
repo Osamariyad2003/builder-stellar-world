@@ -36,8 +36,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthError(null);
     } catch (error: any) {
       console.error("Login error:", error);
-      if (error.message && error.message.includes("fetch")) {
+      if (error?.code === 'auth/network-request-failed' || (error.message && error.message.includes("fetch"))) {
         setAuthError("Network error - check your connection");
+      } else if (error?.code === 'auth/wrong-password' || error?.code === 'auth/user-not-found') {
+        setAuthError('Invalid email or password');
+      } else {
+        setAuthError('Authentication error - see console');
       }
       throw error;
     }
