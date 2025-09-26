@@ -268,14 +268,73 @@ export default function Years() {
     >
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            {type === "basic" ? (
-              <GraduationCap className="h-5 w-5 text-blue-600" />
+          <div className="flex items-center gap-3">
+            {yearData.imageUrl ? (
+              <img
+                src={yearData.imageUrl}
+                alt={`Year ${yearData.yearNumber}`}
+                className="w-10 h-10 object-cover rounded"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
             ) : (
-              <Stethoscope className="h-5 w-5 text-red-600" />
+              <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                {type === "basic" ? (
+                  <GraduationCap className="h-5 w-5 text-blue-600" />
+                ) : (
+                  <Stethoscope className="h-5 w-5 text-red-600" />
+                )}
+              </div>
             )}
-            Year {yearData.yearNumber}
-          </CardTitle>
+
+            <CardTitle className="flex items-center gap-2">
+              Year {yearData.yearNumber}
+            </CardTitle>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={async () => {
+                const url = window.prompt(
+                  "Enter image URL for this year:",
+                  yearData.imageUrl || "",
+                );
+                if (url === null) return;
+                try {
+                  await updateYear?.(yearData.id, { imageUrl: url });
+                } catch (e) {
+                  console.error(e);
+                  alert("Failed to update year image");
+                }
+              }}
+              className="flex items-center gap-1"
+            >
+              <Upload className="h-3 w-3" />
+              {yearData.imageUrl ? "Change Image" : "Add Image"}
+            </Button>
+
+            {yearData.imageUrl && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={async () => {
+                  if (!confirm("Remove year image?")) return;
+                  try {
+                    await updateYear?.(yearData.id, { imageUrl: "" });
+                  } catch (e) {
+                    console.error(e);
+                    alert("Failed to remove year image");
+                  }
+                }}
+                className="h-8 w-8 text-destructive"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
