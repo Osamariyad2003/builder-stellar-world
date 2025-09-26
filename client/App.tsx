@@ -56,6 +56,7 @@ const App = () => (
                 <Route index element={<Dashboard />} />
                 <Route path="news" element={<News />} />
                 <Route path="years" element={<Years />} />
+                <Route path="years/:id" element={<YearPage />} />
                 <Route path="subjects/:id" element={<SubjectPage />} />
                 <Route path="resources" element={<Resources />} />
                 <Route path="resources/*" element={<Resources />} />
