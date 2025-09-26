@@ -32,12 +32,24 @@ export default function Login() {
     }
 
     try {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        setError('No network connection. Please connect to the internet and try again.');
+        return;
+      }
+
       setError("");
       setLoading(true);
       await login(email, password);
       navigate("/admin");
     } catch (error: any) {
-      setError("Failed to log in. Please check your credentials.");
+      console.error('Login error:', error);
+      if (error?.code === 'auth/network-request-failed') {
+        setError('Network error - check your connection and try again.');
+      } else if (error?.code === 'auth/wrong-password' || error?.code === 'auth/user-not-found') {
+        setError('Invalid email or password.');
+      } else {
+        setError('Failed to log in. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }
