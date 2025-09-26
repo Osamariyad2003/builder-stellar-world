@@ -256,6 +256,26 @@ export function useYears() {
         setConnectionStatus("connected");
         setError(null);
         console.log("✅ Firebase data loaded successfully");
+
+        // Ensure every year document has an imageUrl field (empty string if missing)
+        try {
+          if (navigator.onLine) {
+            for (const docSnap of yearsSnapshot.docs) {
+              const d = docSnap.data();
+              if (d.imageUrl === undefined) {
+                try {
+                  const ref = doc(db, "years", docSnap.id);
+                  await updateDoc(ref, { imageUrl: "" });
+                  console.log(`🔄 Set empty imageUrl for year ${docSnap.id}`);
+                } catch (e) {
+                  console.warn(`Failed to set imageUrl for ${docSnap.id}:`, e);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("Could not ensure imageUrl fields:", e);
+        }
       } catch (error: any) {
         console.log("❌ Firebase connection failed - staying in offline mode");
         activateOfflineMode();
