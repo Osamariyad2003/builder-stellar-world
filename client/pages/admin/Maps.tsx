@@ -170,14 +170,29 @@ export default function Maps() {
                       </a>
                     )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteMap(m.id)}
-                    className="text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditingId(m.id);
+                        setForm({ name: m.name || "", location: m.location || "", description: m.description || "", video_url: m.video_url || "", type: m.type || "" });
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className=""
+                    >
+                      Edit
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteMap(m.id)}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
