@@ -42,7 +42,12 @@ export default function Orders() {
                     <div className="text-xs text-muted-foreground">{order.createdAt?.toLocaleString()}</div>
                   </CardTitle>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary">{order.status}</Badge>
+                    <Badge variant={order.status === 'completed' || (order as any).isCompleted ? 'default' : 'secondary'}>
+                      {order.status}{(order as any).isCompleted ? " • completed" : ""}
+                    </Badge>
+                    <Button variant="ghost" size="sm" onClick={() => changeStatus(order.id, 'completed')}>
+                      <CheckCircle className="h-4 w-4 mr-1" /> Complete
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(order.id)} className="text-destructive">
                       <Trash2 className="h-4 w-4" />
                     </Button>
