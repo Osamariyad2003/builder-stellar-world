@@ -108,7 +108,12 @@ export function useOrders() {
 
   const updateOrder = async (id: string, patch: Partial<Order>) => {
     try {
-      await updateDoc(doc(db, "orders", id), { ...patch, updatedAt: new Date() });
+      const updatePayload: any = { ...patch, updatedAt: new Date() };
+      if (patch.status === "completed" || (patch as any).isCompleted) {
+        updatePayload.isCompleted = true;
+        updatePayload.completedAt = new Date();
+      }
+      await updateDoc(doc(db, "orders", id), updatePayload);
     } catch (e) {
       console.error("Error updating order:", e);
     }
