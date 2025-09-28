@@ -41,7 +41,7 @@ export default function OrderCard({ order, onChangeStatus, onDelete }: OrderCard
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <div className="text-sm text-muted-foreground">Contact</div>
-            <div className="font-medium">{order.userName}</div>
+            <div className="font-medium">{order.username || order.userName}</div>
             <div className="text-sm">{order.userEmail}</div>
             {order.userPhone && <div className="text-sm">{order.userPhone}</div>}
             {order.address && <div className="text-sm">{order.address}</div>}
