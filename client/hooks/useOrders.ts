@@ -75,7 +75,9 @@ export function useOrders() {
               address: address,
               items: items,
               total: total,
-              status: v.status || "pending",
+              // Normalize completed flag from different possible field names
+              isCompleted: v.isCompleted === true || v.iscompleted === true || false,
+              status: v.status || (v.isCompleted === true || v.iscompleted === true ? "completed" : "pending"),
               createdAt: createdAt,
               updatedAt: v.updatedAt?.toDate?.(),
             });
@@ -111,7 +113,9 @@ export function useOrders() {
       const updatePayload: any = { ...patch, updatedAt: new Date() };
       if (patch.status === "completed" || (patch as any).isCompleted) {
         updatePayload.isCompleted = true;
+        updatePayload.iscompleted = true; // backward compatibility with existing field name
         updatePayload.completedAt = new Date();
+        updatePayload.status = "completed";
       }
       await updateDoc(doc(db, "orders", id), updatePayload);
     } catch (e) {
