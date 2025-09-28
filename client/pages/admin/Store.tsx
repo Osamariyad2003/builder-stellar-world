@@ -319,6 +319,7 @@ export default function Store() {
                                   const address = window.prompt("Address (optional):", "") || "";
 
                                   await createOrder({
+                                    username: name,
                                     userName: name,
                                     userEmail: email,
                                     userPhone: phone,
