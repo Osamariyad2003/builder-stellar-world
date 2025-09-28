@@ -69,6 +69,8 @@ export function useOrders() {
             data.push({
               id: d.id,
               userId: v.userId || v.user_id || "",
+              // normalize username field (prefer `username` if present)
+              username: v.username || v.userName || v.user_name || v.customerName || "",
               userName: v.userName || v.user_name || v.customerName || "",
               userEmail: v.userEmail || v.email || "",
               userPhone: userPhone,
