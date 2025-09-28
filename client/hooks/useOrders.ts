@@ -19,7 +19,7 @@ export function useOrders() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "orders"), orderBy("orderDate", "desc"));
     const unsub = onSnapshot(
       q,
       async (snap) => {
