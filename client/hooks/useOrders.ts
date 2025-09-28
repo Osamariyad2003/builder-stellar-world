@@ -75,9 +75,9 @@ export function useOrders() {
               address: address,
               items: items,
               total: total,
-              // Normalize completed flag from different possible field names
-              isCompleted: v.isCompleted === true || v.iscompleted === true || false,
-              status: v.status || (v.isCompleted === true || v.iscompleted === true ? "completed" : "pending"),
+              // Prefer reading the lowercase `iscompleted` flag as source of truth
+              iscompleted: v.iscompleted === true || v.isCompleted === true || false,
+              status: v.status || (v.iscompleted === true ? "completed" : "pending"),
               createdAt: createdAt,
               updatedAt: v.updatedAt?.toDate?.(),
             });
