@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, CheckCircle, XCircle } from "lucide-react";
+import OrderCard from "@/components/admin/OrderCard";
 
 export default function Orders() {
   const { orders, loading, error, updateOrder, deleteOrder } = useOrders();
