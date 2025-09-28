@@ -16,7 +16,7 @@ export default function OrderCard({ order, onChangeStatus, onDelete }: OrderCard
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>
-            Order #{order.id} • {order.userName}
+            Order for {order.userName}
             <div className="text-xs text-muted-foreground">{order.createdAt?.toLocaleString?.()}</div>
           </CardTitle>
 
