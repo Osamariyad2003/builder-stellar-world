@@ -125,6 +125,7 @@ export interface OrderItem {
 export interface Order {
   id?: string;
   userId?: string;
+  username?: string;
   userName: string;
   userEmail: string;
   userPhone?: string;
