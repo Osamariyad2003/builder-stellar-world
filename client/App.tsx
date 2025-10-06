@@ -26,6 +26,7 @@ import QuizzesPage from "./pages/admin/Quizzes";
 import FlashcardsPage from "./pages/admin/Flashcards";
 import Settings from "./pages/admin/Settings";
 import Maps from "./pages/admin/Maps";
+import Research from "./pages/admin/Research";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -76,6 +77,7 @@ const App = () => (
                 <Route path="files" element={<FilesPage />} />
                 <Route path="quizzes" element={<QuizzesPage />} />
                 <Route path="flashcards" element={<FlashcardsPage />} />
+                <Route path="research" element={<Research />} />
                 <Route path="maps" element={<Maps />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
