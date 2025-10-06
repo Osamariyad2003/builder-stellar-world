@@ -21,6 +21,9 @@ export interface YearData {
   yearNumber: number;
   type: "basic" | "clinical";
   imageUrl?: string;
+  academicSupervisor?: string;
+  actor?: string;
+  groupUrl?: string;
   subjects: SubjectData[];
 }
 
