@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowLeft, Trash2, Upload } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useYears } from "@/hooks/useYears";
 import { SubjectForm } from "@/components/admin/SubjectForm";
 import { LectureForm } from "@/components/admin/LectureForm";
