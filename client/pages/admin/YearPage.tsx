@@ -15,6 +15,9 @@ export default function YearPage() {
   const [isLectureFormOpen, setIsLectureFormOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<any | null>(null);
 
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [fieldValue, setFieldValue] = useState<string>("");
+
   const {
     years,
     subjects,
