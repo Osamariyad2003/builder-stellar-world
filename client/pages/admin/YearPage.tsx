@@ -98,7 +98,7 @@ export default function YearPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Inline editor for fields instead of prompt dialogs */}
+          {/* Buttons to open inline editor */}
           {!((window as any).__yearEditing) && (
             <>
               <Button
@@ -166,64 +166,64 @@ export default function YearPage() {
               )}
             </>
           )}
-
-          {editingField && (
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder={
-                  editingField === "image"
-                    ? "Image URL"
-                    : editingField === "groupUrl"
-                    ? "Group URL"
-                    : editingField === "academicSupervisor"
-                    ? "Academic Supervisor"
-                    : "Actor"
-                }
-                value={fieldValue}
-                onChange={(e) => setFieldValue(e.target.value)}
-                className="w-64"
-              />
-              <Button
-                onClick={async () => {
-                  try {
-                    const payload: any = {};
-                    if (editingField === "image") {
-                      payload.imageUrl = fieldValue;
-                    } else if (editingField === "academicSupervisor") {
-                      payload.academicSupervisor = fieldValue;
-                      payload.acadmic_supervisor = fieldValue; // legacy
-                    } else if (editingField === "actor") {
-                      payload.actor = fieldValue;
-                    } else if (editingField === "groupUrl") {
-                      payload.groupUrl = fieldValue;
-                      payload.group_url = fieldValue; // legacy
-                    }
-                    await updateYear?.(year.id, payload);
-                    setEditingField(null);
-                    setFieldValue("");
-                    (window as any).__yearEditing = false;
-                  } catch (e) {
-                    console.error(e);
-                    alert("Failed to save field");
-                  }
-                }}
-              >
-                Save
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setEditingField(null);
-                  setFieldValue("");
-                  (window as any).__yearEditing = false;
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          )}
         </div>
       </div>
+
+      {editingField && (
+        <div className="mt-4 flex items-center gap-2">
+          <Input
+            placeholder={
+              editingField === "image"
+                ? "Image URL"
+                : editingField === "groupUrl"
+                ? "Group URL"
+                : editingField === "academicSupervisor"
+                ? "Academic Supervisor"
+                : "Actor"
+            }
+            value={fieldValue}
+            onChange={(e) => setFieldValue(e.target.value)}
+            className="w-full max-w-2xl"
+          />
+          <Button
+            onClick={async () => {
+              try {
+                const payload: any = {};
+                if (editingField === "image") {
+                  payload.imageUrl = fieldValue;
+                } else if (editingField === "academicSupervisor") {
+                  payload.academicSupervisor = fieldValue;
+                  payload.acadmic_supervisor = fieldValue; // legacy
+                } else if (editingField === "actor") {
+                  payload.actor = fieldValue;
+                } else if (editingField === "groupUrl") {
+                  payload.groupUrl = fieldValue;
+                  payload.group_url = fieldValue; // legacy
+                }
+                await updateYear?.(year.id, payload);
+                setEditingField(null);
+                setFieldValue("");
+                (window as any).__yearEditing = false;
+              } catch (e) {
+                console.error(e);
+                alert("Failed to save field");
+              }
+            }}
+          >
+            Save
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setEditingField(null);
+              setFieldValue("");
+              (window as any).__yearEditing = false;
+            }}
+          >
+            Cancel
+          </Button>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
