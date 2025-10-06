@@ -123,7 +123,7 @@ export default function YearPage() {
               );
               if (sup === null) return;
               try {
-                await updateYear?.(year.id, { academicSupervisor: sup });
+                await updateYear?.(year.id, { academicSupervisor: sup, acadmic_supervisor: sup });
               } catch (e) {
                 console.error(e);
                 alert("Failed to update academic supervisor");
