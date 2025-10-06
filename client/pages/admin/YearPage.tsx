@@ -94,94 +94,129 @@ export default function YearPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            onClick={async () => {
-              const url = window.prompt(
-                "Enter image URL for this year:",
-                year.imageUrl || "",
-              );
-              if (url === null) return;
-              try {
-                await updateYear?.(year.id, { imageUrl: url });
-              } catch (e) {
-                console.error(e);
-                alert("Failed to update year image");
-              }
-            }}
-          >
-            <Upload className="h-4 w-4 mr-2" />{" "}
-            {year.imageUrl ? "Change Image" : "Add Image"}
-          </Button>
+          {/* Inline editor for fields instead of prompt dialogs */}
+          {!((window as any).__yearEditing) && (
+            <>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  (window as any).__yearEditing = true;
+                  setEditingField("image");
+                  setFieldValue(year.imageUrl || "");
+                }}
+              >
+                <Upload className="h-4 w-4 mr-2" /> {" "}
+                {year.imageUrl ? "Change Image" : "Add Image"}
+              </Button>
 
-          <Button
-            variant="ghost"
-            onClick={async () => {
-              const sup = window.prompt(
-                "Enter academic supervisor:",
-                (year as any).academicSupervisor || (year as any).acadmic_supervisor || "",
-              );
-              if (sup === null) return;
-              try {
-                await updateYear?.(year.id, { academicSupervisor: sup, acadmic_supervisor: sup });
-              } catch (e) {
-                console.error(e);
-                alert("Failed to update academic supervisor");
-              }
-            }}
-          >
-            Academic Supervisor
-          </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  (window as any).__yearEditing = true;
+                  setEditingField("academicSupervisor");
+                  setFieldValue((year as any).academicSupervisor || (year as any).acadmic_supervisor || "");
+                }}
+              >
+                Academic Supervisor
+              </Button>
 
-          <Button
-            variant="ghost"
-            onClick={async () => {
-              const actor = window.prompt("Enter actor:", (year as any).actor || "");
-              if (actor === null) return;
-              try {
-                await updateYear?.(year.id, { actor });
-              } catch (e) {
-                console.error(e);
-                alert("Failed to update actor");
-              }
-            }}
-          >
-            Actor
-          </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  (window as any).__yearEditing = true;
+                  setEditingField("actor");
+                  setFieldValue((year as any).actor || "");
+                }}
+              >
+                Actor
+              </Button>
 
-          <Button
-            variant="ghost"
-            onClick={async () => {
-              const g = window.prompt("Enter group URL:", (year as any).groupUrl || (year as any).group_url || "");
-              if (g === null) return;
-              try {
-                await updateYear?.(year.id, { groupUrl: g, group_url: g });
-              } catch (e) {
-                console.error(e);
-                alert("Failed to update group URL");
-              }
-            }}
-          >
-            Group URL
-          </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  (window as any).__yearEditing = true;
+                  setEditingField("groupUrl");
+                  setFieldValue((year as any).groupUrl || (year as any).group_url || "");
+                }}
+              >
+                Group URL
+              </Button>
 
-          {year.imageUrl && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive"
-              onClick={async () => {
-                if (!confirm("Remove year image?")) return;
-                try {
-                  await updateYear?.(year.id, { imageUrl: "" });
-                } catch (e) {
-                  console.error(e);
-                  alert("Failed to remove year image");
+              {year.imageUrl && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive"
+                  onClick={async () => {
+                    if (!confirm("Remove year image?")) return;
+                    try {
+                      await updateYear?.(year.id, { imageUrl: "" });
+                    } catch (e) {
+                      console.error(e);
+                      alert("Failed to remove year image");
+                    }
+                  }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
+            </>
+          )}
+
+          {editingField && (
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder={
+                  editingField === "image"
+                    ? "Image URL"
+                    : editingField === "groupUrl"
+                    ? "Group URL"
+                    : editingField === "academicSupervisor"
+                    ? "Academic Supervisor"
+                    : "Actor"
                 }
-              }}
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
+                value={fieldValue}
+                onChange={(e) => setFieldValue(e.target.value)}
+                className="w-64"
+              />
+              <Button
+                onClick={async () => {
+                  try {
+                    const payload: any = {};
+                    if (editingField === "image") {
+                      payload.imageUrl = fieldValue;
+                    } else if (editingField === "academicSupervisor") {
+                      payload.academicSupervisor = fieldValue;
+                      payload.acadmic_supervisor = fieldValue; // legacy
+                    } else if (editingField === "actor") {
+                      payload.actor = fieldValue;
+                    } else if (editingField === "groupUrl") {
+                      payload.groupUrl = fieldValue;
+                      payload.group_url = fieldValue; // legacy
+                    }
+                    await updateYear?.(year.id, payload);
+                    setEditingField(null);
+                    setFieldValue("");
+                    (window as any).__yearEditing = false;
+                  } catch (e) {
+                    console.error(e);
+                    alert("Failed to save field");
+                  }
+                }}
+              >
+                Save
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setEditingField(null);
+                  setFieldValue("");
+                  (window as any).__yearEditing = false;
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
           )}
         </div>
       </div>
