@@ -155,7 +155,7 @@ export default function YearPage() {
               const g = window.prompt("Enter group URL:", (year as any).groupUrl || (year as any).group_url || "");
               if (g === null) return;
               try {
-                await updateYear?.(year.id, { groupUrl: g });
+                await updateYear?.(year.id, { groupUrl: g, group_url: g });
               } catch (e) {
                 console.error(e);
                 alert("Failed to update group URL");
