@@ -150,6 +150,9 @@ export function useYears() {
               yearNumber: yearNumber,
               type: yearNumber <= 3 ? "basic" : "clinical",
               imageUrl: data.imageUrl || "",
+              academicSupervisor: data.acadmic_supervisor || data.academic_supervisor || "",
+              actor: data.actor || "",
+              groupUrl: data.group_url || data.groupUrl || "",
               subjects: [],
             });
           });
