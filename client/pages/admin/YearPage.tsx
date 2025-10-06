@@ -113,6 +113,58 @@ export default function YearPage() {
             <Upload className="h-4 w-4 mr-2" />{" "}
             {year.imageUrl ? "Change Image" : "Add Image"}
           </Button>
+
+          <Button
+            variant="ghost"
+            onClick={async () => {
+              const sup = window.prompt(
+                "Enter academic supervisor:",
+                (year as any).academicSupervisor || (year as any).acadmic_supervisor || "",
+              );
+              if (sup === null) return;
+              try {
+                await updateYear?.(year.id, { academicSupervisor: sup });
+              } catch (e) {
+                console.error(e);
+                alert("Failed to update academic supervisor");
+              }
+            }}
+          >
+            Academic Supervisor
+          </Button>
+
+          <Button
+            variant="ghost"
+            onClick={async () => {
+              const actor = window.prompt("Enter actor:", (year as any).actor || "");
+              if (actor === null) return;
+              try {
+                await updateYear?.(year.id, { actor });
+              } catch (e) {
+                console.error(e);
+                alert("Failed to update actor");
+              }
+            }}
+          >
+            Actor
+          </Button>
+
+          <Button
+            variant="ghost"
+            onClick={async () => {
+              const g = window.prompt("Enter group URL:", (year as any).groupUrl || (year as any).group_url || "");
+              if (g === null) return;
+              try {
+                await updateYear?.(year.id, { groupUrl: g });
+              } catch (e) {
+                console.error(e);
+                alert("Failed to update group URL");
+              }
+            }}
+          >
+            Group URL
+          </Button>
+
           {year.imageUrl && (
             <Button
               variant="ghost"
