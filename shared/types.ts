@@ -87,6 +87,20 @@ export interface Professor {
   imageUrl?: string;
 }
 
+export interface Research {
+  id?: string;
+  projectTitle: string;
+  abstract?: string;
+  fieldOfResearch?: string[];
+  contactPerson?: string[];
+  authorshipPosition?: string[];
+  projectDuration?: string;
+  requiredSkills?: string[];
+  supervisor?: string;
+  createdAt: Date;
+  updatedAt?: Date;
+}
+
 export interface StoreCategory {
   id?: string;
   name: string;
