@@ -273,17 +273,17 @@ export default function Years() {
               <img
                 src={yearData.imageUrl}
                 alt={`Year ${yearData.yearNumber}`}
-                className="w-10 h-10 object-cover rounded"
+                className="w-24 h-16 object-cover rounded-md"
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}
               />
             ) : (
-              <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+              <div className="w-24 h-16 rounded-md bg-muted flex items-center justify-center">
                 {type === "basic" ? (
-                  <GraduationCap className="h-5 w-5 text-blue-600" />
+                  <GraduationCap className="h-6 w-6 text-blue-600" />
                 ) : (
-                  <Stethoscope className="h-5 w-5 text-red-600" />
+                  <Stethoscope className="h-6 w-6 text-red-600" />
                 )}
               </div>
             )}
