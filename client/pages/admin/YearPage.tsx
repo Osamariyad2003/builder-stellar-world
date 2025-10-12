@@ -210,6 +210,9 @@ export default function YearPage() {
                 } else if (editingField === "groupUrl") {
                   payload.groupUrl = fieldValue;
                   payload.group_url = fieldValue; // legacy
+                } else if (editingField === "batchName") {
+                  payload.batchName = fieldValue;
+                  payload.batch_name = fieldValue; // legacy
                 }
                 await updateYear?.(year.id, payload);
                 setEditingField(null);
