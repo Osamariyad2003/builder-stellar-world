@@ -150,6 +150,7 @@ export function useYears() {
               id: doc.id,
               yearNumber: yearNumber,
               type: yearNumber <= 3 ? "basic" : "clinical",
+              batchName: data.batch_name || data.batchName || "",
               imageUrl: data.imageUrl || "",
               academicSupervisor: data.acadmic_supervisor || data.academic_supervisor || "",
               actor: data.actor || "",
