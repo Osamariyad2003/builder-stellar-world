@@ -288,13 +288,23 @@ export default function Years() {
               </div>
             )}
 
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex flex-col">
               <Link
                 to={`/admin/years/${yearData.id}`}
                 className="text-lg font-medium text-blue-600 hover:underline"
               >
                 Year {yearData.yearNumber}
               </Link>
+              <div className="text-sm text-muted-foreground mt-1">
+                {yearData.batchName ? (
+                  <span className="font-medium">{yearData.batchName}</span>
+                ) : (
+                  <span className="italic">No batch name</span>
+                )}
+                {yearData.academicSupervisor && (
+                  <span className="ml-3">• {yearData.academicSupervisor}</span>
+                )}
+              </div>
             </CardTitle>
           </div>
 
