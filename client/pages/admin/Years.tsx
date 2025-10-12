@@ -340,7 +340,7 @@ export default function Years() {
                 ) : (
                   <>
                     {yearData.batchName ? (
-                      <span className="font-medium">{yearData.batchName}</span>
+                      <span className="font-bold text-foreground">{yearData.batchName}</span>
                     ) : (
                       <span className="italic">No batch name</span>
                     )}
