@@ -146,6 +146,17 @@ export default function YearPage() {
                 Group URL
               </Button>
 
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  (window as any).__yearEditing = true;
+                  setEditingField("batchName");
+                  setFieldValue((year as any).batchName || (year as any).batch_name || "");
+                }}
+              >
+                Batch Name
+              </Button>
+
               {year.imageUrl && (
                 <Button
                   variant="ghost"
