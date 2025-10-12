@@ -60,6 +60,10 @@ export default function Years() {
     Record<string, { videos: boolean; files: boolean; quizzes: boolean }>
   >({});
 
+  // Inline editor state for batch name per-year card
+  const [editingBatchId, setEditingBatchId] = useState<string | null>(null);
+  const [editingBatchValue, setEditingBatchValue] = useState<string>("");
+
   const toggleSection = (
     lectureId: string,
     section: "videos" | "files" | "quizzes",
@@ -296,13 +300,54 @@ export default function Years() {
                 Year {yearData.yearNumber}
               </Link>
               <div className="text-sm text-muted-foreground mt-1">
-                {yearData.batchName ? (
-                  <span className="font-medium">{yearData.batchName}</span>
+                {editingBatchId === yearData.id ? (
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      value={editingBatchValue}
+                      onChange={(e) => setEditingBatchValue(e.target.value)}
+                      className="w-48"
+                      placeholder="Batch name"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          await updateYear?.(yearData.id, {
+                            batchName: editingBatchValue,
+                            batch_name: editingBatchValue,
+                          });
+                          setEditingBatchId(null);
+                          setEditingBatchValue("");
+                        } catch (e) {
+                          console.error(e);
+                          alert("Failed to save batch name");
+                        }
+                      }}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditingBatchId(null);
+                        setEditingBatchValue("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 ) : (
-                  <span className="italic">No batch name</span>
-                )}
-                {yearData.academicSupervisor && (
-                  <span className="ml-3">• {yearData.academicSupervisor}</span>
+                  <>
+                    {yearData.batchName ? (
+                      <span className="font-medium">{yearData.batchName}</span>
+                    ) : (
+                      <span className="italic">No batch name</span>
+                    )}
+                    {yearData.academicSupervisor && (
+                      <span className="ml-3">• {yearData.academicSupervisor}</span>
+                    )}
+                  </>
                 )}
               </div>
             </CardTitle>
@@ -334,18 +379,14 @@ export default function Years() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={async () => {
-                const name = window.prompt(
-                  "Enter batch name for this year:",
-                  yearData.batchName || "",
-                );
-                if (name === null) return;
-                try {
-                  await updateYear?.(yearData.id, { batchName: name, batch_name: name });
-                } catch (e) {
-                  console.error(e);
-                  alert("Failed to update batch name");
-                }
+              onClick={() => {
+                setEditingBatchId(yearData.id);
+                setEditingBatchValue(yearData.batchName || "");
+                // scroll into view to ensure input is visible
+                setTimeout(() => {
+                  const el = document.getElementById(`year-card-${yearData.id}`);
+                  if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                }, 50);
               }}
               className="flex items-center gap-1"
             >
