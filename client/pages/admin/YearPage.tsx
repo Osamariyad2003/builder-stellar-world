@@ -91,6 +91,9 @@ export default function YearPage() {
 
           <div>
             <h1 className="text-2xl font-bold">Year {year.yearNumber}</h1>
+            {year.batchName ? (
+              <div className="text-sm text-muted-foreground">{year.batchName}</div>
+            ) : null}
             <p className="text-muted-foreground">
               Manage subjects and lectures for this year
             </p>
