@@ -97,12 +97,12 @@ export function useYears() {
     setError(null); // Clear error in offline mode
 
     const offlineYears: YearData[] = [
-      { id: "offline_year1", yearNumber: 1, type: "basic", subjects: [] },
-      { id: "offline_year2", yearNumber: 2, type: "basic", subjects: [] },
-      { id: "offline_year3", yearNumber: 3, type: "basic", subjects: [] },
-      { id: "offline_year4", yearNumber: 4, type: "clinical", subjects: [] },
-      { id: "offline_year5", yearNumber: 5, type: "clinical", subjects: [] },
-      { id: "offline_year6", yearNumber: 6, type: "clinical", subjects: [] },
+      { id: "offline_year1", yearNumber: 1, type: "basic", batchName: "", subjects: [] },
+      { id: "offline_year2", yearNumber: 2, type: "basic", batchName: "", subjects: [] },
+      { id: "offline_year3", yearNumber: 3, type: "basic", batchName: "", subjects: [] },
+      { id: "offline_year4", yearNumber: 4, type: "clinical", batchName: "", subjects: [] },
+      { id: "offline_year5", yearNumber: 5, type: "clinical", batchName: "", subjects: [] },
+      { id: "offline_year6", yearNumber: 6, type: "clinical", batchName: "", subjects: [] },
     ];
 
     setYears(offlineYears);
