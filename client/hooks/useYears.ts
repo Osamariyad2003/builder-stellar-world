@@ -20,6 +20,7 @@ export interface YearData {
   id?: string;
   yearNumber: number;
   type: "basic" | "clinical";
+  batchName?: string;
   imageUrl?: string;
   academicSupervisor?: string;
   actor?: string;
