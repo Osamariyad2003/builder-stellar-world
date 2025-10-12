@@ -270,13 +270,20 @@ export function useYears() {
           if (navigator.onLine) {
             for (const docSnap of yearsSnapshot.docs) {
               const d = docSnap.data();
+              const ref = doc(db, "years", docSnap.id);
+              const updates: any = {};
               if (d.imageUrl === undefined) {
+                updates.imageUrl = "";
+              }
+              if (d.batch_name === undefined && d.batchName === undefined) {
+                updates.batch_name = "";
+              }
+              if (Object.keys(updates).length > 0) {
                 try {
-                  const ref = doc(db, "years", docSnap.id);
-                  await updateDoc(ref, { imageUrl: "" });
-                  console.log(`🔄 Set empty imageUrl for year ${docSnap.id}`);
+                  await updateDoc(ref, updates);
+                  console.log(`🔄 Set missing fields for year ${docSnap.id}:`, updates);
                 } catch (e) {
-                  console.warn(`Failed to set imageUrl for ${docSnap.id}:`, e);
+                  console.warn(`Failed to set defaults for ${docSnap.id}:`, e);
                 }
               }
             }
