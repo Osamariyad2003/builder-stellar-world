@@ -90,12 +90,15 @@ export default function YearPage() {
           </Link>
 
           <div>
-            <h1 className="text-2xl font-bold">Year {year.yearNumber}</h1>
             {year.batchName ? (
-              <div className="text-sm">
-                <span className="font-bold text-foreground">{year.batchName}</span>
-              </div>
-            ) : null}
+              <>
+                <h1 className="text-2xl font-bold">{year.batchName}</h1>
+                <div className="text-sm text-muted-foreground">Year {year.yearNumber}</div>
+              </>
+            ) : (
+              <h1 className="text-2xl font-bold">Year {year.yearNumber}</h1>
+            )}
+
             <p className="text-muted-foreground">
               Manage subjects and lectures for this year
             </p>
