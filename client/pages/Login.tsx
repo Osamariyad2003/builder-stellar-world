@@ -45,7 +45,10 @@ export default function Login() {
       navigate("/admin");
     } catch (error: any) {
       console.error("Login error:", error);
-      if (error?.code === "auth/network-request-failed") {
+      // Prefer context-provided authError (set by AuthProvider when more details available)
+      if (authError) {
+        setError(authError);
+      } else if (error?.code === "auth/network-request-failed") {
         setError("Network error - check your connection and try again.");
       } else if (
         error?.code === "auth/wrong-password" ||
