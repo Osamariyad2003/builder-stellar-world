@@ -293,63 +293,78 @@ export default function Years() {
             )}
 
             <CardTitle className="flex flex-col">
-              <Link
-                to={`/admin/years/${yearData.id}`}
-                className="text-lg font-medium text-blue-600 hover:underline"
-              >
-                Year {yearData.yearNumber}
-              </Link>
-              <div className="text-sm text-muted-foreground mt-1">
                 {editingBatchId === yearData.id ? (
-                  <div className="flex items-center gap-2 mt-1">
-                    <Input
-                      value={editingBatchValue}
-                      onChange={(e) => setEditingBatchValue(e.target.value)}
-                      className="w-48"
-                      placeholder="Batch name"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          await updateYear?.(yearData.id, {
-                            batchName: editingBatchValue,
-                            batch_name: editingBatchValue,
-                          });
-                          setEditingBatchId(null);
-                          setEditingBatchValue("");
-                        } catch (e) {
-                          console.error(e);
-                          alert("Failed to save batch name");
-                        }
-                      }}
-                    >
-                      Save
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    value={editingBatchValue}
+                    onChange={(e) => setEditingBatchValue(e.target.value)}
+                    className="w-48"
+                    placeholder="Batch name"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        await updateYear?.(yearData.id, {
+                          batchName: editingBatchValue,
+                          batch_name: editingBatchValue,
+                        });
                         setEditingBatchId(null);
                         setEditingBatchValue("");
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    {yearData.batchName ? (
-                      <span className="font-bold text-foreground">{yearData.batchName}</span>
-                    ) : (
-                      <span className="italic">No batch name</span>
-                    )}
-                    {yearData.academicSupervisor && (
-                      <span className="ml-3">• {yearData.academicSupervisor}</span>
-                    )}
-                  </>
-                )}
-              </div>
+                      } catch (e) {
+                        console.error(e);
+                        alert("Failed to save batch name");
+                      }
+                    }}
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditingBatchId(null);
+                      setEditingBatchValue("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {yearData.batchName ? (
+                    <>
+                      <Link
+                        to={`/admin/years/${yearData.id}`}
+                        className="text-lg font-bold text-foreground hover:underline"
+                      >
+                        {yearData.batchName}
+                      </Link>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        <span className="text-sm text-muted">Year {yearData.yearNumber}</span>
+                        {yearData.academicSupervisor && (
+                          <span className="ml-3">• {yearData.academicSupervisor}</span>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        to={`/admin/years/${yearData.id}`}
+                        className="text-lg font-medium text-blue-600 hover:underline"
+                      >
+                        Year {yearData.yearNumber}
+                      </Link>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        <span className="italic">No batch name</span>
+                        {yearData.academicSupervisor && (
+                          <span className="ml-3">• {yearData.academicSupervisor}</span>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
             </CardTitle>
           </div>
 
