@@ -331,6 +331,27 @@ export default function Years() {
               {yearData.imageUrl ? "Change Image" : "Add Image"}
             </Button>
 
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={async () => {
+                const name = window.prompt(
+                  "Enter batch name for this year:",
+                  yearData.batchName || "",
+                );
+                if (name === null) return;
+                try {
+                  await updateYear?.(yearData.id, { batchName: name, batch_name: name });
+                } catch (e) {
+                  console.error(e);
+                  alert("Failed to update batch name");
+                }
+              }}
+              className="flex items-center gap-1"
+            >
+              Batch Name
+            </Button>
+
             {yearData.imageUrl && (
               <Button
                 variant="ghost"
