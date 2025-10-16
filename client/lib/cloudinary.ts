@@ -5,7 +5,7 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   // If build-time cloudName is missing (deployed without VITE_*), request runtime config from server
   if (!cloudName) {
     try {
-      const cfgRes = await fetch('/api/cloudinary/config');
+      const cfgRes = await fetch("/api/cloudinary/config");
       if (cfgRes.ok) {
         const cfg = await cfgRes.json();
         cloudName = cfg.cloudName || cloudName;
@@ -18,7 +18,7 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
 
   if (!cloudName) {
     throw new Error(
-      "Cloudinary cloud name is not configured. Set VITE_CLOUDINARY_CLOUD_NAME in your environment or provide server config."
+      "Cloudinary cloud name is not configured. Set VITE_CLOUDINARY_CLOUD_NAME in your environment or provide server config.",
     );
   }
 

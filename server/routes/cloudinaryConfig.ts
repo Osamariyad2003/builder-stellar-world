@@ -5,7 +5,9 @@ export const handleConfig: RequestHandler = (_req, res) => {
   const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET || null;
 
   if (!cloudName && !uploadPreset) {
-    return res.status(404).json({ error: "No Cloudinary configuration available on server." });
+    return res
+      .status(404)
+      .json({ error: "No Cloudinary configuration available on server." });
   }
 
   res.json({ cloudName, uploadPreset });
