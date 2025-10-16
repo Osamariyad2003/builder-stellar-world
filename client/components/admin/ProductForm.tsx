@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Save, Package, Plus, X } from "lucide-react";
+import { ArrowLeft, Save, Package, Plus, X, Image } from "lucide-react";
 import { Product } from "@/shared/types";
 import { uploadImageToCloudinary, setLocalCloudinaryConfig } from "@/lib/cloudinary";
 
