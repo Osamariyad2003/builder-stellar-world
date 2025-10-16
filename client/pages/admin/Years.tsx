@@ -294,7 +294,7 @@ export default function Years() {
             )}
 
             <CardTitle className="flex flex-col">
-                {editingBatchId === yearData.id ? (
+              {editingBatchId === yearData.id ? (
                 <div className="flex items-center gap-2 mt-1">
                   <Input
                     value={editingBatchValue}
@@ -342,9 +342,13 @@ export default function Years() {
                         {yearData.batchName}
                       </Link>
                       <div className="text-sm text-muted-foreground mt-1">
-                        <span className="text-sm text-muted">Year {yearData.yearNumber}</span>
+                        <span className="text-sm text-muted">
+                          Year {yearData.yearNumber}
+                        </span>
                         {yearData.academicSupervisor && (
-                          <span className="ml-3">• {yearData.academicSupervisor}</span>
+                          <span className="ml-3">
+                            • {yearData.academicSupervisor}
+                          </span>
                         )}
                       </div>
                     </>
@@ -359,7 +363,9 @@ export default function Years() {
                       <div className="text-sm text-muted-foreground mt-1">
                         <span className="italic">No batch name</span>
                         {yearData.academicSupervisor && (
-                          <span className="ml-3">• {yearData.academicSupervisor}</span>
+                          <span className="ml-3">
+                            • {yearData.academicSupervisor}
+                          </span>
                         )}
                       </div>
                     </>
@@ -374,27 +380,30 @@ export default function Years() {
               variant="ghost"
               size="sm"
               onClick={async () => {
-                  try {
-                    const input = document.createElement("input");
-                    input.type = "file";
-                    input.accept = "image/*";
-                    input.onchange = async () => {
-                      const file = input.files?.[0];
-                      if (!file) return;
-                      try {
-                        const imageUrl = await uploadImageToCloudinary(file);
-                        await updateYear?.(yearData.id, { imageUrl, image_url: imageUrl });
-                      } catch (e: any) {
-                        console.error(e);
-                        alert("Image upload failed: " + (e.message || e));
-                      }
-                    };
-                    input.click();
-                  } catch (e) {
-                    console.error(e);
-                    alert("Could not open file dialog");
-                  }
-                }}
+                try {
+                  const input = document.createElement("input");
+                  input.type = "file";
+                  input.accept = "image/*";
+                  input.onchange = async () => {
+                    const file = input.files?.[0];
+                    if (!file) return;
+                    try {
+                      const imageUrl = await uploadImageToCloudinary(file);
+                      await updateYear?.(yearData.id, {
+                        imageUrl,
+                        image_url: imageUrl,
+                      });
+                    } catch (e: any) {
+                      console.error(e);
+                      alert("Image upload failed: " + (e.message || e));
+                    }
+                  };
+                  input.click();
+                } catch (e) {
+                  console.error(e);
+                  alert("Could not open file dialog");
+                }
+              }}
               className="flex items-center gap-1"
             >
               <Upload className="h-3 w-3" />
@@ -409,8 +418,11 @@ export default function Years() {
                 setEditingBatchValue(yearData.batchName || "");
                 // scroll into view to ensure input is visible
                 setTimeout(() => {
-                  const el = document.getElementById(`year-card-${yearData.id}`);
-                  if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+                  const el = document.getElementById(
+                    `year-card-${yearData.id}`,
+                  );
+                  if (el)
+                    el.scrollIntoView({ behavior: "smooth", block: "center" });
                 }, 50);
               }}
               className="flex items-center gap-1"

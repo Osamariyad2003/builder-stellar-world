@@ -94,7 +94,9 @@ export default function YearPage() {
             {year.batchName ? (
               <>
                 <h1 className="text-2xl font-bold">{year.batchName}</h1>
-                <div className="text-sm text-muted-foreground">Year {year.yearNumber}</div>
+                <div className="text-sm text-muted-foreground">
+                  Year {year.yearNumber}
+                </div>
               </>
             ) : (
               <h1 className="text-2xl font-bold">Year {year.yearNumber}</h1>
@@ -108,7 +110,7 @@ export default function YearPage() {
 
         <div className="flex items-center gap-2">
           {/* Buttons to open inline editor */}
-          {!((window as any).__yearEditing) && (
+          {!(window as any).__yearEditing && (
             <>
               <Button
                 variant="ghost"
@@ -122,7 +124,10 @@ export default function YearPage() {
                       if (!file) return;
                       try {
                         const imageUrl = await uploadImageToCloudinary(file);
-                        await updateYear?.(year.id, { imageUrl, image_url: imageUrl });
+                        await updateYear?.(year.id, {
+                          imageUrl,
+                          image_url: imageUrl,
+                        });
                         // Force refresh
                         (window as any).__yearEditing = false;
                       } catch (e: any) {
@@ -137,7 +142,7 @@ export default function YearPage() {
                   }
                 }}
               >
-                <Upload className="h-4 w-4 mr-2" /> {" "}
+                <Upload className="h-4 w-4 mr-2" />{" "}
                 {year.imageUrl ? "Change Image" : "Add Image"}
               </Button>
 
@@ -146,7 +151,11 @@ export default function YearPage() {
                 onClick={() => {
                   (window as any).__yearEditing = true;
                   setEditingField("academicSupervisor");
-                  setFieldValue((year as any).academicSupervisor || (year as any).acadmic_supervisor || "");
+                  setFieldValue(
+                    (year as any).academicSupervisor ||
+                      (year as any).acadmic_supervisor ||
+                      "",
+                  );
                 }}
               >
                 Academic Supervisor
@@ -168,7 +177,9 @@ export default function YearPage() {
                 onClick={() => {
                   (window as any).__yearEditing = true;
                   setEditingField("groupUrl");
-                  setFieldValue((year as any).groupUrl || (year as any).group_url || "");
+                  setFieldValue(
+                    (year as any).groupUrl || (year as any).group_url || "",
+                  );
                 }}
               >
                 Group URL
@@ -179,7 +190,9 @@ export default function YearPage() {
                 onClick={() => {
                   (window as any).__yearEditing = true;
                   setEditingField("batchName");
-                  setFieldValue((year as any).batchName || (year as any).batch_name || "");
+                  setFieldValue(
+                    (year as any).batchName || (year as any).batch_name || "",
+                  );
                 }}
               >
                 Batch Name
@@ -215,10 +228,10 @@ export default function YearPage() {
               editingField === "image"
                 ? "Image URL"
                 : editingField === "groupUrl"
-                ? "Group URL"
-                : editingField === "academicSupervisor"
-                ? "Academic Supervisor"
-                : "Actor"
+                  ? "Group URL"
+                  : editingField === "academicSupervisor"
+                    ? "Academic Supervisor"
+                    : "Actor"
             }
             value={fieldValue}
             onChange={(e) => setFieldValue(e.target.value)}
