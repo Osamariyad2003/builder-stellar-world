@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowLeft, Trash2, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useYears } from "@/hooks/useYears";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { SubjectForm } from "@/components/admin/SubjectForm";
 import { LectureForm } from "@/components/admin/LectureForm";
 
@@ -111,10 +112,29 @@ export default function YearPage() {
             <>
               <Button
                 variant="ghost"
-                onClick={() => {
-                  (window as any).__yearEditing = true;
-                  setEditingField("image");
-                  setFieldValue(year.imageUrl || "");
+                onClick={async () => {
+                  try {
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = "image/*";
+                    input.onchange = async () => {
+                      const file = input.files?.[0];
+                      if (!file) return;
+                      try {
+                        const imageUrl = await uploadImageToCloudinary(file);
+                        await updateYear?.(year.id, { imageUrl });
+                        // Force refresh
+                        (window as any).__yearEditing = false;
+                      } catch (e: any) {
+                        console.error(e);
+                        alert("Image upload failed: " + (e.message || e));
+                      }
+                    };
+                    input.click();
+                  } catch (e) {
+                    console.error(e);
+                    alert("Could not open file dialog");
+                  }
                 }}
               >
                 <Upload className="h-4 w-4 mr-2" /> {" "}
