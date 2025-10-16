@@ -17,8 +17,22 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   }
 
   if (!cloudName) {
+    // Try localStorage fallback (temporary admin override in browser)
+    try {
+      const localCloud = localStorage.getItem("cloudinary.cloudName");
+      const localPreset = localStorage.getItem("cloudinary.uploadPreset");
+      if (localCloud) {
+        cloudName = localCloud;
+        uploadPreset = uploadPreset || localPreset || uploadPreset;
+      }
+    } catch (e) {
+      // ignore localStorage errors
+    }
+  }
+
+  if (!cloudName) {
     throw new Error(
-      "Cloudinary cloud name is not configured. Set VITE_CLOUDINARY_CLOUD_NAME in your environment or provide server config.",
+      "Cloudinary cloud name is not configured. Set VITE_CLOUDINARY_CLOUD_NAME in your environment or provide server config."
     );
   }
 
