@@ -4,7 +4,7 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
 
   if (!cloudName) {
     throw new Error(
-      "Cloudinary cloud name is not configured. Set VITE_CLOUDINARY_CLOUD_NAME in your environment."
+      "Cloudinary cloud name is not configured. Set VITE_CLOUDINARY_CLOUD_NAME in your environment.",
     );
   }
 

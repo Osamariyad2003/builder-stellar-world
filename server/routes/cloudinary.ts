@@ -13,7 +13,9 @@ export const handleSign: RequestHandler = (req, res) => {
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
   if (!cloudName || !apiKey || !apiSecret) {
-    return res.status(500).json({ error: "Cloudinary not configured on server." });
+    return res
+      .status(500)
+      .json({ error: "Cloudinary not configured on server." });
   }
 
   const timestamp = Math.floor(Date.now() / 1000);
