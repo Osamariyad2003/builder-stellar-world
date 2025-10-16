@@ -389,6 +389,13 @@ export default function Years() {
                     if (!file) return;
                     try {
                       const imageUrl = await uploadImageToCloudinary(file);
+                      console.log("Cloudinary upload result:", imageUrl);
+                      if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.startsWith("http")) {
+                        console.error("Invalid Cloudinary upload response:", imageUrl);
+                        alert("Image upload failed: unexpected response from Cloudinary");
+                        return;
+                      }
+
                       await updateYear?.(yearData.id, {
                         imageUrl,
                         image_url: imageUrl,
