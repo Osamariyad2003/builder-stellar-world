@@ -383,7 +383,7 @@ export default function Years() {
                       if (!file) return;
                       try {
                         const imageUrl = await uploadImageToCloudinary(file);
-                        await updateYear?.(yearData.id, { imageUrl });
+                        await updateYear?.(yearData.id, { imageUrl, image_url: imageUrl });
                       } catch (e: any) {
                         console.error(e);
                         alert("Image upload failed: " + (e.message || e));
