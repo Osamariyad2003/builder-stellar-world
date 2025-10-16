@@ -22,6 +22,7 @@ import { FileForm } from "@/components/admin/FileForm";
 import { VideoForm } from "@/components/admin/VideoForm";
 import { LectureForm } from "@/components/admin/LectureForm";
 import { useYears } from "@/hooks/useYears";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { useNews } from "@/hooks/useNews";
 import { Link } from "react-router-dom";
 import {
@@ -373,18 +374,27 @@ export default function Years() {
               variant="ghost"
               size="sm"
               onClick={async () => {
-                const url = window.prompt(
-                  "Enter image URL for this year:",
-                  yearData.imageUrl || "",
-                );
-                if (url === null) return;
-                try {
-                  await updateYear?.(yearData.id, { imageUrl: url });
-                } catch (e) {
-                  console.error(e);
-                  alert("Failed to update year image");
-                }
-              }}
+                  try {
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = "image/*";
+                    input.onchange = async () => {
+                      const file = input.files?.[0];
+                      if (!file) return;
+                      try {
+                        const imageUrl = await uploadImageToCloudinary(file);
+                        await updateYear?.(yearData.id, { imageUrl });
+                      } catch (e: any) {
+                        console.error(e);
+                        alert("Image upload failed: " + (e.message || e));
+                      }
+                    };
+                    input.click();
+                  } catch (e) {
+                    console.error(e);
+                    alert("Could not open file dialog");
+                  }
+                }}
               className="flex items-center gap-1"
             >
               <Upload className="h-3 w-3" />
