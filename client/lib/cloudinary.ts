@@ -1,10 +1,24 @@
 export async function uploadImageToCloudinary(file: File): Promise<string> {
-  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+  let cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+  let uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+  // If build-time cloudName is missing (deployed without VITE_*), request runtime config from server
+  if (!cloudName) {
+    try {
+      const cfgRes = await fetch('/api/cloudinary/config');
+      if (cfgRes.ok) {
+        const cfg = await cfgRes.json();
+        cloudName = cfg.cloudName || cloudName;
+        uploadPreset = cfg.uploadPreset || uploadPreset;
+      }
+    } catch (e) {
+      // ignore - will throw below if still missing
+    }
+  }
 
   if (!cloudName) {
     throw new Error(
-      "Cloudinary cloud name is not configured. Set VITE_CLOUDINARY_CLOUD_NAME in your environment.",
+      "Cloudinary cloud name is not configured. Set VITE_CLOUDINARY_CLOUD_NAME in your environment or provide server config."
     );
   }
 
