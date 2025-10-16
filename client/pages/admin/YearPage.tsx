@@ -124,6 +124,14 @@ export default function YearPage() {
                       if (!file) return;
                       try {
                         const imageUrl = await uploadImageToCloudinary(file);
+                        console.log("Cloudinary upload result:", imageUrl);
+                        if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.startsWith("http")) {
+                          console.error("Invalid Cloudinary upload response:", imageUrl);
+                          alert("Image upload failed: unexpected response from Cloudinary");
+                          (window as any).__yearEditing = false;
+                          return;
+                        }
+
                         await updateYear?.(year.id, {
                           imageUrl,
                           image_url: imageUrl,
