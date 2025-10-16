@@ -2,16 +2,54 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-  if (!cloudName || !uploadPreset) {
+  if (!cloudName) {
     throw new Error(
-      "Cloudinary is not configured. Set VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET in your environment.",
+      "Cloudinary cloud name is not configured. Set VITE_CLOUDINARY_CLOUD_NAME in your environment."
     );
   }
 
   const url = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
+
+  // Use unsigned client-side upload if upload preset is configured
+  if (uploadPreset) {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("upload_preset", uploadPreset);
+
+    const res = await fetch(url, {
+      method: "POST",
+      body: form,
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Cloudinary upload failed: ${res.status} ${text}`);
+    }
+
+    const data = await res.json();
+    return data.secure_url || data.url;
+  }
+
+  // Otherwise, request a signed signature from the application server
+  const signRes = await fetch("/api/cloudinary/sign", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+
+  if (!signRes.ok) {
+    const text = await signRes.text();
+    throw new Error(`Cloudinary signing failed: ${signRes.status} ${text}`);
+  }
+
+  const signData = await signRes.json();
+  const { signature, apiKey, timestamp } = signData;
+
   const form = new FormData();
   form.append("file", file);
-  form.append("upload_preset", uploadPreset);
+  form.append("api_key", apiKey);
+  form.append("timestamp", String(timestamp));
+  form.append("signature", signature);
 
   const res = await fetch(url, {
     method: "POST",
@@ -20,7 +58,7 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Cloudinary upload failed: ${res.status} ${text}`);
+    throw new Error(`Cloudinary signed upload failed: ${res.status} ${text}`);
   }
 
   const data = await res.json();
