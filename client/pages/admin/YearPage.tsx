@@ -122,7 +122,7 @@ export default function YearPage() {
                       if (!file) return;
                       try {
                         const imageUrl = await uploadImageToCloudinary(file);
-                        await updateYear?.(year.id, { imageUrl });
+                        await updateYear?.(year.id, { imageUrl, image_url: imageUrl });
                         // Force refresh
                         (window as any).__yearEditing = false;
                       } catch (e: any) {
