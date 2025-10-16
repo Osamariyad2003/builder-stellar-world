@@ -92,3 +92,12 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   const data = await res.json();
   return data.secure_url || data.url;
 }
+
+export function setLocalCloudinaryConfig(cloudName: string | null, uploadPreset?: string | null) {
+  try {
+    if (cloudName) localStorage.setItem("cloudinary.cloudName", cloudName);
+    if (uploadPreset) localStorage.setItem("cloudinary.uploadPreset", uploadPreset);
+  } catch (e) {
+    console.warn("Could not persist Cloudinary config to localStorage", e);
+  }
+}
