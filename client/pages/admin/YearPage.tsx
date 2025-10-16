@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowLeft, Trash2, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useYears } from "@/hooks/useYears";
-import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import { uploadImageToCloudinary, setLocalCloudinaryConfig } from "@/lib/cloudinary";
 import { SubjectForm } from "@/components/admin/SubjectForm";
 import { LectureForm } from "@/components/admin/LectureForm";
 
