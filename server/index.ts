@@ -22,5 +22,8 @@ export function createServer() {
   // Cloudinary signing endpoint
   app.post("/api/cloudinary/sign", handleSign);
 
+  // Provide Cloudinary config (runtime) to clients when VITE_* not available
+  app.get("/api/cloudinary/config", handleConfig);
+
   return app;
 }
