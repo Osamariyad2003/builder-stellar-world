@@ -402,6 +402,31 @@ export default function Years() {
                       });
                     } catch (e: any) {
                       console.error(e);
+                      const msg = e?.message || String(e);
+                      if (msg && msg.toLowerCase().includes("cloudinary cloud name is not configured")) {
+                        // Prompt the admin to enter cloud name and optional upload preset
+                        const cloud = window.prompt("Cloudinary cloud name (e.g. dflp2vxn2):");
+                        if (!cloud) {
+                          alert("No cloud name provided. Upload cancelled.");
+                          return;
+                        }
+                        const preset = window.prompt("Unsigned upload preset (leave empty to use signed server flow):", "");
+                        try {
+                          setLocalCloudinaryConfig(cloud, preset || null);
+                          const imageUrl2 = await uploadImageToCloudinary(file);
+                          console.log("Cloudinary upload result after config:", imageUrl2);
+                          if (!imageUrl2 || typeof imageUrl2 !== "string" || !imageUrl2.startsWith("http")) {
+                            alert("Image upload failed: unexpected response from Cloudinary");
+                            return;
+                          }
+                          await updateYear?.(yearData.id, { imageUrl: imageUrl2, image_url: imageUrl2 });
+                        } catch (e2: any) {
+                          console.error(e2);
+                          alert("Image upload failed after configuring Cloudinary: " + (e2.message || e2));
+                        }
+                        return;
+                      }
+
                       alert("Image upload failed: " + (e.message || e));
                     }
                   };
