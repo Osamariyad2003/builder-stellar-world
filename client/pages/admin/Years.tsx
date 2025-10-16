@@ -22,7 +22,7 @@ import { FileForm } from "@/components/admin/FileForm";
 import { VideoForm } from "@/components/admin/VideoForm";
 import { LectureForm } from "@/components/admin/LectureForm";
 import { useYears } from "@/hooks/useYears";
-import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import { uploadImageToCloudinary, setLocalCloudinaryConfig } from "@/lib/cloudinary";
 import { useNews } from "@/hooks/useNews";
 import { Link } from "react-router-dom";
 import {
