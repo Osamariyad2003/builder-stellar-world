@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { handleSign } from "./routes/cloudinary";
+import { handleConfig } from "./routes/cloudinaryConfig";
 
 export function createServer() {
   const app = express();
