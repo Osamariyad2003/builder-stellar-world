@@ -12,7 +12,10 @@ import {
 } from "@/components/ui/card";
 import { ArrowLeft, Save, Package, Plus, X, Image } from "lucide-react";
 import { Product } from "@/shared/types";
-import { uploadImageToCloudinary, setLocalCloudinaryConfig } from "@/lib/cloudinary";
+import {
+  uploadImageToCloudinary,
+  setLocalCloudinaryConfig,
+} from "@/lib/cloudinary";
 
 interface ProductFormProps {
   product?: Product | null;
@@ -198,47 +201,77 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
                   size="icon"
                   onClick={async () => {
                     try {
-                      const input = document.createElement('input');
-                      input.type = 'file';
-                      input.accept = 'image/*';
+                      const input = document.createElement("input");
+                      input.type = "file";
+                      input.accept = "image/*";
                       input.onchange = async () => {
                         const file = input.files?.[0];
                         if (!file) return;
                         try {
                           const imageUrl = await uploadImageToCloudinary(file);
-                          if (!imageUrl || typeof imageUrl !== 'string' || !imageUrl.startsWith('http')) {
-                            alert('Upload failed: unexpected response from Cloudinary');
+                          if (
+                            !imageUrl ||
+                            typeof imageUrl !== "string" ||
+                            !imageUrl.startsWith("http")
+                          ) {
+                            alert(
+                              "Upload failed: unexpected response from Cloudinary",
+                            );
                             return;
                           }
                           updateImage(index, imageUrl);
                         } catch (e: any) {
                           const msg = e?.message || String(e);
-                          console.error('Upload error:', e);
-                          if (msg.toLowerCase().includes('cloudinary cloud name is not configured')) {
-                            const cloud = window.prompt('Cloudinary cloud name (e.g. dflp2vxn2):');
-                            if (!cloud) { alert('No cloud name provided.'); return; }
-                            const preset = window.prompt('Unsigned upload preset (leave empty to use signed server flow):', '');
+                          console.error("Upload error:", e);
+                          if (
+                            msg
+                              .toLowerCase()
+                              .includes(
+                                "cloudinary cloud name is not configured",
+                              )
+                          ) {
+                            const cloud = window.prompt(
+                              "Cloudinary cloud name (e.g. dflp2vxn2):",
+                            );
+                            if (!cloud) {
+                              alert("No cloud name provided.");
+                              return;
+                            }
+                            const preset = window.prompt(
+                              "Unsigned upload preset (leave empty to use signed server flow):",
+                              "",
+                            );
                             setLocalCloudinaryConfig(cloud, preset || null);
                             try {
-                              const imageUrl2 = await uploadImageToCloudinary(file);
-                              if (!imageUrl2 || typeof imageUrl2 !== 'string' || !imageUrl2.startsWith('http')) {
-                                alert('Upload failed: unexpected response from Cloudinary');
+                              const imageUrl2 =
+                                await uploadImageToCloudinary(file);
+                              if (
+                                !imageUrl2 ||
+                                typeof imageUrl2 !== "string" ||
+                                !imageUrl2.startsWith("http")
+                              ) {
+                                alert(
+                                  "Upload failed: unexpected response from Cloudinary",
+                                );
                                 return;
                               }
                               updateImage(index, imageUrl2);
                             } catch (e2: any) {
-                              console.error('Retry upload error:', e2);
-                              alert('Upload failed after configuring Cloudinary: ' + (e2.message || e2));
+                              console.error("Retry upload error:", e2);
+                              alert(
+                                "Upload failed after configuring Cloudinary: " +
+                                  (e2.message || e2),
+                              );
                             }
                           } else {
-                            alert('Image upload failed: ' + (e.message || e));
+                            alert("Image upload failed: " + (e.message || e));
                           }
                         }
                       };
                       input.click();
                     } catch (e) {
                       console.error(e);
-                      alert('Could not open file dialog');
+                      alert("Could not open file dialog");
                     }
                   }}
                 >
