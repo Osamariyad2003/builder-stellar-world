@@ -18,5 +18,8 @@ export function createServer() {
 
   app.get("/api/demo", handleDemo);
 
+  // Cloudinary signing endpoint
+  app.post("/api/cloudinary/sign", handleSign);
+
   return app;
 }
