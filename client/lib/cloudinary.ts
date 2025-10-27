@@ -2,18 +2,24 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   let cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   let uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-  // If build-time cloudName is missing (deployed without VITE_*), request runtime config from server
-  if (!cloudName) {
-    try {
-      const cfgRes = await fetch("/api/cloudinary/config");
-      if (cfgRes.ok) {
+  // Fetch runtime server config if available (helps pick up CLOUDINARY_UPLOAD_PRESET even when VITE vars are not present)
+  try {
+    const cfgRes = await fetch("/api/cloudinary/config");
+    if (cfgRes.ok) {
+      try {
         const cfg = await cfgRes.json();
         cloudName = cfg.cloudName || cloudName;
-        uploadPreset = cfg.uploadPreset || uploadPreset;
+        uploadPreset = cfg.uploadPreset || cfg.upload_preset || uploadPreset;
+      } catch {
+        // if body can't be read, try headers
+        const headerCloud = cfgRes.headers.get("x-cloudinary-cloudname");
+        const headerPreset = cfgRes.headers.get("x-cloudinary-upload-preset");
+        if (headerCloud) cloudName = cloudName || headerCloud;
+        if (headerPreset) uploadPreset = uploadPreset || headerPreset;
       }
-    } catch (e) {
-      // ignore - will throw below if still missing
     }
+  } catch (e) {
+    // ignore
   }
 
   if (!cloudName) {
