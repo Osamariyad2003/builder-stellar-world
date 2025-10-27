@@ -38,6 +38,46 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
 
   const url = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
 
+  // Helper to safely read response bodies without causing 'body stream already read' errors
+  async function readResponseBody(res: Response) {
+    // If the body has already been used, provide a clear error message
+    if ((res as any).bodyUsed) {
+      throw new Error(
+        "Response body already read (possibly by a browser extension). Disable extensions that inspect network requests and try again."
+      );
+    }
+
+    // Prefer parsing JSON from a clone, fall back to text, and finally try to JSON.parse the text
+    try {
+      const cloned = res.clone();
+      try {
+        const json = await cloned.json();
+        return { json, text: null } as const;
+      } catch (e) {
+        // Not JSON - fall through to text read on original response
+      }
+    } catch (e) {
+      // clone may fail if body already read between response arrival and this call
+      if ((res as any).bodyUsed) {
+        throw new Error(
+          "Response body already read (possibly by a browser extension). Disable extensions that inspect network requests and try again."
+        );
+      }
+    }
+
+    try {
+      const text = await res.text();
+      try {
+        const json = JSON.parse(text);
+        return { json, text } as const;
+      } catch (_) {
+        return { json: null, text } as const;
+      }
+    } catch (e) {
+      throw new Error("Could not read response body: " + String(e));
+    }
+  }
+
   // Use unsigned client-side upload if upload preset is configured
   if (uploadPreset) {
     const form = new FormData();
@@ -50,12 +90,26 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
     });
 
     if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Cloudinary upload failed: ${res.status} ${text}`);
+      const body = await readResponseBody(res).catch((err) => {
+        // If we couldn't read the body, surface the error but include status
+        throw new Error(`Cloudinary upload failed: ${res.status} - ${err.message}`);
+      });
+
+      const message = body?.json ? JSON.stringify(body.json) : body?.text || "";
+      throw new Error(`Cloudinary upload failed: ${res.status} ${message}`);
     }
 
-    const data = await res.json();
-    return data.secure_url || data.url;
+    const body = await readResponseBody(res);
+    if (body.json && (body.json.secure_url || body.json.url)) {
+      return body.json.secure_url || body.json.url;
+    }
+
+    // If response wasn't JSON or didn't include expected fields, try to parse text
+    if (body.text && typeof body.text === "string" && body.text.startsWith("http")) {
+      return body.text;
+    }
+
+    throw new Error("Cloudinary upload returned unexpected response.");
   }
 
   // Otherwise, request a signed signature from the application server
@@ -66,12 +120,20 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   });
 
   if (!signRes.ok) {
-    const text = await signRes.text();
-    throw new Error(`Cloudinary signing failed: ${signRes.status} ${text}`);
+    const body = await readResponseBody(signRes).catch((err) => {
+      throw new Error(`Cloudinary signing failed: ${signRes.status} - ${err.message}`);
+    });
+    const message = body?.json ? JSON.stringify(body.json) : body?.text || "";
+    throw new Error(`Cloudinary signing failed: ${signRes.status} ${message}`);
   }
 
-  const signData = await signRes.json();
-  const { signature, apiKey, timestamp } = signData;
+  const signBody = await readResponseBody(signRes);
+  const signData = signBody.json || {};
+  const { signature, apiKey, timestamp } = signData as any;
+
+  if (!signature || !apiKey || !timestamp) {
+    throw new Error("Cloudinary signing endpoint returned invalid data.");
+  }
 
   const form = new FormData();
   form.append("file", file);
@@ -85,12 +147,22 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   });
 
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Cloudinary signed upload failed: ${res.status} ${text}`);
+    const body = await readResponseBody(res).catch((err) => {
+      throw new Error(`Cloudinary signed upload failed: ${res.status} - ${err.message}`);
+    });
+    const message = body?.json ? JSON.stringify(body.json) : body?.text || "";
+    throw new Error(`Cloudinary signed upload failed: ${res.status} ${message}`);
   }
 
-  const data = await res.json();
-  return data.secure_url || data.url;
+  const body = await readResponseBody(res);
+  if (body.json && (body.json.secure_url || body.json.url)) {
+    return body.json.secure_url || body.json.url;
+  }
+  if (body.text && typeof body.text === "string" && body.text.startsWith("http")) {
+    return body.text;
+  }
+
+  throw new Error("Cloudinary signed upload returned unexpected response.");
 }
 
 export function setLocalCloudinaryConfig(cloudName: string | null, uploadPreset?: string | null) {
