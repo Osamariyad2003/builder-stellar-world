@@ -44,6 +44,16 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
 
   const url = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
 
+  // Try server-side upload first to avoid browser extension fetch interception
+  try {
+    const serverResult = await uploadToServer(file).catch(() => null);
+    if (serverResult && typeof serverResult === "string" && serverResult.startsWith("http")) {
+      return serverResult;
+    }
+  } catch (e) {
+    // ignore and continue to client-side flows
+  }
+
   // Helper to safely read response bodies without causing 'body stream already read' errors
   async function readResponseBody(res: Response) {
     // If the body has already been used, provide a clear error message
