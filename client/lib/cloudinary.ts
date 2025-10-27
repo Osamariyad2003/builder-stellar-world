@@ -516,21 +516,32 @@ export function setLocalCloudinaryConfig(cloudName: string | null, uploadPreset?
 export async function uploadUrlToServer(urlString: string, filename?: string): Promise<string> {
   if (!urlString) throw new Error("No URL provided");
 
-  const res = await fetch("/api/cloudinary/upload", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ file: urlString, filename: filename || "remote" }),
-  }).catch((e) => {
-    throw new Error("Failed to call server upload endpoint: " + String(e));
+  return await new Promise<string>((resolve, reject) => {
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/cloudinary/upload", true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState !== 4) return;
+        const status = xhr.status || 0;
+        const text = xhr.responseText || "";
+        if (status < 200 || status >= 400) {
+          let msg = text;
+          try { const j = text ? JSON.parse(text) : null; if (j && j.error) msg = j.error; } catch {}
+          return reject(new Error(`Server upload failed: ${status} ${msg}`));
+        }
+        try {
+          const json = text ? JSON.parse(text) : {};
+          if (json && (json.secure_url || json.url)) return resolve(json.secure_url || json.url);
+          return reject(new Error("Server upload returned unexpected response"));
+        } catch (e) {
+          return reject(new Error("Server upload returned non-JSON response"));
+        }
+      };
+      xhr.onerror = () => reject(new Error("Server upload XHR error"));
+      xhr.send(JSON.stringify({ file: urlString, filename: filename || "remote" }));
+    } catch (e) {
+      reject(new Error("Failed to call server upload endpoint: " + String(e)));
+    }
   });
-
-  const text = await res.text().catch(() => "");
-  if (!res.ok) throw new Error(`Server upload failed: ${res.status} ${text}`);
-  try {
-    const json = text ? JSON.parse(text) : {};
-    if (json && (json.secure_url || json.url)) return json.secure_url || json.url;
-    throw new Error("Server upload returned unexpected response");
-  } catch (e) {
-    throw new Error("Server upload returned non-JSON response");
-  }
 }
