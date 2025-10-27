@@ -198,6 +198,47 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
 
           if (!signedRes.ok) {
             const message = signedBody?.json ? JSON.stringify(signedBody.json) : signedBody?.text || "";
+
+            const lower = (message || "").toLowerCase();
+            if (lower.includes("missing required parameter - api_key") || lower.includes("missing required parameter - api key") || lower.includes("missing required parameter 'api_key'")) {
+              const fallbackClientKey = clientApiKey || (() => {
+                try { return localStorage.getItem("cloudinary.apiKey"); } catch { return null; }
+              })();
+
+              if (fallbackClientKey) {
+                const retryForm = new FormData();
+                retryForm.append("file", file);
+                retryForm.append("api_key", fallbackClientKey);
+                retryForm.append("timestamp", String(timestamp));
+                retryForm.append("signature", signature);
+
+                const { res: retryRes, body: retryBody } = await fetchAndRead(url, { method: "POST", body: retryForm });
+                if (!retryRes.ok) {
+                  const msg2 = retryBody?.json ? JSON.stringify(retryBody.json) : retryBody?.text || "";
+                  throw new Error(`Cloudinary signed upload retry failed: ${retryRes.status} ${msg2}`);
+                }
+                if (retryBody.json && (retryBody.json.secure_url || retryBody.json.url)) return retryBody.json.secure_url || retryBody.json.url;
+                if (retryBody.text && typeof retryBody.text === "string" && retryBody.text.startsWith("http")) return retryBody.text;
+                throw new Error("Cloudinary signed upload retry returned unexpected response.");
+              }
+
+              if (uploadPreset) {
+                const formF = new FormData();
+                formF.append("file", file);
+                formF.append("upload_preset", uploadPreset);
+                const upRes = await fetch(url, { method: "POST", body: formF });
+                if (!upRes.ok) {
+                  const txt = await upRes.text().catch(() => "");
+                  throw new Error(`Cloudinary unsigned fallback failed: ${upRes.status} ${txt}`);
+                }
+                const data = await upRes.json().catch(() => null);
+                if (data && (data.secure_url || data.url)) return data.secure_url || data.url;
+                const txt = await upRes.text().catch(() => "");
+                if (txt && txt.startsWith("http")) return txt;
+                throw new Error("Cloudinary unsigned fallback returned unexpected response.");
+              }
+            }
+
             throw new Error(`Cloudinary signed upload failed: ${signedRes.status} ${message}`);
           }
 
@@ -266,6 +307,47 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
 
   if (!signedRes.ok) {
     const message = signedBody?.json ? JSON.stringify(signedBody.json) : signedBody?.text || "";
+
+    const lower = (message || "").toLowerCase();
+    if (lower.includes("missing required parameter - api_key") || lower.includes("missing required parameter - api key") || lower.includes("missing required parameter 'api_key'")) {
+      const fallbackClientKey = clientApiKey || (() => {
+        try { return localStorage.getItem("cloudinary.apiKey"); } catch { return null; }
+      })();
+
+      if (fallbackClientKey) {
+        const retryForm = new FormData();
+        retryForm.append("file", file);
+        retryForm.append("api_key", fallbackClientKey);
+        retryForm.append("timestamp", String(timestamp));
+        retryForm.append("signature", signature);
+
+        const { res: retryRes, body: retryBody } = await fetchAndRead(url, { method: "POST", body: retryForm });
+        if (!retryRes.ok) {
+          const msg2 = retryBody?.json ? JSON.stringify(retryBody.json) : retryBody?.text || "";
+          throw new Error(`Cloudinary signed upload retry failed: ${retryRes.status} ${msg2}`);
+        }
+        if (retryBody.json && (retryBody.json.secure_url || retryBody.json.url)) return retryBody.json.secure_url || retryBody.json.url;
+        if (retryBody.text && typeof retryBody.text === "string" && retryBody.text.startsWith("http")) return retryBody.text;
+        throw new Error("Cloudinary signed upload retry returned unexpected response.");
+      }
+
+      if (uploadPreset) {
+        const formF = new FormData();
+        formF.append("file", file);
+        formF.append("upload_preset", uploadPreset);
+        const upRes = await fetch(url, { method: "POST", body: formF });
+        if (!upRes.ok) {
+          const txt = await upRes.text().catch(() => "");
+          throw new Error(`Cloudinary unsigned fallback failed: ${upRes.status} ${txt}`);
+        }
+        const data = await upRes.json().catch(() => null);
+        if (data && (data.secure_url || data.url)) return data.secure_url || data.url;
+        const txt = await upRes.text().catch(() => "");
+        if (txt && txt.startsWith("http")) return txt;
+        throw new Error("Cloudinary unsigned fallback returned unexpected response.");
+      }
+    }
+
     throw new Error(`Cloudinary signed upload failed: ${signedRes.status} ${message}`);
   }
 
