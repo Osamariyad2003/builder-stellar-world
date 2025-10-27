@@ -3,6 +3,7 @@ import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { handleSign } from "./routes/cloudinary";
 import { handleConfig } from "./routes/cloudinaryConfig";
+import { handleUpload } from "./routes/cloudinaryUpload";
 
 export function createServer() {
   const app = express();
