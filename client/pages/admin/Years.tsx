@@ -411,8 +411,12 @@ export default function Years() {
                           return;
                         }
                         const preset = window.prompt("Unsigned upload preset (leave empty to use signed server flow):", "");
+                        const apiKeyPrompt = window.prompt(
+                          "Public Cloudinary API key (optional, e.g. 686641252611351):",
+                          "",
+                        );
                         try {
-                          setLocalCloudinaryConfig(cloud, preset || null);
+                          setLocalCloudinaryConfig(cloud, preset || null, apiKeyPrompt || null);
                           const imageUrl2 = await uploadImageToCloudinary(file);
                           console.log("Cloudinary upload result after config:", imageUrl2);
                           if (!imageUrl2 || typeof imageUrl2 !== "string" || !imageUrl2.startsWith("http")) {
