@@ -139,12 +139,17 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   }
 
   // Otherwise, request a signed signature from the application server
+  // include public apiKey from client env/localStorage when available
+  const clientApiKey = import.meta.env.VITE_CLOUDINARY_API_KEY || (() => {
+    try { return localStorage.getItem("cloudinary.apiKey"); } catch { return null; }
+  })() || null;
+
   let signRes, signBody;
   try {
     const out = await fetchAndRead("/api/cloudinary/sign", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ apiKey: clientApiKey }),
     });
     signRes = out.res;
     signBody = out.body;
