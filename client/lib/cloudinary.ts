@@ -449,6 +449,46 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   throw new Error("Cloudinary signed upload returned unexpected response.");
 }
 
+// Upload file to server which will forward to Cloudinary
+async function uploadToServer(file: File): Promise<string> {
+  // read file as data URL
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result as string);
+    fr.onerror = () => reject(new Error("Failed to read file"));
+    fr.readAsDataURL(file);
+  });
+
+  return await new Promise<string>((resolve, reject) => {
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/cloudinary/upload", true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState !== 4) return;
+        const status = xhr.status || 0;
+        const text = xhr.responseText || "";
+        if (status < 200 || status >= 400) {
+          let msg = text;
+          try { const j = text ? JSON.parse(text) : null; if (j && j.error) msg = j.error; } catch {}
+          return reject(new Error(`Server upload failed: ${status} ${msg}`));
+        }
+        try {
+          const json = text ? JSON.parse(text) : {};
+          if (json && (json.secure_url || json.url)) return resolve(json.secure_url || json.url);
+          return reject(new Error("Server upload returned unexpected response"));
+        } catch (e) {
+          return reject(new Error("Server upload returned non-JSON response"));
+        }
+      };
+      xhr.onerror = () => reject(new Error("Server upload XHR error"));
+      xhr.send(JSON.stringify({ file: dataUrl, filename: file.name }));
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
 export function setLocalCloudinaryConfig(cloudName: string | null, uploadPreset?: string | null, apiKey?: string | null) {
   try {
     if (cloudName) localStorage.setItem("cloudinary.cloudName", cloudName);
