@@ -232,10 +232,11 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   throw new Error("Cloudinary signed upload returned unexpected response.");
 }
 
-export function setLocalCloudinaryConfig(cloudName: string | null, uploadPreset?: string | null) {
+export function setLocalCloudinaryConfig(cloudName: string | null, uploadPreset?: string | null, apiKey?: string | null) {
   try {
     if (cloudName) localStorage.setItem("cloudinary.cloudName", cloudName);
     if (uploadPreset) localStorage.setItem("cloudinary.uploadPreset", uploadPreset);
+    if (apiKey) localStorage.setItem("cloudinary.apiKey", apiKey);
   } catch (e) {
     console.warn("Could not persist Cloudinary config to localStorage", e);
   }
