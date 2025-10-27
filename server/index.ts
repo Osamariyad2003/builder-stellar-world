@@ -23,6 +23,9 @@ export function createServer() {
   // Cloudinary signing endpoint
   app.post("/api/cloudinary/sign", handleSign);
 
+  // Server-side upload endpoint (accepts data URL and uploads to Cloudinary)
+  app.post("/api/cloudinary/upload", handleUpload);
+
   // Provide Cloudinary config (runtime) to clients when VITE_* not available
   app.get("/api/cloudinary/config", handleConfig);
 
