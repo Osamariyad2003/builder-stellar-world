@@ -508,3 +508,25 @@ export function setLocalCloudinaryConfig(cloudName: string | null, uploadPreset?
     console.warn("Could not persist Cloudinary config to localStorage", e);
   }
 }
+
+export async function uploadUrlToServer(urlString: string, filename?: string): Promise<string> {
+  if (!urlString) throw new Error("No URL provided");
+
+  const res = await fetch("/api/cloudinary/upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ file: urlString, filename: filename || "remote" }),
+  }).catch((e) => {
+    throw new Error("Failed to call server upload endpoint: " + String(e));
+  });
+
+  const text = await res.text().catch(() => "");
+  if (!res.ok) throw new Error(`Server upload failed: ${res.status} ${text}`);
+  try {
+    const json = text ? JSON.parse(text) : {};
+    if (json && (json.secure_url || json.url)) return json.secure_url || json.url;
+    throw new Error("Server upload returned unexpected response");
+  } catch (e) {
+    throw new Error("Server upload returned non-JSON response");
+  }
+}
