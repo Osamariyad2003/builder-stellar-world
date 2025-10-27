@@ -10,14 +10,17 @@ export const handleSign: RequestHandler = (req, res) => {
 
   // Support common env var names and fallbacks so deploys that set VITE_* or CLOUDINARY_* still work
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.VITE_CLOUDINARY_CLOUD_NAME || null;
-  const apiKey = process.env.CLOUDINARY_API_KEY || process.env.VITE_CLOUDINARY_API_KEY || null;
+  const envApiKey = process.env.CLOUDINARY_API_KEY || process.env.VITE_CLOUDINARY_API_KEY || null;
   const apiSecret = process.env.CLOUDINARY_API_SECRET || process.env.VITE_CLOUDINARY_API_SECRET || null;
 
-  if (!cloudName || !apiKey || !apiSecret) {
+  // Allow the client to provide a public apiKey in the request body as a fallback
+  const providedApiKey: string | null = (req.body && (req.body.apiKey || req.body.api_key)) || null;
+  const apiKey = envApiKey || providedApiKey || null;
+
+  if (!cloudName || !apiSecret) {
     // Provide detailed info to help debug missing envs, but avoid leaking secrets
     const missing: string[] = [];
     if (!cloudName) missing.push("CLOUDINARY_CLOUD_NAME / VITE_CLOUDINARY_CLOUD_NAME");
-    if (!apiKey) missing.push("CLOUDINARY_API_KEY / VITE_CLOUDINARY_API_KEY");
     if (!apiSecret) missing.push("CLOUDINARY_API_SECRET / VITE_CLOUDINARY_API_SECRET");
 
     return res
