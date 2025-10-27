@@ -86,32 +86,110 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
 
   // Helper to fetch and safely read response; retry once if a body-used error occurs (often caused by extensions)
   async function fetchAndRead(input: RequestInfo, init?: RequestInit) {
-    const attempt = async () => {
-      const res = await fetch(input, init as any);
+    const attemptFetch = async (urlStr: string, initObj?: RequestInit) => {
+      const res = await fetch(urlStr, initObj as any);
       const bodyResult = await readResponseBody(res).catch((err) => {
-        // rethrow for caller to handle
         throw err;
       });
       return { res, body: bodyResult } as const;
     };
 
+    const asUrl = typeof input === "string" ? input : (input as Request).url;
+
+    // First try using window.fetch (normal path)
     try {
-      return await attempt();
+      return await attemptFetch(asUrl, init);
     } catch (err: any) {
       const msg = String(err?.message || err || "").toLowerCase();
+
+      // If body already read, try cache-bypass retry via fetch
       if (msg.includes("response body already read") || msg.includes("body already read")) {
-        // retry once with cache-bypass
-        const urlStr = typeof input === "string" ? input : (input as Request).url;
-        const retryUrl = urlStr + (urlStr.includes("?") ? `&_retry=${Date.now()}` : `?_retry=${Date.now()}`);
+        const retryUrl = asUrl + (asUrl.includes("?") ? `&_retry=${Date.now()}` : `?_retry=${Date.now()}`);
         try {
-          const res = await fetch(retryUrl, init as any);
-          const bodyResult = await readResponseBody(res);
-          return { res, body: bodyResult } as const;
-        } catch (err2) {
-          // surface original error if retry fails
-          throw err;
+          return await attemptFetch(retryUrl, init);
+        } catch (_) {
+          // fallthrough to XHR fallback
         }
       }
+
+      // If 'Failed to fetch' or network error (often caused by extension patching fetch), try XHR fallback
+      if (msg.includes("failed to fetch") || msg.includes("networkerror") || msg.includes("network request failed") || msg.includes("script error")) {
+        try {
+          // Perform XHR manually to avoid extension-patched fetch
+          return await (async () => {
+            return await new Promise<any>((resolve, reject) => {
+              const xhr = new XMLHttpRequest();
+              let method = (init && init.method) || "GET";
+              let isForm = false;
+              try {
+                xhr.open(method, asUrl, true);
+                // set headers
+                if (init && init.headers) {
+                  const headers = init.headers as any;
+                  Object.keys(headers).forEach((h) => {
+                    try { xhr.setRequestHeader(h, headers[h]); } catch (_) {}
+                  });
+                }
+
+                xhr.onreadystatechange = () => {
+                  if (xhr.readyState !== 4) return;
+                  const status = xhr.status || 0;
+                  const headersObj: Record<string, string> = {};
+                  const raw = xhr.getAllResponseHeaders() || "";
+                  raw.split("\r\n").forEach((line) => {
+                    const idx = line.indexOf(":");
+                    if (idx > 0) {
+                      const key = line.substring(0, idx).trim().toLowerCase();
+                      const val = line.substring(idx + 1).trim();
+                      headersObj[key] = val;
+                    }
+                  });
+
+                  const resLike = {
+                    ok: status >= 200 && status < 400,
+                    status,
+                    headers: { get: (k: string) => headersObj[k.toLowerCase()] || null },
+                  } as any;
+
+                  const text = xhr.responseText;
+                  let json = null;
+                  try { json = text ? JSON.parse(text) : null; } catch (e) { json = null; }
+
+                  const bodyResult = { json, text } as const;
+                  resolve({ res: resLike, body: bodyResult });
+                };
+
+                xhr.onerror = () => reject(new Error("XHR network error"));
+                xhr.ontimeout = () => reject(new Error("XHR timeout"));
+
+                // send body
+                if (init && init.body) {
+                  // If body is FormData, send directly
+                  try {
+                    if ((init.body as any) instanceof FormData) {
+                      isForm = true;
+                      xhr.send(init.body as any);
+                    } else if (typeof init.body === "string") {
+                      xhr.send(init.body as any);
+                    } else {
+                      try { xhr.send(JSON.stringify(init.body)); } catch (e) { xhr.send(String(init.body)); }
+                    }
+                  } catch (e) {
+                    reject(e);
+                  }
+                } else {
+                  xhr.send();
+                }
+              } catch (e) {
+                reject(e);
+              }
+            });
+          })();
+        } catch (xhrErr) {
+          // fall through to throw original
+        }
+      }
+
       throw err;
     }
   }
