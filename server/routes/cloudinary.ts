@@ -47,6 +47,19 @@ export const handleSign: RequestHandler = (req, res) => {
     .update(toSign + apiSecret)
     .digest("hex");
 
+  // Also expose these values in headers to support clients/extensions that may read response bodies
+  // Headers are safe for public values (apiKey, cloudName) and signature/timestamp are needed.
+  try {
+    if (signature) res.setHeader("x-cloudinary-signature", signature);
+    if (timestamp) res.setHeader("x-cloudinary-timestamp", String(timestamp));
+    if (apiKey) res.setHeader("x-cloudinary-apikey", String(apiKey));
+    if (cloudName) res.setHeader("x-cloudinary-cloudname", String(cloudName));
+    const preset = process.env.CLOUDINARY_UPLOAD_PRESET || process.env.VITE_CLOUDINARY_UPLOAD_PRESET || null;
+    if (preset) res.setHeader("x-cloudinary-upload-preset", String(preset));
+  } catch (e) {
+    // ignore header set failures
+  }
+
   res.json({
     signature,
     apiKey,
