@@ -351,6 +351,16 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
         // ignore and surface original error below
       }
 
+      // Try server-side upload fallback before giving up (avoids browser extensions that consume response bodies)
+      try {
+        const serverUrl = await uploadToServer(file);
+        if (serverUrl && typeof serverUrl === "string" && serverUrl.startsWith("http")) {
+          return serverUrl;
+        }
+      } catch (e) {
+        // ignore and fall through to original error
+      }
+
       throw new Error(
         "Response body already read (possibly by a browser extension). Disable extensions that inspect network requests and try again."
       );
