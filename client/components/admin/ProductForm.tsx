@@ -15,6 +15,7 @@ import { Product } from "@/shared/types";
 import {
   uploadImageToCloudinary,
   setLocalCloudinaryConfig,
+  uploadUrlToServer,
 } from "@/lib/cloudinary";
 
 interface ProductFormProps {
