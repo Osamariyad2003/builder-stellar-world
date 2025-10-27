@@ -155,31 +155,72 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
     signBody = out.body;
   } catch (err: any) {
     const msg = String(err?.message || err || "");
-    // If the response body was already read (often by extensions), try to fall back to unsigned upload preset
+    // If the response body was already read (often by extensions), try to read signing values from headers
     if (msg.toLowerCase().includes("response body already read") || msg.toLowerCase().includes("body already read")) {
-      // Try server config for an unsigned upload preset
       try {
-        const cfgRes = await fetch("/api/cloudinary/config");
-        if (cfgRes.ok) {
-          const cfg = await cfgRes.json();
-          const serverPreset = cfg.uploadPreset || cfg.upload_preset || null;
-          if (serverPreset) {
-            // Use unsigned flow as fallback
-            const form = new FormData();
-            form.append("file", file);
-            form.append("upload_preset", serverPreset);
+        const headerRes = await fetch("/api/cloudinary/sign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ apiKey: clientApiKey }),
+        });
 
-            const uploadRes = await fetch(url, { method: "POST", body: form });
-            if (!uploadRes.ok) {
-              const text = await uploadRes.text().catch(() => "");
-              throw new Error(`Cloudinary upload fallback failed: ${uploadRes.status} ${text}`);
-            }
-            const data = await uploadRes.json().catch(() => null);
-            if (data && (data.secure_url || data.url)) return data.secure_url || data.url;
-            const text = await uploadRes.text().catch(() => "");
-            if (text && text.startsWith("http")) return text;
-            throw new Error("Cloudinary fallback upload returned unexpected response.");
+        // Read signature/timestamp/apikey/cloudname from headers
+        const headerSignature = headerRes.headers.get("x-cloudinary-signature");
+        const headerTimestamp = headerRes.headers.get("x-cloudinary-timestamp");
+        const headerApiKey = headerRes.headers.get("x-cloudinary-apikey");
+        const headerCloudName = headerRes.headers.get("x-cloudinary-cloudname");
+        const headerPreset = headerRes.headers.get("x-cloudinary-upload-preset");
+
+        if (headerSignature && headerTimestamp) {
+          const effectiveApiKey = headerApiKey || clientApiKey || null;
+          const signature = headerSignature;
+          const timestamp = Number(headerTimestamp);
+
+          // If server returned cloudName, prefer it
+          if (headerCloudName) cloudName = cloudName || headerCloudName;
+
+          const form = new FormData();
+          form.append("file", file);
+          if (effectiveApiKey) form.append("api_key", effectiveApiKey);
+          form.append("timestamp", String(timestamp));
+          form.append("signature", signature);
+
+          const { res: signedRes, body: signedBody } = await fetchAndRead(url, {
+            method: "POST",
+            body: form,
+          });
+
+          if (!signedRes.ok) {
+            const message = signedBody?.json ? JSON.stringify(signedBody.json) : signedBody?.text || "";
+            throw new Error(`Cloudinary signed upload failed: ${signedRes.status} ${message}`);
           }
+
+          if (signedBody.json && (signedBody.json.secure_url || signedBody.json.url)) {
+            return signedBody.json.secure_url || signedBody.json.url;
+          }
+          if (signedBody.text && typeof signedBody.text === "string" && signedBody.text.startsWith("http")) {
+            return signedBody.text;
+          }
+
+          throw new Error("Cloudinary signed upload returned unexpected response.");
+        }
+
+        // If headers didn't include signature, try unsigned fallback preset from header
+        if (headerPreset) {
+          const form = new FormData();
+          form.append("file", file);
+          form.append("upload_preset", headerPreset);
+
+          const uploadRes = await fetch(url, { method: "POST", body: form });
+          if (!uploadRes.ok) {
+            const text = await uploadRes.text().catch(() => "");
+            throw new Error(`Cloudinary upload fallback failed: ${uploadRes.status} ${text}`);
+          }
+          const data = await uploadRes.json().catch(() => null);
+          if (data && (data.secure_url || data.url)) return data.secure_url || data.url;
+          const text = await uploadRes.text().catch(() => "");
+          if (text && text.startsWith("http")) return text;
+          throw new Error("Cloudinary fallback upload returned unexpected response.");
         }
       } catch (e) {
         // ignore and surface original error below
