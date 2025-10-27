@@ -139,11 +139,54 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   }
 
   // Otherwise, request a signed signature from the application server
-  const { res: signRes, body: signBody } = await fetchAndRead("/api/cloudinary/sign", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
-  });
+  let signRes, signBody;
+  try {
+    const out = await fetchAndRead("/api/cloudinary/sign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    signRes = out.res;
+    signBody = out.body;
+  } catch (err: any) {
+    const msg = String(err?.message || err || "");
+    // If the response body was already read (often by extensions), try to fall back to unsigned upload preset
+    if (msg.toLowerCase().includes("response body already read") || msg.toLowerCase().includes("body already read")) {
+      // Try server config for an unsigned upload preset
+      try {
+        const cfgRes = await fetch("/api/cloudinary/config");
+        if (cfgRes.ok) {
+          const cfg = await cfgRes.json();
+          const serverPreset = cfg.uploadPreset || cfg.upload_preset || null;
+          if (serverPreset) {
+            // Use unsigned flow as fallback
+            const form = new FormData();
+            form.append("file", file);
+            form.append("upload_preset", serverPreset);
+
+            const uploadRes = await fetch(url, { method: "POST", body: form });
+            if (!uploadRes.ok) {
+              const text = await uploadRes.text().catch(() => "");
+              throw new Error(`Cloudinary upload fallback failed: ${uploadRes.status} ${text}`);
+            }
+            const data = await uploadRes.json().catch(() => null);
+            if (data && (data.secure_url || data.url)) return data.secure_url || data.url;
+            const text = await uploadRes.text().catch(() => "");
+            if (text && text.startsWith("http")) return text;
+            throw new Error("Cloudinary fallback upload returned unexpected response.");
+          }
+        }
+      } catch (e) {
+        // ignore and surface original error below
+      }
+
+      throw new Error(
+        "Response body already read (possibly by a browser extension). Disable extensions that inspect network requests and try again."
+      );
+    }
+
+    throw err;
+  }
 
   if (!signRes.ok) {
     const message = signBody?.json ? JSON.stringify(signBody.json) : signBody?.text || "";
