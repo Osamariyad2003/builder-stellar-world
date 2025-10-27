@@ -34,6 +34,7 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
   });
 
   const [loading, setLoading] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
