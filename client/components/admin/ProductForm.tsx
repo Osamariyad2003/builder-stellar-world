@@ -191,7 +191,47 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             {formData.images.map((image, index) => (
-              <div key={index} className="flex gap-2">
+              <div
+                key={index}
+                className={`flex gap-2 items-center ${dragIndex === index ? 'border-2 border-dashed p-2 rounded' : ''}`}
+                onDragOver={(e) => { e.preventDefault(); setDragIndex(index); }}
+                onDragEnter={(e) => { e.preventDefault(); setDragIndex(index); }}
+                onDragLeave={() => { setDragIndex(null); }}
+                onDrop={async (e) => {
+                  e.preventDefault();
+                  setDragIndex(null);
+                  try {
+                    const dt = e.dataTransfer;
+                    if (!dt) return;
+                    if (dt.files && dt.files.length > 0) {
+                      const file = dt.files[0];
+                      const imageUrl = await uploadImageToCloudinary(file);
+                      if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
+                        updateImage(index, imageUrl);
+                      } else {
+                        alert('Upload failed: unexpected response from Cloudinary');
+                      }
+                      return;
+                    }
+
+                    // Fallback: support dragging an image URL (text/uri-list or text/plain)
+                    const text = dt.getData('text/uri-list') || dt.getData('text/plain');
+                    if (text && text.startsWith('http')) {
+                      const should = window.confirm('Upload the dragged URL to Cloudinary and replace it?\n' + text);
+                      if (!should) return;
+                      const result = await uploadUrlToServer(text);
+                      if (result && typeof result === 'string' && result.startsWith('http')) {
+                        updateImage(index, result);
+                      } else {
+                        alert('Upload failed: unexpected response from server');
+                      }
+                    }
+                  } catch (err: any) {
+                    console.error('Drop upload error:', err);
+                    alert('Image upload failed: ' + (err?.message || err));
+                  }
+                }}
+              >
                 <Input
                   placeholder="https://example.com/image.jpg"
                   value={image}
