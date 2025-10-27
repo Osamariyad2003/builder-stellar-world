@@ -241,7 +241,11 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
                               "Unsigned upload preset (leave empty to use signed server flow):",
                               "",
                             );
-                            setLocalCloudinaryConfig(cloud, preset || null);
+                            const apiKeyPrompt = window.prompt(
+                              "Public Cloudinary API key (optional, e.g. 686641252611351):",
+                              "",
+                            );
+                            setLocalCloudinaryConfig(cloud, preset || null, apiKeyPrompt || null);
                             try {
                               const imageUrl2 =
                                 await uploadImageToCloudinary(file);
