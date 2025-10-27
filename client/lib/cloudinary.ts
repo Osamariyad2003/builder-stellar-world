@@ -199,15 +199,16 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   }
 
   const signData = signBody.json || {};
-  const { signature, apiKey, timestamp } = signData as any;
+  const { signature, apiKey: signApiKey, timestamp } = signData as any;
+  const effectiveApiKey = signApiKey || clientApiKey || null;
 
-  if (!signature || !apiKey || !timestamp) {
+  if (!signature || !timestamp) {
     throw new Error("Cloudinary signing endpoint returned invalid data.");
   }
 
   const form = new FormData();
   form.append("file", file);
-  form.append("api_key", apiKey);
+  if (effectiveApiKey) form.append("api_key", effectiveApiKey);
   form.append("timestamp", String(timestamp));
   form.append("signature", signature);
 
