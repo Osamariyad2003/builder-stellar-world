@@ -202,6 +202,25 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
                   size="icon"
                   onClick={async () => {
                     try {
+                      const current = formData.images[index]?.trim();
+                      if (current && (current.startsWith("http://") || current.startsWith("https://"))) {
+                        // Upload remote URL to server/Cloudinary
+                        try {
+                          const should = window.confirm("Upload the current URL to Cloudinary and replace it?\n" + current);
+                          if (!should) return;
+                          const result = await uploadUrlToServer(current);
+                          if (result && typeof result === "string" && result.startsWith("http")) {
+                            updateImage(index, result);
+                          } else {
+                            alert("Upload failed: unexpected response from server");
+                          }
+                        } catch (e: any) {
+                          console.error("URL upload error:", e);
+                          alert("URL upload failed: " + (e?.message || e));
+                        }
+                        return;
+                      }
+
                       const input = document.createElement("input");
                       input.type = "file";
                       input.accept = "image/*";
