@@ -122,14 +122,21 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
         try {
           return await attemptFetch(retryUrl, init);
         } catch (_) {
-          // fallthrough to XHR fallback
+          // fallthrough to XHR fallback below
         }
       }
 
-      // If 'Failed to fetch' or network error (often caused by extension patching fetch), try XHR fallback
-      if (msg.includes("failed to fetch") || msg.includes("networkerror") || msg.includes("network request failed") || msg.includes("script error")) {
+      // If 'Failed to fetch' or network error (often caused by extension patching fetch), or body-used issues, try XHR fallback
+      if (
+        msg.includes("failed to fetch") ||
+        msg.includes("networkerror") ||
+        msg.includes("network request failed") ||
+        msg.includes("script error") ||
+        msg.includes("response body already read") ||
+        msg.includes("body already read")
+      ) {
         try {
-          // Perform XHR manually to avoid extension-patched fetch
+          // Perform XHR manually to avoid extension-patched fetch or body-consumed responses
           return await (async () => {
             return await new Promise<any>((resolve, reject) => {
               const xhr = new XMLHttpRequest();
