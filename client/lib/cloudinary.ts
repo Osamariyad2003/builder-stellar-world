@@ -254,7 +254,7 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
 
   let signRes, signBody;
   try {
-    const out = await fetchAndRead("/api/cloudinary/sign", {
+    const out = await fetchAndRead(`${API_BASE}/api/cloudinary/sign`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ apiKey: clientApiKey }),
