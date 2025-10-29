@@ -516,7 +516,7 @@ async function uploadToServer(file: File): Promise<string> {
   return await new Promise<string>((resolve, reject) => {
     try {
       const xhr = new XMLHttpRequest();
-      xhr.open("POST", "/api/cloudinary/upload", true);
+      xhr.open("POST", `${API_BASE}/api/cloudinary/upload`, true);
       xhr.setRequestHeader("Content-Type", "application/json");
       xhr.onreadystatechange = () => {
         if (xhr.readyState !== 4) return;
@@ -559,7 +559,7 @@ export async function uploadUrlToServer(urlString: string, filename?: string): P
   return await new Promise<string>((resolve, reject) => {
     try {
       const xhr = new XMLHttpRequest();
-      xhr.open("POST", "/api/cloudinary/upload", true);
+      xhr.open("POST", `${API_BASE}/api/cloudinary/upload`, true);
       xhr.setRequestHeader("Content-Type", "application/json");
       xhr.onreadystatechange = () => {
         if (xhr.readyState !== 4) return;
