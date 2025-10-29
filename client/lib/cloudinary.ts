@@ -403,9 +403,39 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
     throw new Error("Cloudinary signing endpoint returned invalid data.");
   }
 
+  // If signing didn't provide an api_key and client doesn't have one, prefer unsigned preset if configured,
+  // otherwise attempt server-side upload fallback, and finally surface a clear error.
+  if (!effectiveApiKey) {
+    if (uploadPreset) {
+      const formF = new FormData();
+      formF.append("file", file);
+      formF.append("upload_preset", uploadPreset);
+      const { res: upRes, body: upBody } = await fetchAndRead(url, { method: "POST", body: formF });
+      if (!upRes.ok) {
+        const msg = upBody?.json ? JSON.stringify(upBody.json) : upBody?.text || "";
+        throw new Error(`Cloudinary unsigned upload (preset) failed: ${upRes.status} ${msg}`);
+      }
+      if (upBody.json && (upBody.json.secure_url || upBody.json.url)) return upBody.json.secure_url || upBody.json.url;
+      if (upBody.text && typeof upBody.text === "string" && upBody.text.startsWith("http")) return upBody.text;
+      throw new Error("Cloudinary unsigned upload (preset) returned unexpected response.");
+    }
+
+    // Try server-side upload fallback (may fail if server not configured) before giving a user-facing error
+    try {
+      const serverUrl = await uploadToServer(file);
+      if (serverUrl && typeof serverUrl === "string" && serverUrl.startsWith("http")) return serverUrl;
+    } catch (e) {
+      // ignore - will throw clearer error below
+    }
+
+    throw new Error(
+      "Cloudinary signing did not return an API key and no unsigned preset is configured. Set CLOUDINARY_API_KEY on the server, or set CLOUDINARY_UPLOAD_PRESET, or set a public API key in localStorage (for testing)."
+    );
+  }
+
   const form = new FormData();
   form.append("file", file);
-  if (effectiveApiKey) form.append("api_key", effectiveApiKey);
+  form.append("api_key", effectiveApiKey as any);
   form.append("timestamp", String(timestamp));
   form.append("signature", signature);
 
