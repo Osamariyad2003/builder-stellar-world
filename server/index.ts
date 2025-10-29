@@ -30,5 +30,28 @@ export function createServer() {
   // Provide Cloudinary config (runtime) to clients when VITE_* not available
   app.get("/api/cloudinary/config", handleConfig);
 
+  // Log registered API routes for debugging
+  try {
+    const routes: string[] = [];
+    (app as any)._router.stack.forEach((middleware: any) => {
+      if (middleware.route) {
+        const path = middleware.route.path;
+        const methods = Object.keys(middleware.route.methods).join(",").toUpperCase();
+        routes.push(`${methods} ${path}`);
+      } else if (middleware.name === "router" && middleware.handle && middleware.handle.stack) {
+        middleware.handle.stack.forEach((handler: any) => {
+          if (handler.route) {
+            const path = handler.route.path;
+            const methods = Object.keys(handler.route.methods).join(",").toUpperCase();
+            routes.push(`${methods} ${path}`);
+          }
+        });
+      }
+    });
+    console.log("Registered API routes:", routes);
+  } catch (e) {
+    // ignore route listing failures
+  }
+
   return app;
 }
