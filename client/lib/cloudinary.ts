@@ -2,9 +2,12 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   let cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   let uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
+  // Allow an explicit API base for deployments where the frontend is hosted separately (e.g. GitHub Pages)
+  const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
+
   // Fetch runtime server config if available (helps pick up CLOUDINARY_UPLOAD_PRESET even when VITE vars are not present)
   try {
-    const cfgRes = await fetch("/api/cloudinary/config");
+    const cfgRes = await fetch(`${API_BASE}/api/cloudinary/config`);
     if (cfgRes.ok) {
       try {
         const cfg = await cfgRes.json();
