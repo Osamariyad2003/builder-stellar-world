@@ -294,6 +294,76 @@ export default function Store() {
                             >
                               <Edit2 className="h-3 w-3" />
                             </Button>
+
+                            {/* Change Image button - behaves like Years change image */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={async () => {
+                                try {
+                                  const input = document.createElement("input");
+                                  input.type = "file";
+                                  input.accept = "image/*";
+                                  input.onchange = async () => {
+                                    const file = input.files?.[0];
+                                    if (!file) return;
+                                    try {
+                                      const imageUrl = await (await import("@/lib/cloudinary")).uploadImageToCloudinary(file);
+                                      console.log("Cloudinary upload result:", imageUrl);
+                                      if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.startsWith("http")) {
+                                        console.error("Invalid Cloudinary upload response:", imageUrl);
+                                        alert("Image upload failed: unexpected response from Cloudinary");
+                                        return;
+                                      }
+
+                                      await (await import("@/hooks/useProducts")).updateProduct?.(product.id, {
+                                        images: [imageUrl],
+                                      });
+                                    } catch (e: any) {
+                                      console.error(e);
+                                      const msg = e?.message || String(e);
+                                      if (msg && msg.toLowerCase().includes("cloudinary cloud name is not configured")) {
+                                        const cloud = window.prompt("Cloudinary cloud name (e.g. dflp2vxn2):");
+                                        if (!cloud) {
+                                          alert("No cloud name provided. Upload cancelled.");
+                                          return;
+                                        }
+                                        const preset = window.prompt("Unsigned upload preset (leave empty to use signed server flow):", "");
+                                        const apiKeyPrompt = window.prompt(
+                                          "Public Cloudinary API key (optional, e.g. 686641252611351):",
+                                          "",
+                                        );
+                                        try {
+                                          const { setLocalCloudinaryConfig } = await import("@/lib/cloudinary");
+                                          setLocalCloudinaryConfig(cloud, preset || null, apiKeyPrompt || null);
+                                          const imageUrl2 = await (await import("@/lib/cloudinary")).uploadImageToCloudinary(file);
+                                          console.log("Cloudinary upload result after config:", imageUrl2);
+                                          if (!imageUrl2 || typeof imageUrl2 !== "string" || !imageUrl2.startsWith("http")) {
+                                            alert("Image upload failed: unexpected response from Cloudinary");
+                                            return;
+                                          }
+                                          await (await import("@/hooks/useProducts")).updateProduct?.(product.id, { images: [imageUrl2] });
+                                        } catch (e2: any) {
+                                          console.error(e2);
+                                          alert("Image upload failed after configuring Cloudinary: " + (e2.message || e2));
+                                        }
+                                        return;
+                                      }
+
+                                      alert("Image upload failed: " + (e.message || e));
+                                    }
+                                  };
+                                  input.click();
+                                } catch (e) {
+                                  console.error(e);
+                                  alert("Could not open file dialog");
+                                }
+                              }}
+                              className="h-8 w-8"
+                            >
+                              <Image className="h-3 w-3" />
+                            </Button>
+
                             <Button
                               variant="ghost"
                               size="icon"
