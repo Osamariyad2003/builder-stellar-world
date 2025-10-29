@@ -309,7 +309,7 @@ export default function Store() {
                                     const file = input.files?.[0];
                                     if (!file) return;
                                     try {
-                                      const imageUrl = await (await import("@/lib/cloudinary")).uploadImageToCloudinary(file);
+                                      const imageUrl = await uploadImageToCloudinary(file);
                                       console.log("Cloudinary upload result:", imageUrl);
                                       if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.startsWith("http")) {
                                         console.error("Invalid Cloudinary upload response:", imageUrl);
@@ -317,9 +317,7 @@ export default function Store() {
                                         return;
                                       }
 
-                                      await (await import("@/hooks/useProducts")).updateProduct?.(product.id, {
-                                        images: [imageUrl],
-                                      });
+                                      await updateProduct(product.id!, { images: [imageUrl] });
                                     } catch (e: any) {
                                       console.error(e);
                                       const msg = e?.message || String(e);
