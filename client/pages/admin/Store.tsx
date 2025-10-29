@@ -333,15 +333,14 @@ export default function Store() {
                                           "",
                                         );
                                         try {
-                                          const { setLocalCloudinaryConfig } = await import("@/lib/cloudinary");
                                           setLocalCloudinaryConfig(cloud, preset || null, apiKeyPrompt || null);
-                                          const imageUrl2 = await (await import("@/lib/cloudinary")).uploadImageToCloudinary(file);
+                                          const imageUrl2 = await uploadImageToCloudinary(file);
                                           console.log("Cloudinary upload result after config:", imageUrl2);
                                           if (!imageUrl2 || typeof imageUrl2 !== "string" || !imageUrl2.startsWith("http")) {
                                             alert("Image upload failed: unexpected response from Cloudinary");
                                             return;
                                           }
-                                          await (await import("@/hooks/useProducts")).updateProduct?.(product.id, { images: [imageUrl2] });
+                                          await updateProduct(product.id!, { images: [imageUrl2] });
                                         } catch (e2: any) {
                                           console.error(e2);
                                           alert("Image upload failed after configuring Cloudinary: " + (e2.message || e2));
