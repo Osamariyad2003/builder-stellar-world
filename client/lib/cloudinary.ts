@@ -266,7 +266,7 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
     // If the response body was already read (often by extensions), try to read signing values from headers
     if (msg.toLowerCase().includes("response body already read") || msg.toLowerCase().includes("body already read")) {
       try {
-        const headerRes = await fetch("/api/cloudinary/sign", {
+        const headerRes = await fetch(`${API_BASE}/api/cloudinary/sign`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ apiKey: clientApiKey }),
