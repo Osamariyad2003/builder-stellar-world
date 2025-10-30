@@ -92,7 +92,10 @@ export function useProducts() {
           // Expected offline error - handle silently
           console.log("🔄 Firebase offline mode detected - using mock data");
         } else {
-          console.error("Firebase error - switching to offline mode:", error.message);
+          console.error(
+            "Firebase error - switching to offline mode:",
+            error.message,
+          );
         }
 
         setIsOfflineMode(true);

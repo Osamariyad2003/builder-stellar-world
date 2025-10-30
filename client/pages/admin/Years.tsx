@@ -22,7 +22,10 @@ import { FileForm } from "@/components/admin/FileForm";
 import { VideoForm } from "@/components/admin/VideoForm";
 import { LectureForm } from "@/components/admin/LectureForm";
 import { useYears } from "@/hooks/useYears";
-import { uploadImageToCloudinary, setLocalCloudinaryConfig } from "@/lib/cloudinary";
+import {
+  uploadImageToCloudinary,
+  setLocalCloudinaryConfig,
+} from "@/lib/cloudinary";
 import { uploadToImageKitServer } from "@/lib/imagekit";
 import { useNews } from "@/hooks/useNews";
 import { Link } from "react-router-dom";
@@ -393,13 +396,25 @@ export default function Years() {
                       try {
                         imageUrl = await uploadImageToCloudinary(file);
                       } catch (cloudErr: any) {
-                        console.warn('Cloudinary upload failed, trying ImageKit fallback', cloudErr?.message || cloudErr);
-                        imageUrl = await uploadToImageKitServer(file, file.name);
+                        console.warn(
+                          "Cloudinary upload failed, trying ImageKit fallback",
+                          cloudErr?.message || cloudErr,
+                        );
+                        imageUrl = await uploadToImageKitServer(
+                          file,
+                          file.name,
+                        );
                       }
 
-                      if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.startsWith("http")) {
+                      if (
+                        !imageUrl ||
+                        typeof imageUrl !== "string" ||
+                        !imageUrl.startsWith("http")
+                      ) {
                         console.error("Invalid upload response:", imageUrl);
-                        alert("Image upload failed: unexpected response from upload provider");
+                        alert(
+                          "Image upload failed: unexpected response from upload provider",
+                        );
                         return;
                       }
 
@@ -410,30 +425,59 @@ export default function Years() {
                     } catch (e: any) {
                       console.error(e);
                       const msg = e?.message || String(e);
-                      if (msg && msg.toLowerCase().includes("cloudinary cloud name is not configured")) {
+                      if (
+                        msg &&
+                        msg
+                          .toLowerCase()
+                          .includes("cloudinary cloud name is not configured")
+                      ) {
                         // Prompt the admin to enter cloud name and optional upload preset
-                        const cloud = window.prompt("Cloudinary cloud name (e.g. dflp2vxn2):");
+                        const cloud = window.prompt(
+                          "Cloudinary cloud name (e.g. dflp2vxn2):",
+                        );
                         if (!cloud) {
                           alert("No cloud name provided. Upload cancelled.");
                           return;
                         }
-                        const preset = window.prompt("Unsigned upload preset (leave empty to use signed server flow):", "");
+                        const preset = window.prompt(
+                          "Unsigned upload preset (leave empty to use signed server flow):",
+                          "",
+                        );
                         const apiKeyPrompt = window.prompt(
                           "Public Cloudinary API key (optional, e.g. 686641252611351):",
                           "",
                         );
                         try {
-                          setLocalCloudinaryConfig(cloud, preset || null, apiKeyPrompt || null);
+                          setLocalCloudinaryConfig(
+                            cloud,
+                            preset || null,
+                            apiKeyPrompt || null,
+                          );
                           const imageUrl2 = await uploadImageToCloudinary(file);
-                          console.log("Cloudinary upload result after config:", imageUrl2);
-                          if (!imageUrl2 || typeof imageUrl2 !== "string" || !imageUrl2.startsWith("http")) {
-                            alert("Image upload failed: unexpected response from Cloudinary");
+                          console.log(
+                            "Cloudinary upload result after config:",
+                            imageUrl2,
+                          );
+                          if (
+                            !imageUrl2 ||
+                            typeof imageUrl2 !== "string" ||
+                            !imageUrl2.startsWith("http")
+                          ) {
+                            alert(
+                              "Image upload failed: unexpected response from Cloudinary",
+                            );
                             return;
                           }
-                          await updateYear?.(yearData.id, { imageUrl: imageUrl2, image_url: imageUrl2 });
+                          await updateYear?.(yearData.id, {
+                            imageUrl: imageUrl2,
+                            image_url: imageUrl2,
+                          });
                         } catch (e2: any) {
                           console.error(e2);
-                          alert("Image upload failed after configuring Cloudinary: " + (e2.message || e2));
+                          alert(
+                            "Image upload failed after configuring Cloudinary: " +
+                              (e2.message || e2),
+                          );
                         }
                         return;
                       }
@@ -932,7 +976,10 @@ export default function Years() {
               <Button onClick={retryConnection} variant="outline">
                 Retry Connection
               </Button>
-              <Button onClick={() => window.location.replace(window.location.href)} variant="ghost">
+              <Button
+                onClick={() => window.location.replace(window.location.href)}
+                variant="ghost"
+              >
                 Refresh Page
               </Button>
             </div>
@@ -982,7 +1029,11 @@ export default function Years() {
                         The academic years structure is being initialized.
                         Please refresh the page in a moment.
                       </p>
-                      <Button onClick={() => window.location.replace(window.location.href)}>
+                      <Button
+                        onClick={() =>
+                          window.location.replace(window.location.href)
+                        }
+                      >
                         Refresh Page
                       </Button>
                     </CardContent>
@@ -1008,7 +1059,11 @@ export default function Years() {
                         The academic years structure is being initialized.
                         Please refresh the page in a moment.
                       </p>
-                      <Button onClick={() => window.location.replace(window.location.href)}>
+                      <Button
+                        onClick={() =>
+                          window.location.replace(window.location.href)
+                        }
+                      >
                         Refresh Page
                       </Button>
                     </CardContent>
