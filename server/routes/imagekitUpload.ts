@@ -37,6 +37,19 @@ export const handleImageKitUpload: RequestHandler = async (req, res) => {
     });
 
     const text = await resp.text();
+
+    // Log the upstream response for debugging when upload fails
+    if (!resp.ok) {
+      console.error(`/api/imagekit/upload: upstream returned ${resp.status} - ${text}`);
+      // Try to parse JSON error body if possible
+      try {
+        const jsonErr = text ? JSON.parse(text) : { message: text };
+        return res.status(resp.status).json({ error: 'ImageKit upload failed', details: jsonErr });
+      } catch (parseErr) {
+        return res.status(resp.status).json({ error: 'ImageKit upload failed', details: text });
+      }
+    }
+
     try {
       const json = text ? JSON.parse(text) : {};
       return res.status(resp.status).json(json);
