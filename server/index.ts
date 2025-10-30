@@ -30,6 +30,8 @@ export function createServer() {
   app.post("/api/cloudinary/upload", handleUpload);
   // Server-side ImageKit upload endpoint
   app.post("/api/imagekit/upload", handleImageKitUpload);
+  // ImageKit auth endpoint for client-side direct uploads
+  app.get("/api/imagekit/auth", handleImageKitAuth);
 
   // Provide Cloudinary config (runtime) to clients when VITE_* not available
   app.get("/api/cloudinary/config", handleConfig);
