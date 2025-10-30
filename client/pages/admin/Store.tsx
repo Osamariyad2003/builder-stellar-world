@@ -14,6 +14,7 @@ import { ProductForm } from "@/components/admin/ProductForm";
 import { useProducts } from "@/hooks/useProducts";
 import { useOrders } from "@/hooks/useOrders";
 import { uploadImageToCloudinary, setLocalCloudinaryConfig } from "@/lib/cloudinary";
+import { uploadToImageKitServer } from "@/lib/imagekit";
 import {
   Store as StoreIcon,
   Plus,
