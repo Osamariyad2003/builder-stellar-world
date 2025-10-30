@@ -310,11 +310,22 @@ export default function Store() {
                                     const file = input.files?.[0];
                                     if (!file) return;
                                     try {
-                                      const imageUrl = await uploadImageToCloudinary(file);
-                                      console.log("Cloudinary upload result:", imageUrl);
+                                          let imageUrl: string | null = null;
+                                      try {
+                                        imageUrl = await uploadImageToCloudinary(file);
+                                      } catch (cloudErr: any) {
+                                        console.warn('Cloudinary upload failed, trying ImageKit fallback', cloudErr?.message || cloudErr);
+                                        try {
+                                          imageUrl = await uploadToImageKitServer(file, file.name);
+                                        } catch (ikErr: any) {
+                                          console.error('ImageKit upload failed:', ikErr);
+                                          throw cloudErr;
+                                        }
+                                      }
+
                                       if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.startsWith("http")) {
-                                        console.error("Invalid Cloudinary upload response:", imageUrl);
-                                        alert("Image upload failed: unexpected response from Cloudinary");
+                                        console.error("Invalid upload response:", imageUrl);
+                                        alert("Image upload failed: unexpected response from upload provider");
                                         return;
                                       }
 
