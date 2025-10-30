@@ -982,7 +982,7 @@ export default function Years() {
                         The academic years structure is being initialized.
                         Please refresh the page in a moment.
                       </p>
-                      <Button onClick={() => window.location.reload()}>
+                      <Button onClick={() => window.location.replace(window.location.href)}>
                         Refresh Page
                       </Button>
                     </CardContent>
@@ -1008,7 +1008,7 @@ export default function Years() {
                         The academic years structure is being initialized.
                         Please refresh the page in a moment.
                       </p>
-                      <Button onClick={() => window.location.reload()}>
+                      <Button onClick={() => window.location.replace(window.location.href)}>
                         Refresh Page
                       </Button>
                     </CardContent>
