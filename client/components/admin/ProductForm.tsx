@@ -206,11 +206,23 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
                     if (!dt) return;
                     if (dt.files && dt.files.length > 0) {
                       const file = dt.files[0];
-                      const imageUrl = await uploadImageToCloudinary(file);
-                      if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
-                        updateImage(index, imageUrl);
-                      } else {
-                        alert('Upload failed: unexpected response from Cloudinary');
+                      try {
+                        let imageUrl: string | null = null;
+                        try {
+                          imageUrl = await uploadImageToCloudinary(file);
+                        } catch (cloudErr: any) {
+                          console.warn('Cloudinary upload failed, trying ImageKit fallback', cloudErr?.message || cloudErr);
+                          imageUrl = await uploadToImageKitServer(file, file.name);
+                        }
+
+                        if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
+                          updateImage(index, imageUrl);
+                        } else {
+                          alert('Upload failed: unexpected response from upload provider');
+                        }
+                      } catch (err: any) {
+                        console.error('Drop upload error:', err);
+                        alert('Upload failed: ' + (err?.message || err));
                       }
                       return;
                     }
