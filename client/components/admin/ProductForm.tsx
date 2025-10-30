@@ -18,6 +18,7 @@ import {
   uploadUrlToServer,
 } from "@/lib/cloudinary";
 import { uploadToImageKitServer } from "@/lib/imagekit";
+import { normalizeImageUrl } from "@/lib/utils";
 
 interface ProductFormProps {
   product?: Product | null;
