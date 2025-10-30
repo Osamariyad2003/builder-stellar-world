@@ -17,6 +17,7 @@ import {
   setLocalCloudinaryConfig,
   uploadUrlToServer,
 } from "@/lib/cloudinary";
+import { uploadToImageKitServer } from "@/lib/imagekit";
 
 interface ProductFormProps {
   product?: Product | null;
