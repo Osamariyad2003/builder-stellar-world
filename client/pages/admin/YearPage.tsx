@@ -7,6 +7,7 @@ import { Plus, ArrowLeft, Trash2, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useYears } from "@/hooks/useYears";
 import { uploadImageToCloudinary, setLocalCloudinaryConfig } from "@/lib/cloudinary";
+import { uploadToImageKitServer } from "@/lib/imagekit";
 import { SubjectForm } from "@/components/admin/SubjectForm";
 import { LectureForm } from "@/components/admin/LectureForm";
 
