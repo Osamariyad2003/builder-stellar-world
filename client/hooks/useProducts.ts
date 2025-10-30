@@ -203,7 +203,8 @@ export function useProducts() {
     setLoading(true);
     setError(null);
     setIsOfflineMode(false);
-    window.location.reload();
+    // Force full navigation to reload app state without invoking HMR socket logic
+    window.location.replace(window.location.href);
   };
 
   return {
