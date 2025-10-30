@@ -222,6 +222,23 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
                         }
                       } catch (err: any) {
                         console.error('Drop upload error:', err);
+                        const msg = err?.message || String(err);
+                        const lower = (msg || '').toLowerCase();
+                        if (lower.includes('cloudinary signing did not return an api key') || lower.includes('missing required parameter - api_key') || lower.includes("missing required parameter 'api_key'")) {
+                          const apiKey = window.prompt('Public Cloudinary API key (e.g. 686641252611351):', '');
+                          if (apiKey && apiKey.trim()) {
+                            try {
+                              setLocalCloudinaryConfig(null, null, apiKey.trim());
+                              const retryUrl = await uploadImageToCloudinary(file);
+                              if (retryUrl && typeof retryUrl === 'string' && retryUrl.startsWith('http')) {
+                                updateImage(index, retryUrl);
+                                return;
+                              }
+                            } catch (e2) {
+                              console.error('Retry after API key failed:', e2);
+                            }
+                          }
+                        }
                         alert('Upload failed: ' + (err?.message || err));
                       }
                       return;
@@ -321,31 +338,45 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
                           updateImage(index, imageUrl);
                         } catch (e: any) {
                           const msg = e?.message || String(e);
-                          console.error('Upload error:', e);
-                          if (
-                            msg
-                              .toLowerCase()
-                              .includes(
-                                'cloudinary cloud name is not configured',
-                              )
-                          ) {
-                            const cloud = window.prompt(
-                              'Cloudinary cloud name (e.g. dflp2vxn2):',
-                            );
-                            if (!cloud) {
-                              alert('No cloud name provided.');
+                        console.error('Upload error:', e);
+                        const lower = (msg || '').toLowerCase();
+                        if (lower.includes('cloudinary cloud name is not configured')) {
+                          const cloud = window.prompt(
+                            'Cloudinary cloud name (e.g. dflp2vxn2):',
+                          );
+                          if (!cloud) {
+                            alert('No cloud name provided.');
+                            return;
+                          }
+                          const preset = window.prompt(
+                            'Unsigned upload preset (leave empty to use signed server flow):',
+                            '',
+                          );
+                          const apiKeyPrompt = window.prompt(
+                            'Public Cloudinary API key (optional, e.g. 686641252611351):',
+                            '',
+                          );
+                          setLocalCloudinaryConfig(cloud, preset || null, apiKeyPrompt || null);
+                          try {
+                            const imageUrl2 = await uploadImageToCloudinary(file);
+                            if (
+                              !imageUrl2 ||
+                              typeof imageUrl2 !== 'string' ||
+                              !imageUrl2.startsWith('http')
+                            ) {
+                              alert('Upload failed: unexpected response from Cloudinary');
                               return;
                             }
-                            const preset = window.prompt(
-                              'Unsigned upload preset (leave empty to use signed server flow):',
-                              '',
-                            );
-                            const apiKeyPrompt = window.prompt(
-                              'Public Cloudinary API key (optional, e.g. 686641252611351):',
-                              '',
-                            );
-                            setLocalCloudinaryConfig(cloud, preset || null, apiKeyPrompt || null);
+                            updateImage(index, imageUrl2);
+                          } catch (e2: any) {
+                            console.error('Retry upload error:', e2);
+                            alert('Upload failed after configuring Cloudinary: ' + (e2.message || e2));
+                          }
+                        } else if (lower.includes('cloudinary signing did not return an api key') || lower.includes('missing required parameter - api_key') || lower.includes("missing required parameter 'api_key'")) {
+                          const apiKey = window.prompt('Public Cloudinary API key (e.g. 686641252611351):', '');
+                          if (apiKey && apiKey.trim()) {
                             try {
+                              setLocalCloudinaryConfig(null, null, apiKey.trim());
                               const imageUrl2 = await uploadImageToCloudinary(file);
                               if (
                                 !imageUrl2 ||
@@ -356,13 +387,16 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
                                 return;
                               }
                               updateImage(index, imageUrl2);
+                              return;
                             } catch (e2: any) {
                               console.error('Retry upload error:', e2);
-                              alert('Upload failed after configuring Cloudinary: ' + (e2.message || e2));
+                              alert('Upload failed after setting API key: ' + (e2.message || e2));
+                              return;
                             }
-                          } else {
-                            alert('Image upload failed: ' + (e.message || e));
                           }
+                        } else {
+                          alert('Image upload failed: ' + (e.message || e));
+                        }
                         }
                       };
                       input.click();
