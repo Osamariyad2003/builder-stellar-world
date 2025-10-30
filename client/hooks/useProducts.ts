@@ -144,8 +144,8 @@ export function useProducts() {
 
       console.log("✅ Created product with ID:", docRef.id);
 
-      // Refresh data
-      window.location.reload();
+      // Refresh data — use replace to force full navigation avoiding HMR race
+      window.location.replace(window.location.href);
     } catch (error) {
       console.error("Error creating product:", error);
       // Fall back to offline mode
@@ -173,8 +173,8 @@ export function useProducts() {
       await updateDoc(productRef, productData);
       console.log("✅ Updated product in Firebase:", productId);
 
-      // Refresh data
-      window.location.reload();
+      // Refresh data — use replace to force full navigation avoiding HMR race
+      window.location.replace(window.location.href);
     } catch (error) {
       console.error("Error updating product:", error);
     }
@@ -191,8 +191,8 @@ export function useProducts() {
       await deleteDoc(doc(db, "products", productId));
       console.log("✅ Deleted product from Firebase:", productId);
 
-      // Refresh data
-      window.location.reload();
+      // Refresh data — use replace to force full navigation avoiding HMR race
+      window.location.replace(window.location.href);
     } catch (error) {
       console.error("Error deleting product:", error);
     }
