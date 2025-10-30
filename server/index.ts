@@ -4,6 +4,7 @@ import { handleDemo } from "./routes/demo";
 import { handleSign } from "./routes/cloudinary";
 import { handleConfig } from "./routes/cloudinaryConfig";
 import { handleUpload } from "./routes/cloudinaryUpload";
+import { handleImageKitUpload } from "./routes/imagekitUpload";
 
 export function createServer() {
   const app = express();
