@@ -62,6 +62,17 @@ export const handleUpload: RequestHandler = async (req, res) => {
     });
 
     const text = await resp.text();
+
+    if (!resp.ok) {
+      console.error(`/api/cloudinary/upload: upstream returned ${resp.status} - ${text}`);
+      try {
+        const jsonErr = text ? JSON.parse(text) : { message: text };
+        return res.status(resp.status).json({ error: 'Cloudinary upload failed', details: jsonErr });
+      } catch (parseErr) {
+        return res.status(resp.status).json({ error: 'Cloudinary upload failed', details: text });
+      }
+    }
+
     try {
       const json = text ? JSON.parse(text) : {};
       return res.status(resp.status).json(json);
