@@ -540,6 +540,45 @@ async function uploadToServer(file: File): Promise<string> {
     } catch (e) {
       reject(e);
     }
+  }).catch(async (err) => {
+    // If server-side Cloudinary upload failed due to missing Cloudinary config, try ImageKit server fallback
+    try {
+      const msg = String(err?.message || "").toLowerCase();
+      if (msg.includes("cloudinary not configured") || msg.includes("404") || msg.includes("server upload failed")) {
+        // call imagekit endpoint via XHR as well
+        return await new Promise<string>((resolve, reject) => {
+          try {
+            const xhr2 = new XMLHttpRequest();
+            xhr2.open("POST", `${API_BASE}/api/imagekit/upload`, true);
+            xhr2.setRequestHeader("Content-Type", "application/json");
+            xhr2.onreadystatechange = () => {
+              if (xhr2.readyState !== 4) return;
+              const status2 = xhr2.status || 0;
+              const text2 = xhr2.responseText || "";
+              if (status2 < 200 || status2 >= 400) {
+                let msg2 = text2;
+                try { const j = text2 ? JSON.parse(text2) : null; if (j && j.error) msg2 = j.error; } catch {}
+                return reject(new Error(`ImageKit server upload failed: ${status2} ${msg2}`));
+              }
+              try {
+                const json2 = text2 ? JSON.parse(text2) : {};
+                if (json2 && (json2.url || json2.filePath)) return resolve(json2.url || json2.filePath);
+                return reject(new Error("ImageKit server upload returned unexpected response"));
+              } catch (e) {
+                return reject(new Error("ImageKit server upload returned non-JSON response"));
+              }
+            };
+            xhr2.onerror = () => reject(new Error("ImageKit server upload XHR error"));
+            xhr2.send(JSON.stringify({ file: dataUrl, filename: file.name }));
+          } catch (e2) {
+            reject(e2);
+          }
+        });
+      }
+    } catch (e) {
+      // ignore fallback errors
+    }
+    throw err;
   });
 }
 
