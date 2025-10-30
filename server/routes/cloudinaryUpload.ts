@@ -6,16 +6,35 @@ export const handleUpload: RequestHandler = async (req, res) => {
     const { file, filename, public_id, folder } = req.body || {};
 
     if (!file || typeof file !== "string") {
-      return res.status(400).json({ error: "Missing 'file' in request body (data URL or remote URL expected)" });
+      return res
+        .status(400)
+        .json({
+          error:
+            "Missing 'file' in request body (data URL or remote URL expected)",
+        });
     }
 
-    const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.VITE_CLOUDINARY_CLOUD_NAME || null;
-    const apiKey = process.env.CLOUDINARY_API_KEY || process.env.VITE_CLOUDINARY_API_KEY || null;
-    const apiSecret = process.env.CLOUDINARY_API_SECRET || process.env.VITE_CLOUDINARY_API_SECRET || null;
-    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET || process.env.VITE_CLOUDINARY_UPLOAD_PRESET || null;
+    const cloudName =
+      process.env.CLOUDINARY_CLOUD_NAME ||
+      process.env.VITE_CLOUDINARY_CLOUD_NAME ||
+      null;
+    const apiKey =
+      process.env.CLOUDINARY_API_KEY ||
+      process.env.VITE_CLOUDINARY_API_KEY ||
+      null;
+    const apiSecret =
+      process.env.CLOUDINARY_API_SECRET ||
+      process.env.VITE_CLOUDINARY_API_SECRET ||
+      null;
+    const uploadPreset =
+      process.env.CLOUDINARY_UPLOAD_PRESET ||
+      process.env.VITE_CLOUDINARY_UPLOAD_PRESET ||
+      null;
 
     if (!cloudName) {
-      return res.status(500).json({ error: "Cloudinary cloud name not configured on server." });
+      return res
+        .status(500)
+        .json({ error: "Cloudinary cloud name not configured on server." });
     }
 
     // If server has API key+secret, perform a signed upload. Otherwise, if an upload preset is configured, perform unsigned upload using the preset.
@@ -23,7 +42,12 @@ export const handleUpload: RequestHandler = async (req, res) => {
     const unsignedWithPreset = !signed && Boolean(uploadPreset);
 
     if (!signed && !unsignedWithPreset) {
-      return res.status(500).json({ error: "Cloudinary not configured on server. Provide CLOUDINARY_API_KEY + CLOUDINARY_API_SECRET or CLOUDINARY_UPLOAD_PRESET." });
+      return res
+        .status(500)
+        .json({
+          error:
+            "Cloudinary not configured on server. Provide CLOUDINARY_API_KEY + CLOUDINARY_API_SECRET or CLOUDINARY_UPLOAD_PRESET.",
+        });
     }
 
     const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
@@ -46,7 +70,10 @@ export const handleUpload: RequestHandler = async (req, res) => {
         .map((k) => `${k}=${params[k]}`)
         .join("&");
 
-      const signature = crypto.createHash("sha1").update(toSign + apiSecret).digest("hex");
+      const signature = crypto
+        .createHash("sha1")
+        .update(toSign + apiSecret)
+        .digest("hex");
 
       body.append("api_key", String(apiKey));
       body.append("timestamp", String(timestamp));
@@ -64,12 +91,18 @@ export const handleUpload: RequestHandler = async (req, res) => {
     const text = await resp.text();
 
     if (!resp.ok) {
-      console.error(`/api/cloudinary/upload: upstream returned ${resp.status} - ${text}`);
+      console.error(
+        `/api/cloudinary/upload: upstream returned ${resp.status} - ${text}`,
+      );
       try {
         const jsonErr = text ? JSON.parse(text) : { message: text };
-        return res.status(resp.status).json({ error: 'Cloudinary upload failed', details: jsonErr });
+        return res
+          .status(resp.status)
+          .json({ error: "Cloudinary upload failed", details: jsonErr });
       } catch (parseErr) {
-        return res.status(resp.status).json({ error: 'Cloudinary upload failed', details: text });
+        return res
+          .status(resp.status)
+          .json({ error: "Cloudinary upload failed", details: text });
       }
     }
 

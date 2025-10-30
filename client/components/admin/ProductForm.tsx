@@ -195,10 +195,18 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
             {formData.images.map((image, index) => (
               <div
                 key={index}
-                className={`flex gap-2 items-center ${dragIndex === index ? 'border-2 border-dashed p-2 rounded' : ''}`}
-                onDragOver={(e) => { e.preventDefault(); setDragIndex(index); }}
-                onDragEnter={(e) => { e.preventDefault(); setDragIndex(index); }}
-                onDragLeave={() => { setDragIndex(null); }}
+                className={`flex gap-2 items-center ${dragIndex === index ? "border-2 border-dashed p-2 rounded" : ""}`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragIndex(index);
+                }}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  setDragIndex(index);
+                }}
+                onDragLeave={() => {
+                  setDragIndex(null);
+                }}
                 onDrop={async (e) => {
                   e.preventDefault();
                   setDragIndex(null);
@@ -212,54 +220,94 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
                         try {
                           imageUrl = await uploadImageToCloudinary(file);
                         } catch (cloudErr: any) {
-                          console.warn('Cloudinary upload failed, trying ImageKit fallback', cloudErr?.message || cloudErr);
-                          imageUrl = await uploadToImageKitServer(file, file.name);
+                          console.warn(
+                            "Cloudinary upload failed, trying ImageKit fallback",
+                            cloudErr?.message || cloudErr,
+                          );
+                          imageUrl = await uploadToImageKitServer(
+                            file,
+                            file.name,
+                          );
                         }
 
-                        if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http')) {
+                        if (
+                          imageUrl &&
+                          typeof imageUrl === "string" &&
+                          imageUrl.startsWith("http")
+                        ) {
                           updateImage(index, imageUrl);
                         } else {
-                          alert('Upload failed: unexpected response from upload provider');
+                          alert(
+                            "Upload failed: unexpected response from upload provider",
+                          );
                         }
                       } catch (err: any) {
-                        console.error('Drop upload error:', err);
+                        console.error("Drop upload error:", err);
                         const msg = err?.message || String(err);
-                        const lower = (msg || '').toLowerCase();
-                        if (lower.includes('cloudinary signing did not return an api key') || lower.includes('missing required parameter - api_key') || lower.includes("missing required parameter 'api_key'")) {
-                          const apiKey = window.prompt('Public Cloudinary API key (e.g. 686641252611351):', '');
+                        const lower = (msg || "").toLowerCase();
+                        if (
+                          lower.includes(
+                            "cloudinary signing did not return an api key",
+                          ) ||
+                          lower.includes(
+                            "missing required parameter - api_key",
+                          ) ||
+                          lower.includes("missing required parameter 'api_key'")
+                        ) {
+                          const apiKey = window.prompt(
+                            "Public Cloudinary API key (e.g. 686641252611351):",
+                            "",
+                          );
                           if (apiKey && apiKey.trim()) {
                             try {
-                              setLocalCloudinaryConfig(null, null, apiKey.trim());
-                              const retryUrl = await uploadImageToCloudinary(file);
-                              if (retryUrl && typeof retryUrl === 'string' && retryUrl.startsWith('http')) {
+                              setLocalCloudinaryConfig(
+                                null,
+                                null,
+                                apiKey.trim(),
+                              );
+                              const retryUrl =
+                                await uploadImageToCloudinary(file);
+                              if (
+                                retryUrl &&
+                                typeof retryUrl === "string" &&
+                                retryUrl.startsWith("http")
+                              ) {
                                 updateImage(index, retryUrl);
                                 return;
                               }
                             } catch (e2) {
-                              console.error('Retry after API key failed:', e2);
+                              console.error("Retry after API key failed:", e2);
                             }
                           }
                         }
-                        alert('Upload failed: ' + (err?.message || err));
+                        alert("Upload failed: " + (err?.message || err));
                       }
                       return;
                     }
 
                     // Fallback: support dragging an image URL (text/uri-list or text/plain)
-                    const text = dt.getData('text/uri-list') || dt.getData('text/plain');
-                    if (text && text.startsWith('http')) {
-                      const should = window.confirm('Upload the dragged URL to Cloudinary and replace it?\n' + text);
+                    const text =
+                      dt.getData("text/uri-list") || dt.getData("text/plain");
+                    if (text && text.startsWith("http")) {
+                      const should = window.confirm(
+                        "Upload the dragged URL to Cloudinary and replace it?\n" +
+                          text,
+                      );
                       if (!should) return;
                       const result = await uploadUrlToServer(text);
-                      if (result && typeof result === 'string' && result.startsWith('http')) {
+                      if (
+                        result &&
+                        typeof result === "string" &&
+                        result.startsWith("http")
+                      ) {
                         updateImage(index, result);
                       } else {
-                        alert('Upload failed: unexpected response from server');
+                        alert("Upload failed: unexpected response from server");
                       }
                     }
                   } catch (err: any) {
-                    console.error('Drop upload error:', err);
-                    alert('Image upload failed: ' + (err?.message || err));
+                    console.error("Drop upload error:", err);
+                    alert("Image upload failed: " + (err?.message || err));
                   }
                 }}
               >
@@ -275,34 +323,57 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
                   onClick={async () => {
                     try {
                       const current = formData.images[index]?.trim();
-                      if (current && (current.startsWith("http://") || current.startsWith("https://"))) {
+                      if (
+                        current &&
+                        (current.startsWith("http://") ||
+                          current.startsWith("https://"))
+                      ) {
                         // Upload remote URL to server/Cloudinary, fallback to ImageKit
                         try {
-                          const should = window.confirm("Upload the current URL to Cloudinary/ImageKit and replace it?\n" + current);
+                          const should = window.confirm(
+                            "Upload the current URL to Cloudinary/ImageKit and replace it?\n" +
+                              current,
+                          );
                           if (!should) return;
 
                           try {
                             const result = await uploadUrlToServer(current);
-                            if (result && typeof result === "string" && result.startsWith("http")) {
+                            if (
+                              result &&
+                              typeof result === "string" &&
+                              result.startsWith("http")
+                            ) {
                               updateImage(index, result);
                               return;
                             }
                           } catch (e) {
-                            console.warn("uploadUrlToServer failed, will try ImageKit:", e?.message || e);
+                            console.warn(
+                              "uploadUrlToServer failed, will try ImageKit:",
+                              e?.message || e,
+                            );
                           }
 
                           // Fallback to ImageKit server upload of remote URL
                           try {
-                            const ikResult = await uploadToImageKitServer(current);
-                            if (ikResult && typeof ikResult === "string" && ikResult.startsWith("http")) {
+                            const ikResult =
+                              await uploadToImageKitServer(current);
+                            if (
+                              ikResult &&
+                              typeof ikResult === "string" &&
+                              ikResult.startsWith("http")
+                            ) {
                               updateImage(index, ikResult);
                               return;
                             } else {
-                              alert("Upload failed: unexpected response from ImageKit");
+                              alert(
+                                "Upload failed: unexpected response from ImageKit",
+                              );
                             }
                           } catch (ikErr: any) {
                             console.error("ImageKit URL upload error:", ikErr);
-                            alert("URL upload failed: " + (ikErr?.message || ikErr));
+                            alert(
+                              "URL upload failed: " + (ikErr?.message || ikErr),
+                            );
                           }
                         } catch (e: any) {
                           console.error("URL upload error:", e);
@@ -322,82 +393,131 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
                           try {
                             imageUrl = await uploadImageToCloudinary(file);
                           } catch (cloudErr: any) {
-                            console.warn('Cloudinary upload failed, trying ImageKit fallback', cloudErr?.message || cloudErr);
+                            console.warn(
+                              "Cloudinary upload failed, trying ImageKit fallback",
+                              cloudErr?.message || cloudErr,
+                            );
                             try {
-                              imageUrl = await uploadToImageKitServer(file, file.name);
+                              imageUrl = await uploadToImageKitServer(
+                                file,
+                                file.name,
+                              );
                             } catch (ikErr) {
-                              console.error('ImageKit upload failed:', ikErr);
+                              console.error("ImageKit upload failed:", ikErr);
                               throw cloudErr;
                             }
                           }
 
-                          if (!imageUrl || typeof imageUrl !== 'string' || !imageUrl.startsWith('http')) {
-                            alert('Upload failed: unexpected response from upload provider');
+                          if (
+                            !imageUrl ||
+                            typeof imageUrl !== "string" ||
+                            !imageUrl.startsWith("http")
+                          ) {
+                            alert(
+                              "Upload failed: unexpected response from upload provider",
+                            );
                             return;
                           }
 
                           updateImage(index, imageUrl);
                         } catch (e: any) {
                           const msg = e?.message || String(e);
-                        console.error('Upload error:', e);
-                        const lower = (msg || '').toLowerCase();
-                        if (lower.includes('cloudinary cloud name is not configured')) {
-                          const cloud = window.prompt(
-                            'Cloudinary cloud name (e.g. dflp2vxn2):',
-                          );
-                          if (!cloud) {
-                            alert('No cloud name provided.');
-                            return;
-                          }
-                          const preset = window.prompt(
-                            'Unsigned upload preset (leave empty to use signed server flow):',
-                            '',
-                          );
-                          const apiKeyPrompt = window.prompt(
-                            'Public Cloudinary API key (optional, e.g. 686641252611351):',
-                            '',
-                          );
-                          setLocalCloudinaryConfig(cloud, preset || null, apiKeyPrompt || null);
-                          try {
-                            const imageUrl2 = await uploadImageToCloudinary(file);
-                            if (
-                              !imageUrl2 ||
-                              typeof imageUrl2 !== 'string' ||
-                              !imageUrl2.startsWith('http')
-                            ) {
-                              alert('Upload failed: unexpected response from Cloudinary');
+                          console.error("Upload error:", e);
+                          const lower = (msg || "").toLowerCase();
+                          if (
+                            lower.includes(
+                              "cloudinary cloud name is not configured",
+                            )
+                          ) {
+                            const cloud = window.prompt(
+                              "Cloudinary cloud name (e.g. dflp2vxn2):",
+                            );
+                            if (!cloud) {
+                              alert("No cloud name provided.");
                               return;
                             }
-                            updateImage(index, imageUrl2);
-                          } catch (e2: any) {
-                            console.error('Retry upload error:', e2);
-                            alert('Upload failed after configuring Cloudinary: ' + (e2.message || e2));
-                          }
-                        } else if (lower.includes('cloudinary signing did not return an api key') || lower.includes('missing required parameter - api_key') || lower.includes("missing required parameter 'api_key'")) {
-                          const apiKey = window.prompt('Public Cloudinary API key (e.g. 686641252611351):', '');
-                          if (apiKey && apiKey.trim()) {
+                            const preset = window.prompt(
+                              "Unsigned upload preset (leave empty to use signed server flow):",
+                              "",
+                            );
+                            const apiKeyPrompt = window.prompt(
+                              "Public Cloudinary API key (optional, e.g. 686641252611351):",
+                              "",
+                            );
+                            setLocalCloudinaryConfig(
+                              cloud,
+                              preset || null,
+                              apiKeyPrompt || null,
+                            );
                             try {
-                              setLocalCloudinaryConfig(null, null, apiKey.trim());
-                              const imageUrl2 = await uploadImageToCloudinary(file);
+                              const imageUrl2 =
+                                await uploadImageToCloudinary(file);
                               if (
                                 !imageUrl2 ||
-                                typeof imageUrl2 !== 'string' ||
-                                !imageUrl2.startsWith('http')
+                                typeof imageUrl2 !== "string" ||
+                                !imageUrl2.startsWith("http")
                               ) {
-                                alert('Upload failed: unexpected response from Cloudinary');
+                                alert(
+                                  "Upload failed: unexpected response from Cloudinary",
+                                );
                                 return;
                               }
                               updateImage(index, imageUrl2);
-                              return;
                             } catch (e2: any) {
-                              console.error('Retry upload error:', e2);
-                              alert('Upload failed after setting API key: ' + (e2.message || e2));
-                              return;
+                              console.error("Retry upload error:", e2);
+                              alert(
+                                "Upload failed after configuring Cloudinary: " +
+                                  (e2.message || e2),
+                              );
                             }
+                          } else if (
+                            lower.includes(
+                              "cloudinary signing did not return an api key",
+                            ) ||
+                            lower.includes(
+                              "missing required parameter - api_key",
+                            ) ||
+                            lower.includes(
+                              "missing required parameter 'api_key'",
+                            )
+                          ) {
+                            const apiKey = window.prompt(
+                              "Public Cloudinary API key (e.g. 686641252611351):",
+                              "",
+                            );
+                            if (apiKey && apiKey.trim()) {
+                              try {
+                                setLocalCloudinaryConfig(
+                                  null,
+                                  null,
+                                  apiKey.trim(),
+                                );
+                                const imageUrl2 =
+                                  await uploadImageToCloudinary(file);
+                                if (
+                                  !imageUrl2 ||
+                                  typeof imageUrl2 !== "string" ||
+                                  !imageUrl2.startsWith("http")
+                                ) {
+                                  alert(
+                                    "Upload failed: unexpected response from Cloudinary",
+                                  );
+                                  return;
+                                }
+                                updateImage(index, imageUrl2);
+                                return;
+                              } catch (e2: any) {
+                                console.error("Retry upload error:", e2);
+                                alert(
+                                  "Upload failed after setting API key: " +
+                                    (e2.message || e2),
+                                );
+                                return;
+                              }
+                            }
+                          } else {
+                            alert("Image upload failed: " + (e.message || e));
                           }
-                        } else {
-                          alert('Image upload failed: ' + (e.message || e));
-                        }
                         }
                       };
                       input.click();
@@ -435,21 +555,26 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
             <CardContent>
               <div className="p-4 border rounded-lg">
                 <div className="flex items-start gap-4">
-                  {formData.images[0] && formData.images[0].trim() && (() => {
-                    const previewSrc = normalizeImageUrl(formData.images[0]);
-                    return (
-                      <img
-                        src={previewSrc || undefined}
-                        alt={formData.name}
-                        className="w-20 h-20 object-cover rounded"
-                        onError={(e) => {
-                          // Hide broken images but keep a console hint for debugging
-                          e.currentTarget.style.display = "none";
-                          console.warn('Product preview image failed to load:', previewSrc || formData.images[0]);
-                        }}
-                      />
-                    );
-                  })()}
+                  {formData.images[0] &&
+                    formData.images[0].trim() &&
+                    (() => {
+                      const previewSrc = normalizeImageUrl(formData.images[0]);
+                      return (
+                        <img
+                          src={previewSrc || undefined}
+                          alt={formData.name}
+                          className="w-20 h-20 object-cover rounded"
+                          onError={(e) => {
+                            // Hide broken images but keep a console hint for debugging
+                            e.currentTarget.style.display = "none";
+                            console.warn(
+                              "Product preview image failed to load:",
+                              previewSrc || formData.images[0],
+                            );
+                          }}
+                        />
+                      );
+                    })()}
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">{formData.name}</h3>
                     <p className="text-2xl font-bold text-green-600 mt-1">

@@ -13,7 +13,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { useProducts } from "@/hooks/useProducts";
 import { useOrders } from "@/hooks/useOrders";
-import { uploadImageToCloudinary, setLocalCloudinaryConfig } from "@/lib/cloudinary";
+import {
+  uploadImageToCloudinary,
+  setLocalCloudinaryConfig,
+} from "@/lib/cloudinary";
 import { uploadToImageKitServer } from "@/lib/imagekit";
 import {
   Store as StoreIcon,
@@ -310,76 +313,162 @@ export default function Store() {
                                     const file = input.files?.[0];
                                     if (!file) return;
                                     try {
-                                          let imageUrl: string | null = null;
+                                      let imageUrl: string | null = null;
                                       try {
-                                        imageUrl = await uploadImageToCloudinary(file);
+                                        imageUrl =
+                                          await uploadImageToCloudinary(file);
                                       } catch (cloudErr: any) {
-                                        console.warn('Cloudinary upload failed, trying ImageKit fallback', cloudErr?.message || cloudErr);
+                                        console.warn(
+                                          "Cloudinary upload failed, trying ImageKit fallback",
+                                          cloudErr?.message || cloudErr,
+                                        );
                                         try {
-                                          imageUrl = await uploadToImageKitServer(file, file.name);
+                                          imageUrl =
+                                            await uploadToImageKitServer(
+                                              file,
+                                              file.name,
+                                            );
                                         } catch (ikErr: any) {
-                                          console.error('ImageKit upload failed:', ikErr);
+                                          console.error(
+                                            "ImageKit upload failed:",
+                                            ikErr,
+                                          );
                                           throw cloudErr;
                                         }
                                       }
 
-                                      if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.startsWith("http")) {
-                                        console.error("Invalid upload response:", imageUrl);
-                                        alert("Image upload failed: unexpected response from upload provider");
+                                      if (
+                                        !imageUrl ||
+                                        typeof imageUrl !== "string" ||
+                                        !imageUrl.startsWith("http")
+                                      ) {
+                                        console.error(
+                                          "Invalid upload response:",
+                                          imageUrl,
+                                        );
+                                        alert(
+                                          "Image upload failed: unexpected response from upload provider",
+                                        );
                                         return;
                                       }
 
-                                      await updateProduct(product.id!, { images: [imageUrl] });
+                                      await updateProduct(product.id!, {
+                                        images: [imageUrl],
+                                      });
                                     } catch (e: any) {
                                       console.error(e);
                                       const msg = e?.message || String(e);
-                                      const lower = (msg || '').toLowerCase();
-                                      if (lower.includes("cloudinary cloud name is not configured")) {
-                                        const cloud = window.prompt("Cloudinary cloud name (e.g. dflp2vxn2):");
+                                      const lower = (msg || "").toLowerCase();
+                                      if (
+                                        lower.includes(
+                                          "cloudinary cloud name is not configured",
+                                        )
+                                      ) {
+                                        const cloud = window.prompt(
+                                          "Cloudinary cloud name (e.g. dflp2vxn2):",
+                                        );
                                         if (!cloud) {
-                                          alert("No cloud name provided. Upload cancelled.");
+                                          alert(
+                                            "No cloud name provided. Upload cancelled.",
+                                          );
                                           return;
                                         }
-                                        const preset = window.prompt("Unsigned upload preset (leave empty to use signed server flow):", "");
+                                        const preset = window.prompt(
+                                          "Unsigned upload preset (leave empty to use signed server flow):",
+                                          "",
+                                        );
                                         const apiKeyPrompt = window.prompt(
                                           "Public Cloudinary API key (optional, e.g. 686641252611351):",
                                           "",
                                         );
                                         try {
-                                          setLocalCloudinaryConfig(cloud, preset || null, apiKeyPrompt || null);
-                                          const imageUrl2 = await uploadImageToCloudinary(file);
-                                          console.log("Cloudinary upload result after config:", imageUrl2);
-                                          if (!imageUrl2 || typeof imageUrl2 !== "string" || !imageUrl2.startsWith("http")) {
-                                            alert("Image upload failed: unexpected response from Cloudinary");
+                                          setLocalCloudinaryConfig(
+                                            cloud,
+                                            preset || null,
+                                            apiKeyPrompt || null,
+                                          );
+                                          const imageUrl2 =
+                                            await uploadImageToCloudinary(file);
+                                          console.log(
+                                            "Cloudinary upload result after config:",
+                                            imageUrl2,
+                                          );
+                                          if (
+                                            !imageUrl2 ||
+                                            typeof imageUrl2 !== "string" ||
+                                            !imageUrl2.startsWith("http")
+                                          ) {
+                                            alert(
+                                              "Image upload failed: unexpected response from Cloudinary",
+                                            );
                                             return;
                                           }
-                                          await updateProduct(product.id!, { images: [imageUrl2] });
+                                          await updateProduct(product.id!, {
+                                            images: [imageUrl2],
+                                          });
                                         } catch (e2: any) {
                                           console.error(e2);
-                                          alert("Image upload failed after configuring Cloudinary: " + (e2.message || e2));
+                                          alert(
+                                            "Image upload failed after configuring Cloudinary: " +
+                                              (e2.message || e2),
+                                          );
                                         }
                                         return;
-                                      } else if (lower.includes('cloudinary signing did not return an api key') || lower.includes('missing required parameter - api_key') || lower.includes("missing required parameter 'api_key'")) {
-                                        const apiKey = window.prompt('Public Cloudinary API key (e.g. 686641252611351):', '');
+                                      } else if (
+                                        lower.includes(
+                                          "cloudinary signing did not return an api key",
+                                        ) ||
+                                        lower.includes(
+                                          "missing required parameter - api_key",
+                                        ) ||
+                                        lower.includes(
+                                          "missing required parameter 'api_key'",
+                                        )
+                                      ) {
+                                        const apiKey = window.prompt(
+                                          "Public Cloudinary API key (e.g. 686641252611351):",
+                                          "",
+                                        );
                                         if (apiKey && apiKey.trim()) {
                                           try {
-                                            setLocalCloudinaryConfig(null, null, apiKey.trim());
-                                            const imageUrl2 = await uploadImageToCloudinary(file);
-                                            if (!imageUrl2 || typeof imageUrl2 !== 'string' || !imageUrl2.startsWith('http')) {
-                                              alert('Image upload failed: unexpected response from Cloudinary');
+                                            setLocalCloudinaryConfig(
+                                              null,
+                                              null,
+                                              apiKey.trim(),
+                                            );
+                                            const imageUrl2 =
+                                              await uploadImageToCloudinary(
+                                                file,
+                                              );
+                                            if (
+                                              !imageUrl2 ||
+                                              typeof imageUrl2 !== "string" ||
+                                              !imageUrl2.startsWith("http")
+                                            ) {
+                                              alert(
+                                                "Image upload failed: unexpected response from Cloudinary",
+                                              );
                                               return;
                                             }
-                                            await updateProduct(product.id!, { images: [imageUrl2] });
+                                            await updateProduct(product.id!, {
+                                              images: [imageUrl2],
+                                            });
                                             return;
                                           } catch (e2: any) {
                                             console.error(e2);
-                                            alert('Image upload failed after setting API key: ' + (e2.message || e2));
+                                            alert(
+                                              "Image upload failed after setting API key: " +
+                                                (e2.message || e2),
+                                            );
                                             return;
                                           }
                                         }
                                       }
 
-                                      alert("Image upload failed: " + (e.message || e));
+                                      alert(
+                                        "Image upload failed: " +
+                                          (e.message || e),
+                                      );
                                     }
                                   };
                                   input.click();
@@ -412,10 +501,15 @@ export default function Store() {
                                   if (!name) return;
                                   const email = window.prompt("Your email:");
                                   if (!email) return;
-                                  const qtyStr = window.prompt("Quantity:", "1") || "1";
+                                  const qtyStr =
+                                    window.prompt("Quantity:", "1") || "1";
                                   const qty = parseInt(qtyStr) || 1;
-                                  const phone = window.prompt("Phone (optional):", "") || "";
-                                  const address = window.prompt("Address (optional):", "") || "";
+                                  const phone =
+                                    window.prompt("Phone (optional):", "") ||
+                                    "";
+                                  const address =
+                                    window.prompt("Address (optional):", "") ||
+                                    "";
 
                                   await createOrder({
                                     username: name,

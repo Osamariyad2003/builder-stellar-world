@@ -16,7 +16,9 @@ export function normalizeImageUrl(url?: string | null): string | null {
 
   try {
     // Google Drive /file/d/:id/view or /open?id=:id
-    const driveMatch = trimmed.match(/https?:\/\/(?:drive\.google\.com)\/(?:file\/d\/([a-zA-Z0-9_-]+)\/view|open\?id=([a-zA-Z0-9_-]+))/i);
+    const driveMatch = trimmed.match(
+      /https?:\/\/(?:drive\.google\.com)\/(?:file\/d\/([a-zA-Z0-9_-]+)\/view|open\?id=([a-zA-Z0-9_-]+))/i,
+    );
     if (driveMatch) {
       const id = driveMatch[1] || driveMatch[2];
       if (id) return `https://drive.google.com/uc?export=view&id=${id}`;

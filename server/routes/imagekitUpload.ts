@@ -5,7 +5,12 @@ export const handleImageKitUpload: RequestHandler = async (req, res) => {
     const { file, filename, folder } = req.body || {};
 
     if (!file || typeof file !== "string") {
-      return res.status(400).json({ error: "Missing 'file' in request body (data URL or remote URL expected)" });
+      return res
+        .status(400)
+        .json({
+          error:
+            "Missing 'file' in request body (data URL or remote URL expected)",
+        });
     }
 
     const privateKey = process.env.IMAGEKIT_PRIVATE_KEY || null;
@@ -13,7 +18,12 @@ export const handleImageKitUpload: RequestHandler = async (req, res) => {
     const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT || null; // optional
 
     if (!privateKey) {
-      return res.status(500).json({ error: "ImageKit not configured on server. Provide IMAGEKIT_PRIVATE_KEY." });
+      return res
+        .status(500)
+        .json({
+          error:
+            "ImageKit not configured on server. Provide IMAGEKIT_PRIVATE_KEY.",
+        });
     }
 
     const uploadUrl = `https://upload.imagekit.io/api/v1/files/upload`;
@@ -40,13 +50,19 @@ export const handleImageKitUpload: RequestHandler = async (req, res) => {
 
     // Log the upstream response for debugging when upload fails
     if (!resp.ok) {
-      console.error(`/api/imagekit/upload: upstream returned ${resp.status} - ${text}`);
+      console.error(
+        `/api/imagekit/upload: upstream returned ${resp.status} - ${text}`,
+      );
       // Try to parse JSON error body if possible
       try {
         const jsonErr = text ? JSON.parse(text) : { message: text };
-        return res.status(resp.status).json({ error: 'ImageKit upload failed', details: jsonErr });
+        return res
+          .status(resp.status)
+          .json({ error: "ImageKit upload failed", details: jsonErr });
       } catch (parseErr) {
-        return res.status(resp.status).json({ error: 'ImageKit upload failed', details: text });
+        return res
+          .status(resp.status)
+          .json({ error: "ImageKit upload failed", details: text });
       }
     }
 

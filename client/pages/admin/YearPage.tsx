@@ -6,7 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowLeft, Trash2, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useYears } from "@/hooks/useYears";
-import { uploadImageToCloudinary, setLocalCloudinaryConfig } from "@/lib/cloudinary";
+import {
+  uploadImageToCloudinary,
+  setLocalCloudinaryConfig,
+} from "@/lib/cloudinary";
 import { uploadToImageKitServer } from "@/lib/imagekit";
 import { SubjectForm } from "@/components/admin/SubjectForm";
 import { LectureForm } from "@/components/admin/LectureForm";
@@ -128,18 +131,33 @@ export default function YearPage() {
                         try {
                           imageUrl = await uploadImageToCloudinary(file);
                         } catch (cloudErr: any) {
-                          console.warn("Cloudinary upload failed, attempting ImageKit fallback:", cloudErr?.message || cloudErr);
+                          console.warn(
+                            "Cloudinary upload failed, attempting ImageKit fallback:",
+                            cloudErr?.message || cloudErr,
+                          );
                           try {
-                            imageUrl = await uploadToImageKitServer(file, file.name);
+                            imageUrl = await uploadToImageKitServer(
+                              file,
+                              file.name,
+                            );
                           } catch (ikErr: any) {
-                            console.error("ImageKit upload also failed:", ikErr);
+                            console.error(
+                              "ImageKit upload also failed:",
+                              ikErr,
+                            );
                             throw cloudErr; // preserve original cloudinary error for UX
                           }
                         }
 
-                        if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.startsWith("http")) {
+                        if (
+                          !imageUrl ||
+                          typeof imageUrl !== "string" ||
+                          !imageUrl.startsWith("http")
+                        ) {
                           console.error("Invalid upload response:", imageUrl);
-                          alert("Image upload failed: unexpected response from upload provider");
+                          alert(
+                            "Image upload failed: unexpected response from upload provider",
+                          );
                           (window as any).__yearEditing = false;
                           return;
                         }
@@ -154,51 +172,108 @@ export default function YearPage() {
                         console.error(e);
                         const msg = e?.message || String(e);
                         const lower = (msg || "").toLowerCase();
-                        if (lower.includes("cloudinary cloud name is not configured")) {
-                          const cloud = window.prompt("Cloudinary cloud name (e.g. dflp2vxn2):");
+                        if (
+                          lower.includes(
+                            "cloudinary cloud name is not configured",
+                          )
+                        ) {
+                          const cloud = window.prompt(
+                            "Cloudinary cloud name (e.g. dflp2vxn2):",
+                          );
                           if (!cloud) {
                             alert("No cloud name provided. Upload cancelled.");
                             (window as any).__yearEditing = false;
                             return;
                           }
-                          const preset = window.prompt("Unsigned upload preset (leave empty to use signed server flow):", "");
+                          const preset = window.prompt(
+                            "Unsigned upload preset (leave empty to use signed server flow):",
+                            "",
+                          );
                           const apiKeyPrompt = window.prompt(
                             "Public Cloudinary API key (optional, e.g. 686641252611351):",
                             "",
                           );
                           try {
-                            setLocalCloudinaryConfig(cloud, preset || null, apiKeyPrompt || null);
-                            const imageUrl2 = await uploadImageToCloudinary(file);
-                            console.log("Cloudinary upload result after config:", imageUrl2);
-                            if (!imageUrl2 || typeof imageUrl2 !== "string" || !imageUrl2.startsWith("http")) {
-                              alert("Image upload failed: unexpected response from Cloudinary");
+                            setLocalCloudinaryConfig(
+                              cloud,
+                              preset || null,
+                              apiKeyPrompt || null,
+                            );
+                            const imageUrl2 =
+                              await uploadImageToCloudinary(file);
+                            console.log(
+                              "Cloudinary upload result after config:",
+                              imageUrl2,
+                            );
+                            if (
+                              !imageUrl2 ||
+                              typeof imageUrl2 !== "string" ||
+                              !imageUrl2.startsWith("http")
+                            ) {
+                              alert(
+                                "Image upload failed: unexpected response from Cloudinary",
+                              );
                               (window as any).__yearEditing = false;
                               return;
                             }
-                            await updateYear?.(year.id, { imageUrl: imageUrl2, image_url: imageUrl2 });
+                            await updateYear?.(year.id, {
+                              imageUrl: imageUrl2,
+                              image_url: imageUrl2,
+                            });
                           } catch (e2: any) {
                             console.error(e2);
-                            alert("Image upload failed after configuring Cloudinary: " + (e2.message || e2));
+                            alert(
+                              "Image upload failed after configuring Cloudinary: " +
+                                (e2.message || e2),
+                            );
                           }
                           (window as any).__yearEditing = false;
                           return;
-                        } else if (lower.includes("cloudinary signing did not return an api key") || lower.includes("missing required parameter - api_key") || lower.includes("missing required parameter 'api_key'")) {
-                          const apiKey = window.prompt("Public Cloudinary API key (e.g. 686641252611351):", "");
+                        } else if (
+                          lower.includes(
+                            "cloudinary signing did not return an api key",
+                          ) ||
+                          lower.includes(
+                            "missing required parameter - api_key",
+                          ) ||
+                          lower.includes("missing required parameter 'api_key'")
+                        ) {
+                          const apiKey = window.prompt(
+                            "Public Cloudinary API key (e.g. 686641252611351):",
+                            "",
+                          );
                           if (apiKey && apiKey.trim()) {
                             try {
-                              setLocalCloudinaryConfig(null, null, apiKey.trim());
-                              const imageUrl2 = await uploadImageToCloudinary(file);
-                              if (!imageUrl2 || typeof imageUrl2 !== "string" || !imageUrl2.startsWith("http")) {
-                                alert("Image upload failed: unexpected response from Cloudinary");
+                              setLocalCloudinaryConfig(
+                                null,
+                                null,
+                                apiKey.trim(),
+                              );
+                              const imageUrl2 =
+                                await uploadImageToCloudinary(file);
+                              if (
+                                !imageUrl2 ||
+                                typeof imageUrl2 !== "string" ||
+                                !imageUrl2.startsWith("http")
+                              ) {
+                                alert(
+                                  "Image upload failed: unexpected response from Cloudinary",
+                                );
                                 (window as any).__yearEditing = false;
                                 return;
                               }
-                              await updateYear?.(year.id, { imageUrl: imageUrl2, image_url: imageUrl2 });
+                              await updateYear?.(year.id, {
+                                imageUrl: imageUrl2,
+                                image_url: imageUrl2,
+                              });
                               (window as any).__yearEditing = false;
                               return;
                             } catch (e2: any) {
                               console.error(e2);
-                              alert("Image upload failed after setting API key: " + (e2.message || e2));
+                              alert(
+                                "Image upload failed after setting API key: " +
+                                  (e2.message || e2),
+                              );
                               (window as any).__yearEditing = false;
                               return;
                             }
