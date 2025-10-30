@@ -85,7 +85,14 @@ if (!(window.fetch as any).__firebasePatched) {
             "🔴 Firebase request failed:",
             error?.message || String(error),
           );
-          if (navigator.onLine) reportFirebaseError(error);
+          // If this error comes from a browser extension or third-party script, do not
+          // count it towards Firebase failure thresholds (these are noisy and out of our control).
+          const stack = String((error && (error.stack || "")) || "");
+          const message = String(error?.message || error || "").toLowerCase();
+          const isExtensionError = stack.includes("chrome-extension://") || stack.includes("extension://") || message.includes("extension");
+
+          if (!isExtensionError && navigator.onLine) reportFirebaseError(error);
+          // Re-throw so callers get the original failure
           throw error;
         });
     } catch (error) {
