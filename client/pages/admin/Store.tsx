@@ -333,7 +333,8 @@ export default function Store() {
                                     } catch (e: any) {
                                       console.error(e);
                                       const msg = e?.message || String(e);
-                                      if (msg && msg.toLowerCase().includes("cloudinary cloud name is not configured")) {
+                                      const lower = (msg || '').toLowerCase();
+                                      if (lower.includes("cloudinary cloud name is not configured")) {
                                         const cloud = window.prompt("Cloudinary cloud name (e.g. dflp2vxn2):");
                                         if (!cloud) {
                                           alert("No cloud name provided. Upload cancelled.");
@@ -358,6 +359,24 @@ export default function Store() {
                                           alert("Image upload failed after configuring Cloudinary: " + (e2.message || e2));
                                         }
                                         return;
+                                      } else if (lower.includes('cloudinary signing did not return an api key') || lower.includes('missing required parameter - api_key') || lower.includes("missing required parameter 'api_key'")) {
+                                        const apiKey = window.prompt('Public Cloudinary API key (e.g. 686641252611351):', '');
+                                        if (apiKey && apiKey.trim()) {
+                                          try {
+                                            setLocalCloudinaryConfig(null, null, apiKey.trim());
+                                            const imageUrl2 = await uploadImageToCloudinary(file);
+                                            if (!imageUrl2 || typeof imageUrl2 !== 'string' || !imageUrl2.startsWith('http')) {
+                                              alert('Image upload failed: unexpected response from Cloudinary');
+                                              return;
+                                            }
+                                            await updateProduct(product.id!, { images: [imageUrl2] });
+                                            return;
+                                          } catch (e2: any) {
+                                            console.error(e2);
+                                            alert('Image upload failed after setting API key: ' + (e2.message || e2));
+                                            return;
+                                          }
+                                        }
                                       }
 
                                       alert("Image upload failed: " + (e.message || e));
