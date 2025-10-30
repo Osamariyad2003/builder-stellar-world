@@ -141,7 +141,7 @@ export default function Store() {
               <Button onClick={retryConnection} variant="outline">
                 Retry Connection
               </Button>
-              <Button onClick={() => window.location.reload()} variant="ghost">
+              <Button onClick={() => window.location.replace(window.location.href)} variant="ghost">
                 Refresh Page
               </Button>
             </div>
