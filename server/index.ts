@@ -5,6 +5,7 @@ import { handleSign } from "./routes/cloudinary";
 import { handleConfig } from "./routes/cloudinaryConfig";
 import { handleUpload } from "./routes/cloudinaryUpload";
 import { handleImageKitUpload } from "./routes/imagekitUpload";
+import { handleImageKitAuth } from "./routes/imagekitAuth";
 
 export function createServer() {
   const app = express();
