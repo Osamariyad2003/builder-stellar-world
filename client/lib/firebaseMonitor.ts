@@ -101,7 +101,10 @@ if (!(window.fetch as any).__firebasePatched) {
         "🔴 Firebase request threw synchronously:",
         (error as any)?.message || String(error),
       );
-      if (navigator.onLine) reportFirebaseError(error);
+      const stack = String((error && (error.stack || "")) || "");
+      const message = String((error as any)?.message || error || "").toLowerCase();
+      const isExtensionError = stack.includes("chrome-extension://") || stack.includes("extension://") || message.includes("extension");
+      if (!isExtensionError && navigator.onLine) reportFirebaseError(error);
       return Promise.reject(error);
     }
   };
