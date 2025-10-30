@@ -51,7 +51,8 @@ export class ErrorBoundary extends React.Component<
 
   handleRetry = () => {
     this.setState({ hasError: false, error: undefined, errorInfo: undefined });
-    window.location.reload();
+    // Force full navigation to avoid HMR socket race conditions
+    window.location.replace(window.location.href);
   };
 
   render() {
