@@ -258,15 +258,33 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
                     try {
                       const current = formData.images[index]?.trim();
                       if (current && (current.startsWith("http://") || current.startsWith("https://"))) {
-                        // Upload remote URL to server/Cloudinary
+                        // Upload remote URL to server/Cloudinary, fallback to ImageKit
                         try {
-                          const should = window.confirm("Upload the current URL to Cloudinary and replace it?\n" + current);
+                          const should = window.confirm("Upload the current URL to Cloudinary/ImageKit and replace it?\n" + current);
                           if (!should) return;
-                          const result = await uploadUrlToServer(current);
-                          if (result && typeof result === "string" && result.startsWith("http")) {
-                            updateImage(index, result);
-                          } else {
-                            alert("Upload failed: unexpected response from server");
+
+                          try {
+                            const result = await uploadUrlToServer(current);
+                            if (result && typeof result === "string" && result.startsWith("http")) {
+                              updateImage(index, result);
+                              return;
+                            }
+                          } catch (e) {
+                            console.warn("uploadUrlToServer failed, will try ImageKit:", e?.message || e);
+                          }
+
+                          // Fallback to ImageKit server upload of remote URL
+                          try {
+                            const ikResult = await uploadToImageKitServer(current);
+                            if (ikResult && typeof ikResult === "string" && ikResult.startsWith("http")) {
+                              updateImage(index, ikResult);
+                              return;
+                            } else {
+                              alert("Upload failed: unexpected response from ImageKit");
+                            }
+                          } catch (ikErr: any) {
+                            console.error("ImageKit URL upload error:", ikErr);
+                            alert("URL upload failed: " + (ikErr?.message || ikErr));
                           }
                         } catch (e: any) {
                           console.error("URL upload error:", e);
