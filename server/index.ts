@@ -27,6 +27,8 @@ export function createServer() {
 
   // Server-side upload endpoint (accepts data URL and uploads to Cloudinary)
   app.post("/api/cloudinary/upload", handleUpload);
+  // Server-side ImageKit upload endpoint
+  app.post("/api/imagekit/upload", handleImageKitUpload);
 
   // Provide Cloudinary config (runtime) to clients when VITE_* not available
   app.get("/api/cloudinary/config", handleConfig);
