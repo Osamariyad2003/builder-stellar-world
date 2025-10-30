@@ -434,16 +434,21 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
             <CardContent>
               <div className="p-4 border rounded-lg">
                 <div className="flex items-start gap-4">
-                  {formData.images[0] && formData.images[0].trim() && (
-                    <img
-                      src={formData.images[0]}
-                      alt={formData.name}
-                      className="w-20 h-20 object-cover rounded"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  )}
+                  {formData.images[0] && formData.images[0].trim() && (() => {
+                    const previewSrc = normalizeImageUrl(formData.images[0]);
+                    return (
+                      <img
+                        src={previewSrc || undefined}
+                        alt={formData.name}
+                        className="w-20 h-20 object-cover rounded"
+                        onError={(e) => {
+                          // Hide broken images but keep a console hint for debugging
+                          e.currentTarget.style.display = "none";
+                          console.warn('Product preview image failed to load:', previewSrc || formData.images[0]);
+                        }}
+                      />
+                    );
+                  })()}
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">{formData.name}</h3>
                     <p className="text-2xl font-bold text-green-600 mt-1">
