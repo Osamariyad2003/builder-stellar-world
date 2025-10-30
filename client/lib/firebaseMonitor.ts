@@ -140,11 +140,20 @@ console.log("🔄 Starting Firebase monitoring in ONLINE mode");
 window.addEventListener("unhandledrejection", (event) => {
   const msg = String(event?.reason?.message || event?.reason || "");
   const stack = String((event?.reason && (event.reason.stack || "")) || "");
+
+  // If the rejection originates from an extension or analytics script, swallow it
   if (
-    msg.includes("Failed to fetch") &&
-    (stack.includes("chrome-extension://") || stack.includes("fullstory.com"))
+    (msg.includes("Failed to fetch") || msg.toLowerCase().includes("extension")) &&
+    (stack.includes("chrome-extension://") || stack.includes("extension://") || stack.includes("fullstory.com"))
   ) {
     event.preventDefault();
+    return;
+  }
+
+  // Also ignore noisy XHR/fetch failures that include extension origins in stack
+  if (stack.includes("chrome-extension://") || stack.includes("extension://")) {
+    event.preventDefault();
+    return;
   }
 });
 
@@ -154,7 +163,10 @@ const originalConsoleWarn = console.warn;
 const originalConsoleLog = console.log;
 
 console.error = (...args) => {
-  const errorMessage = args.join(" ");
+  // Build a joined message and also inspect any Error objects for stacks
+  const errorMessage = args.map((a) => (a && typeof a === "object" ? String(a) : a)).join(" ");
+  const hasErrorStack = args.some((a: any) => a && typeof a === "object" && a.stack && (a.stack as string).includes("chrome-extension://"));
+
   const suppressPatterns = [
     "Firebase offline mode - request blocked",
     "FirebaseError: [code=unavailable]",
@@ -165,13 +177,13 @@ console.error = (...args) => {
     "client will operate in offline mode",
     "Most recent error: FirebaseError",
     "@firebase/firestore: Firestore",
-    "chrome-extension://",
     "fullstory.com",
     "TypeError: Failed to fetch (edge.fullstory.com)",
   ];
 
-  if (suppressPatterns.some((pattern) => errorMessage.includes(pattern))) {
-    return; // Suppress Firebase offline errors
+  // Suppress if patterns match or if an extension stack is present
+  if (suppressPatterns.some((pattern) => errorMessage.includes(pattern)) || hasErrorStack || errorMessage.includes("chrome-extension://") || errorMessage.includes("extension://")) {
+    return; // Suppress noisy errors from extensions or Firebase offline
   }
 
   originalConsoleError.apply(console, args);
