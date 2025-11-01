@@ -178,7 +178,7 @@ console.error = (...args) => {
     "Most recent error: FirebaseError",
     "@firebase/firestore: Firestore",
     "fullstory.com",
-    "TypeError: Failed to fetch (edge.fullstory.com)",
+    "TypeError: Failed to fetch",
   ];
 
   // Suppress if patterns match or if an extension stack is present
