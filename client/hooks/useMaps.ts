@@ -57,10 +57,27 @@ export function useMaps() {
   }, []);
 
   const createMap = async (item: Omit<MapItem, "id" | "createdAt">) => {
-    await addDoc(collection(db, "maps"), { ...item, createdAt: new Date() });
+    // Normalize type/mapType for existing and new consumers
+    const payload: any = { ...item, createdAt: new Date() };
+    if (payload.type && !payload.mapType) payload.mapType = payload.type;
+    if (payload.mapType && !payload.type) payload.type = payload.mapType;
+    // Trim whitespace from string fields
+    ["name", "location", "description", "video_url", "type", "mapType"].forEach((k) => {
+      if (typeof payload[k] === "string") payload[k] = payload[k].trim();
+    });
+
+    await addDoc(collection(db, "maps"), payload);
   };
   const updateMap = async (id: string, item: Partial<MapItem>) => {
-    await updateDoc(doc(db, "maps", id), item);
+    // Ensure both type keys are kept in sync when updating
+    const payload: any = { ...item };
+    if (payload.type && !payload.mapType) payload.mapType = payload.type;
+    if (payload.mapType && !payload.type) payload.type = payload.mapType;
+    ["name", "location", "description", "video_url", "type", "mapType"].forEach((k) => {
+      if (typeof payload[k] === "string") payload[k] = payload[k].trim();
+    });
+
+    await updateDoc(doc(db, "maps", id), payload);
   };
   const deleteMap = async (id: string) => {
     await deleteDoc(doc(db, "maps", id));
