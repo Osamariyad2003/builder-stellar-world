@@ -12,6 +12,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useYears } from "@/hooks/useYears";
 
 // Mock users for offline/dev
 const mockUsers: SharedUser[] = [
