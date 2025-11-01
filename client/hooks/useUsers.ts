@@ -39,6 +39,7 @@ export function useUsers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const { years } = useYears();
 
   useEffect(() => {
     const testAndListen = async () => {
