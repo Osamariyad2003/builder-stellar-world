@@ -113,6 +113,31 @@ export function useUsers() {
     testAndListen();
   }, []);
 
+  // Recompute and attach yearLabel to existing users whenever years load/refresh
+  useEffect(() => {
+    if (!years || years.length === 0) return;
+    setUsers((prev) =>
+      prev.map((u) => {
+        if (!u) return u;
+        const yId = (u as any).yearId || null;
+        if (!yId) return u;
+        const found = years.find((y) => y.id === yId);
+        if (!found) return u;
+        const map: Record<number, string> = {
+          1: "One",
+          2: "Two",
+          3: "Three",
+          4: "Four",
+          5: "Five",
+          6: "Six",
+        };
+        const word = map[found.yearNumber] || String(found.yearNumber);
+        const yearLabel = found.batchName ? found.batchName : `Year ${word}`;
+        return { ...u, yearLabel } as SharedUser;
+      }),
+    );
+  }, [years]);
+
   const updateUser = async (id: string, payload: Partial<SharedUser>) => {
     if (isOfflineMode || id.startsWith("mock_") || id.startsWith("offline_")) {
       setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...payload } : u)));
