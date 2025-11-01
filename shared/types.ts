@@ -158,4 +158,6 @@ export interface User {
   role?: string; // e.g., 'admin', 'staff', 'student'
   photoURL?: string;
   createdAt?: Date;
+  yearId?: string;
+  yearLabel?: string;
 }
