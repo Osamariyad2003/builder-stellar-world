@@ -54,13 +54,26 @@ export function useUsers() {
             const data: SharedUser[] = [];
             snap.forEach((d) => {
               const v = d.data() as any;
-              data.push({
+              // Resolve year label from yearId if available
+            const yearId = v.yearId || v.year || v.year_id || v.yearId || null;
+            let yearLabel = "-";
+            if (yearId) {
+              const found = years.find((y) => y.id === yearId);
+              if (found) {
+                if (found.batchName) yearLabel = found.batchName;
+                else yearLabel = `Year ${found.yearNumber}`;
+              }
+            }
+
+            data.push({
                 id: d.id,
                 displayName: v.displayName || v.name || "",
                 email: v.email || "",
                 role: v.role || "student",
                 photoURL: v.photoURL || v.avatar || "",
                 createdAt: v.createdAt?.toDate?.() || undefined,
+                yearId: yearId || undefined,
+                yearLabel,
               });
             });
             setUsers(data);
