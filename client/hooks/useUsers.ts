@@ -90,6 +90,51 @@ export function useUsers() {
               });
             });
             setUsers(data);
+
+            // If some users reference yearIds that are not yet loaded in `years`, fetch them directly
+            const missingYearIds = Array.from(
+              new Set(
+                data
+                  .map((u) => (u as any).yearId)
+                  .filter(Boolean)
+                  .filter((id) => !years.find((y) => y.id === id)),
+              ),
+            );
+
+            if (missingYearIds.length > 0) {
+              Promise.all(
+                missingYearIds.map(async (yid) => {
+                  try {
+                    const snap = await getDoc(doc(db, "years", yid));
+                    if (!snap.exists()) return null;
+                    const d = snap.data() as any;
+                    const yearNumber = d.yearNumber || d.order || (() => {
+                      const m = (d.name || "").match(/\d+/);
+                      return m ? parseInt(m[0]) : undefined;
+                    })();
+                    const label = d.batchName || (yearNumber ? `Year ${yearNumber}` : undefined) || undefined;
+                    return { id: yid, label };
+                  } catch (e) {
+                    return null;
+                  }
+                }),
+              ).then((resolved) => {
+                const map: Record<string, string> = {};
+                resolved.forEach((r) => {
+                  if (r && r.id && r.label) map[r.id] = r.label;
+                });
+                if (Object.keys(map).length > 0) {
+                  setUsers((prev) =>
+                    prev.map((u) =>
+                      (u as any).yearId && map[(u as any).yearId]
+                        ? { ...(u as any), yearLabel: map[(u as any).yearId] }
+                        : u,
+                    ),
+                  );
+                }
+              });
+            }
+
             setLoading(false);
           },
           (err) => {
