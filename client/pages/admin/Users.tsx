@@ -69,7 +69,7 @@ export default function Users() {
                       <div className="text-xs text-muted-foreground truncate">{u.email}</div>
                       <div className="text-xs text-muted-foreground mt-1">
                         Created: {u.createdAt ? new Date(u.createdAt).toLocaleString() : "-"}
-                        <span className="ml-3">Year: {getYearFromId(u.id, u.createdAt)}</span>
+                        <span className="ml-3">Year: {u.yearLabel || getYearFromId(u.id, u.createdAt)}</span>
                       </div>
                     </div>
                   </div>
