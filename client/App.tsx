@@ -72,6 +72,7 @@ const App = () => (
                   element={<Navigate to="/admin/years" replace />}
                 />
                 <Route path="professors" element={<Professors />} />
+                <Route path="users" element={<Users />} />
                 <Route path="store" element={<Store />} />
                 <Route path="orders" element={<Orders />} />
                 <Route path="videos" element={<VideosPage />} />
