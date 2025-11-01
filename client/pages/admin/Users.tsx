@@ -14,6 +14,23 @@ export default function Users() {
     await updateUser(u.id, { role: newRole });
   };
 
+  const getYearFromId = (id?: string, createdAt?: any) => {
+    if (!id) return "-";
+    // Look for a 4-digit year in the id (e.g., 2023, 2001)
+    const match = id.match(/(19|20)\d{2}/);
+    if (match) return match[0];
+    // Fallback to createdAt if present
+    if (createdAt) {
+      try {
+        const d = new Date(createdAt);
+        if (!isNaN(d.getTime())) return String(d.getFullYear());
+      } catch (e) {
+        // ignore
+      }
+    }
+    return "-";
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
@@ -52,7 +69,7 @@ export default function Users() {
                       <div className="text-xs text-muted-foreground truncate">{u.email}</div>
                       <div className="text-xs text-muted-foreground mt-1">
                         Created: {u.createdAt ? new Date(u.createdAt).toLocaleString() : "-"}
-                        <span className="ml-3">Year: {u.createdAt ? new Date(u.createdAt).getFullYear() : "-"}</span>
+                        <span className="ml-3">Year: {getYearFromId(u.id, u.createdAt)}</span>
                       </div>
                     </div>
                   </div>
