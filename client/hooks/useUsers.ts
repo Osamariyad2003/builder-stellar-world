@@ -57,28 +57,30 @@ export function useUsers() {
             snap.forEach((d) => {
               const v = d.data() as any;
               // Resolve year label from yearId if available
-            const yearId = v.yearId || v.year || v.year_id || v.yearId || null;
-            let yearLabel = "-";
-            if (yearId) {
-              const found = years.find((y) => y.id === yearId);
-              if (found) {
-                if (found.batchName) yearLabel = found.batchName;
-                else {
-                  const map: Record<number, string> = {
-                    1: "One",
-                    2: "Two",
-                    3: "Three",
-                    4: "Four",
-                    5: "Five",
-                    6: "Six",
-                  };
-                  const word = map[found.yearNumber] || String(found.yearNumber);
-                  yearLabel = `Year ${word}`;
+              const yearId =
+                v.yearId || v.year || v.year_id || v.yearId || null;
+              let yearLabel = "-";
+              if (yearId) {
+                const found = years.find((y) => y.id === yearId);
+                if (found) {
+                  if (found.batchName) yearLabel = found.batchName;
+                  else {
+                    const map: Record<number, string> = {
+                      1: "One",
+                      2: "Two",
+                      3: "Three",
+                      4: "Four",
+                      5: "Five",
+                      6: "Six",
+                    };
+                    const word =
+                      map[found.yearNumber] || String(found.yearNumber);
+                    yearLabel = `Year ${word}`;
+                  }
                 }
               }
-            }
 
-            data.push({
+              data.push({
                 id: d.id,
                 displayName: v.displayName || v.name || "",
                 email: v.email || "",
@@ -108,11 +110,17 @@ export function useUsers() {
                     const snap = await getDoc(doc(db, "years", yid));
                     if (!snap.exists()) return null;
                     const d = snap.data() as any;
-                    const yearNumber = d.yearNumber || d.order || (() => {
-                      const m = (d.name || "").match(/\d+/);
-                      return m ? parseInt(m[0]) : undefined;
-                    })();
-                    const label = d.batchName || (yearNumber ? `Year ${yearNumber}` : undefined) || undefined;
+                    const yearNumber =
+                      d.yearNumber ||
+                      d.order ||
+                      (() => {
+                        const m = (d.name || "").match(/\d+/);
+                        return m ? parseInt(m[0]) : undefined;
+                      })();
+                    const label =
+                      d.batchName ||
+                      (yearNumber ? `Year ${yearNumber}` : undefined) ||
+                      undefined;
                     return { id: yid, label };
                   } catch (e) {
                     return null;
@@ -186,7 +194,9 @@ export function useUsers() {
 
   const updateUser = async (id: string, payload: Partial<SharedUser>) => {
     if (isOfflineMode || id.startsWith("mock_") || id.startsWith("offline_")) {
-      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...payload } : u)));
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, ...payload } : u)),
+      );
       return;
     }
     try {
@@ -194,7 +204,9 @@ export function useUsers() {
     } catch (err) {
       console.error("Failed to update user:", err);
       // local fallback
-      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...payload } : u)));
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, ...payload } : u)),
+      );
     }
   };
 

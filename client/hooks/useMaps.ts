@@ -62,9 +62,11 @@ export function useMaps() {
     if (payload.type && !payload.mapType) payload.mapType = payload.type;
     if (payload.mapType && !payload.type) payload.type = payload.mapType;
     // Trim whitespace from string fields
-    ["name", "location", "description", "video_url", "type", "mapType"].forEach((k) => {
-      if (typeof payload[k] === "string") payload[k] = payload[k].trim();
-    });
+    ["name", "location", "description", "video_url", "type", "mapType"].forEach(
+      (k) => {
+        if (typeof payload[k] === "string") payload[k] = payload[k].trim();
+      },
+    );
 
     await addDoc(collection(db, "maps"), payload);
   };
@@ -73,9 +75,11 @@ export function useMaps() {
     const payload: any = { ...item };
     if (payload.type && !payload.mapType) payload.mapType = payload.type;
     if (payload.mapType && !payload.type) payload.type = payload.mapType;
-    ["name", "location", "description", "video_url", "type", "mapType"].forEach((k) => {
-      if (typeof payload[k] === "string") payload[k] = payload[k].trim();
-    });
+    ["name", "location", "description", "video_url", "type", "mapType"].forEach(
+      (k) => {
+        if (typeof payload[k] === "string") payload[k] = payload[k].trim();
+      },
+    );
 
     await updateDoc(doc(db, "maps", id), payload);
   };

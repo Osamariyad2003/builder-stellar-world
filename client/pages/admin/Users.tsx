@@ -61,25 +61,46 @@ export default function Users() {
                       {u.photoURL ? (
                         <AvatarImage src={u.photoURL} alt={u.displayName} />
                       ) : (
-                        <AvatarFallback>{u.displayName?.[0] || "U"}</AvatarFallback>
+                        <AvatarFallback>
+                          {u.displayName?.[0] || "U"}
+                        </AvatarFallback>
                       )}
                     </Avatar>
                     <div className="min-w-0">
-                      <div className="font-medium truncate">{u.displayName}</div>
-                      <div className="text-xs text-muted-foreground truncate">{u.email}</div>
+                      <div className="font-medium truncate">
+                        {u.displayName}
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {u.email}
+                      </div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        Created: {u.createdAt ? new Date(u.createdAt).toLocaleString() : "-"}
-                        <span className="ml-3">Year: {u.yearLabel || getYearFromId(u.id, u.createdAt)}</span>
+                        Created:{" "}
+                        {u.createdAt
+                          ? new Date(u.createdAt).toLocaleString()
+                          : "-"}
+                        <span className="ml-3">
+                          Year:{" "}
+                          {u.yearLabel || getYearFromId(u.id, u.createdAt)}
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Badge>{u.role || "user"}</Badge>
-                    <Button size="sm" variant="outline" onClick={() => toggleAdmin(u)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => toggleAdmin(u)}
+                    >
                       {u.role === "admin" ? "Demote" : "Make Admin"}
                     </Button>
-                    <Button size="sm" variant="ghost" className="text-destructive" onClick={() => deleteUser(u.id)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive"
+                      onClick={() => deleteUser(u.id)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

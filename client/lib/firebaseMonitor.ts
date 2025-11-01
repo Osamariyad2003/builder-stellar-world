@@ -89,7 +89,10 @@ if (!(window.fetch as any).__firebasePatched) {
           // count it towards Firebase failure thresholds (these are noisy and out of our control).
           const stack = String((error && (error.stack || "")) || "");
           const message = String(error?.message || error || "").toLowerCase();
-          const isExtensionError = stack.includes("chrome-extension://") || stack.includes("extension://") || message.includes("extension");
+          const isExtensionError =
+            stack.includes("chrome-extension://") ||
+            stack.includes("extension://") ||
+            message.includes("extension");
 
           if (!isExtensionError && navigator.onLine) reportFirebaseError(error);
           // Re-throw so callers get the original failure
@@ -102,8 +105,13 @@ if (!(window.fetch as any).__firebasePatched) {
         (error as any)?.message || String(error),
       );
       const stack = String((error && (error.stack || "")) || "");
-      const message = String((error as any)?.message || error || "").toLowerCase();
-      const isExtensionError = stack.includes("chrome-extension://") || stack.includes("extension://") || message.includes("extension");
+      const message = String(
+        (error as any)?.message || error || "",
+      ).toLowerCase();
+      const isExtensionError =
+        stack.includes("chrome-extension://") ||
+        stack.includes("extension://") ||
+        message.includes("extension");
       if (!isExtensionError && navigator.onLine) reportFirebaseError(error);
       return Promise.reject(error);
     }
@@ -143,8 +151,11 @@ window.addEventListener("unhandledrejection", (event) => {
 
   // If the rejection originates from an extension or analytics script, swallow it
   if (
-    (msg.includes("Failed to fetch") || msg.toLowerCase().includes("extension")) &&
-    (stack.includes("chrome-extension://") || stack.includes("extension://") || stack.includes("fullstory.com"))
+    (msg.includes("Failed to fetch") ||
+      msg.toLowerCase().includes("extension")) &&
+    (stack.includes("chrome-extension://") ||
+      stack.includes("extension://") ||
+      stack.includes("fullstory.com"))
   ) {
     event.preventDefault();
     return;
@@ -164,8 +175,16 @@ const originalConsoleLog = console.log;
 
 console.error = (...args) => {
   // Build a joined message and also inspect any Error objects for stacks
-  const errorMessage = args.map((a) => (a && typeof a === "object" ? String(a) : a)).join(" ");
-  const hasErrorStack = args.some((a: any) => a && typeof a === "object" && a.stack && (a.stack as string).includes("chrome-extension://"));
+  const errorMessage = args
+    .map((a) => (a && typeof a === "object" ? String(a) : a))
+    .join(" ");
+  const hasErrorStack = args.some(
+    (a: any) =>
+      a &&
+      typeof a === "object" &&
+      a.stack &&
+      (a.stack as string).includes("chrome-extension://"),
+  );
 
   const suppressPatterns = [
     "Firebase offline mode - request blocked",
@@ -182,7 +201,12 @@ console.error = (...args) => {
   ];
 
   // Suppress if patterns match or if an extension stack is present
-  if (suppressPatterns.some((pattern) => errorMessage.includes(pattern)) || hasErrorStack || errorMessage.includes("chrome-extension://") || errorMessage.includes("extension://")) {
+  if (
+    suppressPatterns.some((pattern) => errorMessage.includes(pattern)) ||
+    hasErrorStack ||
+    errorMessage.includes("chrome-extension://") ||
+    errorMessage.includes("extension://")
+  ) {
     return; // Suppress noisy errors from extensions or Firebase offline
   }
 
