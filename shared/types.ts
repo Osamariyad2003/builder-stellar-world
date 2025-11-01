@@ -150,3 +150,12 @@ export interface Order {
   createdAt: Date;
   updatedAt?: Date;
 }
+
+export interface User {
+  id?: string;
+  displayName?: string;
+  email?: string;
+  role?: string; // e.g., 'admin', 'staff', 'student'
+  photoURL?: string;
+  createdAt?: Date;
+}
