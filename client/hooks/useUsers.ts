@@ -62,7 +62,18 @@ export function useUsers() {
               const found = years.find((y) => y.id === yearId);
               if (found) {
                 if (found.batchName) yearLabel = found.batchName;
-                else yearLabel = `Year ${found.yearNumber}`;
+                else {
+                  const map: Record<number, string> = {
+                    1: "One",
+                    2: "Two",
+                    3: "Three",
+                    4: "Four",
+                    5: "Five",
+                    6: "Six",
+                  };
+                  const word = map[found.yearNumber] || String(found.yearNumber);
+                  yearLabel = `Year ${word}`;
+                }
               }
             }
 
