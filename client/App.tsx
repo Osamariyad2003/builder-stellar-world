@@ -17,6 +17,7 @@ import Years from "./pages/admin/Years";
 import YearPage from "./pages/admin/YearPage";
 import Resources from "./pages/admin/Resources";
 import Professors from "./pages/admin/Professors";
+import Users from "./pages/admin/Users";
 import SubjectPage from "./pages/admin/SubjectPage";
 import Store from "./pages/admin/Store";
 import Orders from "./pages/admin/Orders";
