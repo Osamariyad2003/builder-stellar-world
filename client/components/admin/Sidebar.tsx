@@ -22,6 +22,7 @@ const navItems = [
   { icon: Home, label: "Dashboard", path: "/admin" },
   { icon: Newspaper, label: "News", path: "/admin/news" },
   { icon: BookOpen, label: "Years", path: "/admin/years" },
+  { icon: Users, label: "Users", path: "/admin/users" },
   { icon: Users, label: "Professors", path: "/admin/professors" },
   { icon: Store, label: "Store", path: "/admin/store" },
   { icon: FileText, label: "Orders", path: "/admin/orders" },
