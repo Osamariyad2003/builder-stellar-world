@@ -50,7 +50,10 @@ export default function Users() {
                     <div className="min-w-0">
                       <div className="font-medium truncate">{u.displayName}</div>
                       <div className="text-xs text-muted-foreground truncate">{u.email}</div>
-                      <div className="text-xs text-muted-foreground mt-1">Created: {u.createdAt ? new Date(u.createdAt).toLocaleString() : "-"}</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Created: {u.createdAt ? new Date(u.createdAt).toLocaleString() : "-"}
+                        <span className="ml-3">Year: {u.createdAt ? new Date(u.createdAt).getFullYear() : "-"}</span>
+                      </div>
                     </div>
                   </div>
 
