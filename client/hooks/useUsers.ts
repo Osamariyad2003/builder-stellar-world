@@ -57,10 +57,18 @@ export function useUsers() {
             snap.forEach((d) => {
               const v = d.data() as any;
               // Resolve year label from yearId if available
-              const yearId =
-                v.yearId || v.year || v.year_id || v.yearId || null;
+              const rawYearId = v.yearId || v.year || v.year_id || v.yearId || null;
+              let yearId: string | null = rawYearId as any;
               let yearLabel = "-";
-              if (yearId) {
+
+              // Support inline label like "<docId>:Year Two"
+              if (typeof rawYearId === "string" && rawYearId.includes(":")) {
+                const [idPart, labelPart] = rawYearId.split(":", 2);
+                yearId = idPart || null;
+                if (labelPart && labelPart.trim()) yearLabel = labelPart.trim();
+              }
+
+              if (yearId && yearLabel === "-") {
                 const found = years.find((y) => y.id === yearId);
                 if (found) {
                   if (found.batchName) yearLabel = found.batchName;
@@ -73,8 +81,7 @@ export function useUsers() {
                       5: "Five",
                       6: "Six",
                     };
-                    const word =
-                      map[found.yearNumber] || String(found.yearNumber);
+                    const word = map[found.yearNumber] || String(found.yearNumber);
                     yearLabel = `Year ${word}`;
                   }
                 }
