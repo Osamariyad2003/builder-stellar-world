@@ -131,9 +131,43 @@ export function useYears() {
       try {
         console.log("🔄 Attempting Firebase connection...");
 
-        // Try to fetch years without aggressive aborts
-        const yearsSnapshot = await getDocs(collection(db, "years"));
+        // Try to fetch batches and their nested years
+        const batchesSnapshot = await getDocs(collection(db, "batches"));
         let yearsData: YearData[] = [];
+
+        // For each batch, fetch its years subcollection
+        for (const batchDoc of batchesSnapshot.docs) {
+          const batchData = batchDoc.data() as any;
+          const batchId = batchDoc.id;
+          const batchName = batchData.batch_name || batchData.batchName || "";
+          try {
+            const yearsSnap = await getDocs(collection(batchDoc.ref, "years"));
+            yearsSnap.forEach((ydoc) => {
+              const data = ydoc.data() as any;
+              let yearNumber = data.order || 1;
+              if (data.name) {
+                const match = String(data.name).match(/\d+/);
+                if (match) yearNumber = parseInt(match[0]);
+              }
+
+              yearsData.push({
+                id: ydoc.id,
+                yearNumber: yearNumber,
+                type: yearNumber <= 3 ? "basic" : "clinical",
+                batchName: batchName,
+                imageUrl: data.imageUrl || "",
+                academicSupervisor: data.acadmic_supervisor || data.academic_supervisor || "",
+                actor: data.actor || "",
+                groupUrl: data.group_url || data.groupUrl || "",
+                subjects: [],
+                // include batchId for possible updates
+                batchId,
+              } as YearData);
+            });
+          } catch (e) {
+            console.warn("Failed to fetch years for batch", batchId, e);
+          }
+        }
 
         if (!yearsSnapshot.empty) {
           yearsSnapshot.forEach((doc) => {
@@ -268,23 +302,30 @@ export function useYears() {
         // Ensure every year document has an imageUrl field (empty string if missing)
         try {
           if (navigator.onLine) {
-            for (const docSnap of yearsSnapshot.docs) {
-              const d = docSnap.data();
-              const ref = doc(db, "years", docSnap.id);
-              const updates: any = {};
-              if (d.imageUrl === undefined) {
-                updates.imageUrl = "";
-              }
-              if (d.batch_name === undefined && d.batchName === undefined) {
-                updates.batch_name = "";
-              }
-              if (Object.keys(updates).length > 0) {
-                try {
-                  await updateDoc(ref, updates);
-                  console.log(`🔄 Set missing fields for year ${docSnap.id}:`, updates);
-                } catch (e) {
-                  console.warn(`Failed to set defaults for ${docSnap.id}:`, e);
+            for (const batchDoc of batchesSnapshot.docs) {
+              try {
+                const yearsSnap = await getDocs(collection(batchDoc.ref, "years"));
+                for (const docSnap of yearsSnap.docs) {
+                  const d = docSnap.data();
+                  const ref = doc(batchDoc.ref, "years", docSnap.id);
+                  const updates: any = {};
+                  if (d.imageUrl === undefined) {
+                    updates.imageUrl = "";
+                  }
+                  if (d.batch_name === undefined && d.batchName === undefined) {
+                    updates.batch_name = batchDoc.data()?.batch_name || batchDoc.data()?.batchName || "";
+                  }
+                  if (Object.keys(updates).length > 0) {
+                    try {
+                      await updateDoc(ref, updates);
+                      console.log(`🔄 Set missing fields for year ${docSnap.id}:`, updates);
+                    } catch (e) {
+                      console.warn(`Failed to set defaults for ${docSnap.id}:`, e);
+                    }
+                  }
                 }
+              } catch (e) {
+                console.warn("Could not ensure fields for years under batch", batchDoc.id, e);
               }
             }
           }
@@ -320,9 +361,18 @@ export function useYears() {
     }
 
     try {
-      const yearRef = doc(db, "years", yearId);
-      await updateDoc(yearRef, { ...patch, updatedAt: new Date() });
-      setRetryCount((prev) => prev + 1);
+      // Find the year document across batches using a collectionGroup query
+      const cg = collectionGroup(db, "years");
+      const snaps = await getDocs(cg);
+      const found = snaps.docs.find((d) => d.id === yearId);
+      if (found) {
+        await updateDoc(found.ref, { ...patch, updatedAt: new Date() });
+        setRetryCount((prev) => prev + 1);
+        return;
+      }
+
+      // If not found, fallback to local update
+      setYears((prev) => prev.map((y) => (y.id === yearId ? { ...y, ...patch } : y)));
     } catch (error) {
       console.error("Error updating year:", error);
       // Fall back to offline update
