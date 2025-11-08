@@ -141,10 +141,23 @@ export function useYears() {
         let yearsData: YearData[] = [];
 
         // For each batch, fetch its years subcollection
+        const batchesData: any[] = [];
         for (const batchDoc of batchesSnapshot.docs) {
           const batchData = batchDoc.data() as any;
           const batchId = batchDoc.id;
           const batchName = batchData.batch_name || batchData.batchName || "";
+
+          // collect batch-level metadata
+          batchesData.push({
+            id: batchId,
+            batchName,
+            imageUrl: batchData.image_url || batchData.imageUrl || "",
+            aca_supervisor: batchData.aca_supervisor || batchData.acadmic_supervisor || batchData.academic_supervisor || "",
+            cr: batchData.cr || "",
+            actor: batchData.actor || "",
+            group_link: batchData.group_link || batchData.groupUrl || batchData.group_url || "",
+          });
+
           try {
             const yearsSnap = await getDocs(collection(batchDoc.ref, "years"));
             yearsSnap.forEach((ydoc) => {
@@ -175,6 +188,8 @@ export function useYears() {
             console.warn("Failed to fetch years for batch", batchId, e);
           }
         }
+        // set batches state so UI can render batch-level controls
+        setBatches(batchesData);
 
         if (typeof yearsSnapshot !== "undefined" && yearsSnapshot && !yearsSnapshot.empty) {
           yearsSnapshot.forEach((doc) => {
