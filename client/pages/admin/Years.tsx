@@ -971,7 +971,17 @@ export default function Years() {
                                 Batch Name
                               </Button>
 
-                              <Button variant="ghost" size="sm" onClick={()=>{ /* Add year action - open creation modal or navigate */ }}>
+                              <Button variant="ghost" size="sm" onClick={async ()=>{
+                                try{
+                                  const input = window.prompt('Enter year number (e.g. 1,2,3,4...):');
+                                  if(!input) return;
+                                  const yearNum = parseInt(input, 10);
+                                  if(isNaN(yearNum)) { alert('Invalid year number'); return; }
+                                  const name = window.prompt('Optional: Batch or Year name:', '');
+                                  await createYear?.(g.batchId || null, { yearNumber: yearNum, name });
+                                  alert('Year created');
+                                }catch(e){ console.error(e); alert('Failed to create year'); }
+                              }}>
                                 <Plus className="h-4 w-4" /> Add Year
                               </Button>
                             </div>
@@ -1087,7 +1097,17 @@ export default function Years() {
                                 Batch Name
                               </Button>
 
-                              <Button variant="ghost" size="sm" onClick={()=>{ /* Add year action - open creation modal or navigate */ }}>
+                              <Button variant="ghost" size="sm" onClick={async ()=>{
+                                try{
+                                  const input = window.prompt('Enter year number (e.g. 1,2,3,4...):');
+                                  if(!input) return;
+                                  const yearNum = parseInt(input, 10);
+                                  if(isNaN(yearNum)) { alert('Invalid year number'); return; }
+                                  const name = window.prompt('Optional: Batch or Year name:', '');
+                                  await createYear?.(g.batchId || null, { yearNumber: yearNum, name });
+                                  alert('Year created');
+                                }catch(e){ console.error(e); alert('Failed to create year'); }
+                              }}>
                                 <Plus className="h-4 w-4" /> Add Year
                               </Button>
                             </div>
