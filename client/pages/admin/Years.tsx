@@ -346,14 +346,18 @@ export default function Years() {
                         {yearData.batchName}
                       </Link>
                       <div className="text-sm text-muted-foreground mt-1">
-                        <span className="text-sm text-muted">
-                          Year {yearData.yearNumber}
-                        </span>
+                        <span className="text-sm text-muted">Year {yearData.yearNumber}</span>
+                        {yearData.name && (<span className="ml-2">• {yearData.name}</span>)}
                         {yearData.academicSupervisor && (
-                          <span className="ml-3">
-                            • {yearData.academicSupervisor}
-                          </span>
+                          <div className="mt-1 text-sm text-muted-foreground">Academic Supervisor: {yearData.academicSupervisor}</div>
                         )}
+                        {yearData.cr && (
+                          <div className="text-sm text-muted-foreground">CR: {yearData.cr}</div>
+                        )}
+                        {yearData.actor && (
+                          <div className="text-sm text-muted-foreground">Actor: {yearData.actor}</div>
+                        )}
+                        <div className="text-xs text-muted-foreground mt-1">ID: {yearData.id}{yearData.batchId?` • Batch ID: ${yearData.batchId}`:""}</div>
                       </div>
                     </>
                   ) : (
@@ -365,12 +369,17 @@ export default function Years() {
                         Year {yearData.yearNumber}
                       </Link>
                       <div className="text-sm text-muted-foreground mt-1">
-                        <span className="italic">No batch name</span>
+                        {yearData.name ? (<span className="mr-2">{yearData.name}</span>) : (<span className="italic">No batch name</span>)}
                         {yearData.academicSupervisor && (
-                          <span className="ml-3">
-                            • {yearData.academicSupervisor}
-                          </span>
+                          <div className="mt-1 text-sm text-muted-foreground">Academic Supervisor: {yearData.academicSupervisor}</div>
                         )}
+                        {yearData.cr && (
+                          <div className="text-sm text-muted-foreground">CR: {yearData.cr}</div>
+                        )}
+                        {yearData.actor && (
+                          <div className="text-sm text-muted-foreground">Actor: {yearData.actor}</div>
+                        )}
+                        <div className="text-xs text-muted-foreground mt-1">ID: {yearData.id}{yearData.batchId?` • Batch ID: ${yearData.batchId}`:""}</div>
                       </div>
                     </>
                   )}
