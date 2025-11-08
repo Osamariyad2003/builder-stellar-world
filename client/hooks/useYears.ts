@@ -987,15 +987,13 @@ export function useYears() {
     const imageUrl = data.imageUrl || "";
     const cr = data.cr || "";
 
+    // Optimistic temporary batch to update UI immediately
+    const tempId = `batch_temp_${Date.now()}`;
+    const tempBatch = { id: tempId, batchName: name, imageUrl, cr };
+    setBatches((prev) => [tempBatch, ...prev]);
+
     if (isOfflineMode || !navigator.onLine) {
-      const newBatch = {
-        id: `batch_${Date.now()}`,
-        batchName: name,
-        imageUrl,
-        cr,
-      };
-      setBatches((prev) => [...prev, newBatch]);
-      console.log("✅ Added batch in offline mode:", newBatch);
+      console.log("✅ Added batch in offline mode:", tempBatch);
       return;
     }
 
@@ -1008,19 +1006,34 @@ export function useYears() {
           cr,
           createdAt: new Date(),
         });
+
         try {
           await updateDoc(docRef, { batchId: docRef.id });
         } catch (e) {
-          // ignore
+          // ignore non-critical
         }
 
-        // refresh data
+        // Replace temp batch with saved batch data
+        const realBatch = {
+          id: docRef.id,
+          batchName: name,
+          imageUrl,
+          cr,
+        };
+        setBatches((prev) => [realBatch, ...prev.filter((b) => b.id !== tempId)]);
+
+        // trigger a fresh fetch to load nested years if any
         setRetryCount((prev) => prev + 1);
       });
     } catch (error) {
       console.error("Error creating batch:", error);
+      // remove temp batch on failure
+      setBatches((prev) => prev.filter((b) => b.id !== tempId));
+      // fallback to offline mode
       setIsOfflineMode(true);
-      await createBatch(data);
+      // optionally add as offline batch
+      const offlineBatch = { id: `batch_${Date.now()}`, batchName: name, imageUrl, cr };
+      setBatches((prev) => [offlineBatch, ...prev]);
     }
   };
 
