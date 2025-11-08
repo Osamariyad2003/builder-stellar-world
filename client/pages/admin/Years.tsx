@@ -88,12 +88,14 @@ export default function Years() {
 
   const {
     years,
+    batches,
     loading,
     error,
     isOfflineMode,
     connectionStatus,
     retryConnection,
     updateYear,
+    updateBatch,
     createSubject,
     createLecture,
     deleteLecture,
