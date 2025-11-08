@@ -365,7 +365,7 @@ export function useYears() {
   }, [retryCount]);
 
   const retryConnection = () => {
-    console.log("🔄 Retrying Firebase connection...");
+    console.log("��� Retrying Firebase connection...");
     setLoading(true);
     setError(null);
     setIsOfflineMode(false);
@@ -995,6 +995,7 @@ export function useYears() {
     updateBatch,
     createSubject,
     createLecture,
+    createYear,
     deleteLecture,
     deleteSubject,
     addVideo,
