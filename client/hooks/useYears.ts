@@ -908,6 +908,7 @@ export function useYears() {
 
   return {
     years,
+    batches,
     subjects,
     loading,
     error,
@@ -915,6 +916,7 @@ export function useYears() {
     connectionStatus,
     retryConnection,
     updateYear,
+    updateBatch,
     createSubject,
     createLecture,
     deleteLecture,
