@@ -114,6 +114,7 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  types?: { name: string; price: number }[];
   images: string[];
   categoryId?: string;
   createdAt: Date;
