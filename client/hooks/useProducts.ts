@@ -69,6 +69,7 @@ export function useProducts() {
             name: data.name || "",
             description: data.description || "",
             price: data.price || 0,
+            types: data.types || (data.price ? [{ name: 'Default', price: data.price }] : []),
             images: data.images || [],
             categoryId: data.categoryId || "",
             createdAt: data.createdAt?.toDate() || new Date(),
