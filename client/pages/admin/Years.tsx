@@ -98,6 +98,7 @@ export default function Years() {
     updateBatch,
     createSubject,
     createLecture,
+    createYear,
     deleteLecture,
     deleteSubject,
     addVideo,
