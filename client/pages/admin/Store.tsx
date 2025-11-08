@@ -179,8 +179,10 @@ export default function Store() {
                   $
                   {products.length > 0
                     ? (
-                        products.reduce((sum, p) => sum + p.price, 0) /
-                        products.length
+                        products.reduce((sum, p) => {
+                          const displayPrice = (p.types && p.types.length>0) ? p.types[0].price : p.price || 0;
+                          return sum + displayPrice;
+                        }, 0) / products.length
                       ).toFixed(2)
                     : "0.00"}
                 </div>
