@@ -27,10 +27,11 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     name: product?.name || "",
     description: product?.description || "",
     price: product?.price || 0,
+    types: product?.types || (product?.price ? [{ name: 'Default', price: product.price }] : []),
     images: product?.images || [""],
     categoryId: product?.categoryId || "",
   });
