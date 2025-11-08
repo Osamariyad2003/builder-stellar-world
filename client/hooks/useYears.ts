@@ -156,12 +156,14 @@ export function useYears() {
               yearsData.push({
                 id: ydoc.id,
                 yearNumber: yearNumber,
+                name: data.name || data.title || "",
                 type: yearNumber <= 3 ? "basic" : "clinical",
                 batchName: batchName,
-                imageUrl: data.imageUrl || "",
-                academicSupervisor: data.acadmic_supervisor || data.academic_supervisor || "",
+                imageUrl: data.imageUrl || data.image_url || "",
+                academicSupervisor: data.aca_supervisor || data.acadmic_supervisor || data.academic_supervisor || "",
                 actor: data.actor || "",
-                groupUrl: data.group_url || data.groupUrl || "",
+                cr: data.cr || "",
+                groupUrl: data.group_link || data.group_url || data.groupUrl || "",
                 subjects: [],
                 // include batchId for possible updates
                 batchId,
