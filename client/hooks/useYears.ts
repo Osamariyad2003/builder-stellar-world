@@ -1038,6 +1038,7 @@ export function useYears() {
     createSubject,
     createLecture,
     createYear,
+    createBatch,
     deleteLecture,
     deleteSubject,
     addVideo,
