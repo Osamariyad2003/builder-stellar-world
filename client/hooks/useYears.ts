@@ -174,7 +174,7 @@ export function useYears() {
           }
         }
 
-        if (!yearsSnapshot.empty) {
+        if (typeof yearsSnapshot !== "undefined" && yearsSnapshot && !yearsSnapshot.empty) {
           yearsSnapshot.forEach((doc) => {
             const data = doc.data();
             let yearNumber = data.order || 1;
