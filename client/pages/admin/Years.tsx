@@ -360,7 +360,7 @@ export default function Years() {
                         {yearData.actor && (
                           <div className="text-sm text-muted-foreground">Actor: {yearData.actor}</div>
                         )}
-                        <div className="text-xs text-muted-foreground mt-1">ID: {yearData.id}{yearData.batchId?` • Batch ID: ${yearData.batchId}`:""}</div>
+
                       </div>
                     </>
                   ) : (
@@ -382,7 +382,7 @@ export default function Years() {
                         {yearData.actor && (
                           <div className="text-sm text-muted-foreground">Actor: {yearData.actor}</div>
                         )}
-                        <div className="text-xs text-muted-foreground mt-1">ID: {yearData.id}{yearData.batchId?` • Batch ID: ${yearData.batchId}`:""}</div>
+
                       </div>
                     </>
                   )}
@@ -936,7 +936,7 @@ export default function Years() {
                                 ) : (
                                   <>
                                     <CardTitle className="text-lg">{batchMeta.batchName || g.batchName || `Batch ${g.years.map((yy:any)=>yy.yearNumber).join(", ")}`}</CardTitle>
-                                    <CardDescription>{g.batchId ? `Batch ID: ${g.batchId}` : "No batch metadata"}</CardDescription>
+                                    <CardDescription>{g.batchId ? '' : "No batch metadata"}</CardDescription>
                                     <div className="text-sm text-muted-foreground mt-1">
                                       {batchMeta.cr && <div>CR: {batchMeta.cr}</div>}
                                       {batchMeta.aca_supervisor && <div>Academic Supervisor: {batchMeta.aca_supervisor}</div>}
@@ -1052,7 +1052,7 @@ export default function Years() {
                                 ) : (
                                   <>
                                     <CardTitle className="text-lg">{batchMeta.batchName || g.batchName || `Batch ${g.years.map((yy:any)=>yy.yearNumber).join(", ")}`}</CardTitle>
-                                    <CardDescription>{g.batchId ? `Batch ID: ${g.batchId}` : "No batch metadata"}</CardDescription>
+                                    <CardDescription>{g.batchId ? '' : "No batch metadata"}</CardDescription>
                                     <div className="text-sm text-muted-foreground mt-1">
                                       {batchMeta.cr && <div>CR: {batchMeta.cr}</div>}
                                       {batchMeta.aca_supervisor && <div>Academic Supervisor: {batchMeta.aca_supervisor}</div>}
