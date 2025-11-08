@@ -347,7 +347,7 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="subjectId">Related Subject</Label>
-                      <div className="text-xs text-muted-foreground">Selected year id: <span className="font-mono ml-2">{formData.yearId}</span></div>
+                      <div className="text-xs text-muted-foreground">Selected year: {((localYears && localYears.length > 0 ? localYears : years).find((y:any)=>y.id===formData.yearId)?.yearNumber) ? `Year ${((localYears && localYears.length > 0 ? localYears : years).find((y:any)=>y.id===formData.yearId)?.yearNumber)}` : ""}</div>
                     </div>
 
                     <div className="flex gap-2">
