@@ -982,6 +982,48 @@ export function useYears() {
     }
   };
 
+  const createBatch = async (data: { batchName?: string; imageUrl?: string; cr?: string } = {}) => {
+    const name = data.batchName || "New Batch";
+    const imageUrl = data.imageUrl || "";
+    const cr = data.cr || "";
+
+    if (isOfflineMode || !navigator.onLine) {
+      const newBatch = {
+        id: `batch_${Date.now()}`,
+        batchName: name,
+        imageUrl,
+        cr,
+      };
+      setBatches((prev) => [...prev, newBatch]);
+      console.log("✅ Added batch in offline mode:", newBatch);
+      return;
+    }
+
+    try {
+      await retryOperation(async () => {
+        const batchesRef = collection(db, "batches");
+        const docRef = await addDoc(batchesRef, {
+          batch_name: name,
+          image_url: imageUrl,
+          cr,
+          createdAt: new Date(),
+        });
+        try {
+          await updateDoc(docRef, { batchId: docRef.id });
+        } catch (e) {
+          // ignore
+        }
+
+        // refresh data
+        setRetryCount((prev) => prev + 1);
+      });
+    } catch (error) {
+      console.error("Error creating batch:", error);
+      setIsOfflineMode(true);
+      await createBatch(data);
+    }
+  };
+
   return {
     years,
     batches,
