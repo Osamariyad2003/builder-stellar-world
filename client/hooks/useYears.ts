@@ -83,6 +83,7 @@ export interface QuizData {
 
 export function useYears() {
   const [years, setYears] = useState<YearData[]>([]);
+  const [batches, setBatches] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
