@@ -126,21 +126,74 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price">Price *</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={formData.price}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      price: parseFloat(e.target.value) || 0,
-                    }))
-                  }
-                  required
-                />
+                <Label>Types & Prices</Label>
+                <div className="space-y-2">
+                  {formData.types && formData.types.length > 0 ? (
+                    formData.types.map((t: any, idx: number) => (
+                      <div key={idx} className="flex gap-2">
+                        <Input
+                          placeholder="Type name (e.g., Pen)"
+                          value={t.name}
+                          onChange={(e) =>
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              types: prev.types.map((tt: any, i: number) =>
+                                i === idx ? { ...tt, name: e.target.value } : tt,
+                              ),
+                            }))
+                          }
+                          required
+                        />
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={t.price}
+                          onChange={(e) =>
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              types: prev.types.map((tt: any, i: number) =>
+                                i === idx
+                                  ? { ...tt, price: parseFloat(e.target.value) || 0 }
+                                  : tt,
+                              ),
+                            }))
+                          }
+                          required
+                          className="w-32"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() =>
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              types: prev.types.filter((_: any, i: number) => i !== idx),
+                            }))
+                          }
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-muted-foreground">No types defined.</div>
+                  )}
+                  <div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        setFormData((prev: any) => ({
+                          ...prev,
+                          types: [...(prev.types || []), { name: "Default", price: 0 }],
+                        }))
+                      }
+                    >
+                      <Plus className="h-4 w-4 mr-2" /> Add Type
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
 
