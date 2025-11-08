@@ -21,6 +21,7 @@ export interface YearData {
   yearNumber: number;
   type: "basic" | "clinical";
   batchName?: string;
+  batchId?: string;
   imageUrl?: string;
   academicSupervisor?: string;
   actor?: string;
