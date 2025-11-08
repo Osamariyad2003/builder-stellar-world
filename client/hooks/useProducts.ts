@@ -175,8 +175,15 @@ export function useProducts() {
 
     try {
       const productRef = doc(db, "products", productId);
-      await updateDoc(productRef, productData);
-      console.log("✅ Updated product in Firebase:", productId);
+      // Normalize types if provided
+      const payload: any = { ...productData };
+      if ((productData as any).types) {
+        payload.types = (productData as any).types;
+        // Keep legacy price field in sync with first type
+        payload.price = (productData as any).types[0]?.price || (productData as any).price || 0;
+      }
+      await updateDoc(productRef, payload);
+      console.log("��� Updated product in Firebase:", productId);
 
       // Refresh data — use replace to force full navigation avoiding HMR race
       window.location.replace(window.location.href);
