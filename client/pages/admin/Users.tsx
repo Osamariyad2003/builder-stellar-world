@@ -50,63 +50,77 @@ export default function Users() {
           ) : users.length === 0 ? (
             <div className="text-muted-foreground">No users found.</div>
           ) : (
-            <div className="space-y-2">
-              {users.map((u) => (
-                <div
-                  key={u.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <Avatar className="h-12 w-12">
-                      {u.photoURL ? (
-                        <AvatarImage src={u.photoURL} alt={u.displayName} />
-                      ) : (
-                        <AvatarFallback>
-                          {u.displayName?.[0] || "U"}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-                    <div className="min-w-0">
-                      <div className="font-medium truncate">
-                        {u.displayName}
+            (() => {
+              // Group users by yearLabel if present, otherwise 'Unassigned'
+              const groups: Record<string, any[]> = {};
+              users.forEach((u: any) => {
+                const label = u.yearLabel && String(u.yearLabel).trim() !== "" ? String(u.yearLabel) : "Unassigned";
+                if (!groups[label]) groups[label] = [];
+                groups[label].push(u);
+              });
+
+              // Sort keys: Year N ascending, then others, then Unassigned last
+              const keys = Object.keys(groups).sort((a, b) => {
+                const ma = a.match(/Year\s*(\d+)/i);
+                const mb = b.match(/Year\s*(\d+)/i);
+                if (ma && mb) return parseInt(ma[1], 10) - parseInt(mb[1], 10);
+                if (ma) return -1;
+                if (mb) return 1;
+                if (a === "Unassigned") return 1;
+                if (b === "Unassigned") return -1;
+                return a.localeCompare(b);
+              });
+
+              return (
+                <div className="space-y-6">
+                  {keys.map((k) => (
+                    <div key={k}>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-semibold">{k} <span className="text-sm text-muted-foreground">({groups[k].length})</span></h3>
                       </div>
-                      <div className="text-xs text-muted-foreground truncate">
-                        {u.email}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Created:{" "}
-                        {u.createdAt
-                          ? new Date(u.createdAt).toLocaleString()
-                          : "-"}
-                        <span className="ml-3">
-                          Year:{" "}
-                          {u.yearLabel || getYearFromId(u.id, u.createdAt)}
-                        </span>
+
+                      <div className="space-y-2">
+                        {groups[k].map((u) => (
+                          <div
+                            key={u.id}
+                            className="flex items-center justify-between p-3 border rounded-lg"
+                          >
+                            <div className="flex items-center gap-4 min-w-0">
+                              <Avatar className="h-12 w-12">
+                                {u.photoURL ? (
+                                  <AvatarImage src={u.photoURL} alt={u.displayName} />
+                                ) : (
+                                  <AvatarFallback>
+                                    {u.displayName?.[0] || "U"}
+                                  </AvatarFallback>
+                                )}
+                              </Avatar>
+                              <div className="min-w-0">
+                                <div className="font-medium truncate">{u.displayName}</div>
+                                <div className="text-xs text-muted-foreground truncate">{u.email}</div>
+                                <div className="text-xs text-muted-foreground mt-1">Created: {u.createdAt ? new Date(u.createdAt).toLocaleString() : "-"}
+                                  <span className="ml-3">Year: {u.yearLabel || getYearFromId(u.id, u.createdAt)}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Badge>{u.role || "user"}</Badge>
+                              <Button size="sm" variant="outline" onClick={() => toggleAdmin(u)}>
+                                {u.role === "admin" ? "Demote" : "Make Admin"}
+                              </Button>
+                              <Button size="sm" variant="ghost" className="text-destructive" onClick={() => deleteUser(u.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Badge>{u.role || "user"}</Badge>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => toggleAdmin(u)}
-                    >
-                      {u.role === "admin" ? "Demote" : "Make Admin"}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-destructive"
-                      onClick={() => deleteUser(u.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              );
+            })()
           )}
         </CardContent>
       </Card>
