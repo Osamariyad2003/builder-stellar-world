@@ -43,7 +43,7 @@ export function createServer() {
       if (middleware.route) {
         const path = middleware.route.path;
         const methods = Object.keys(middleware.route.methods).join(",").toUpperCase();
-        routes.push(`${methods} ${path}`);
+        routes.push(`${methods} /api${path}`);
       } else if (middleware.name === "router" && middleware.handle && middleware.handle.stack) {
         middleware.handle.stack.forEach((handler: any) => {
           if (handler.route) {
