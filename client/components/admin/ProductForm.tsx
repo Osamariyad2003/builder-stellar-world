@@ -44,10 +44,22 @@ export function ProductForm({ product, onClose, onSave }: ProductFormProps) {
     setLoading(true);
 
     try {
-      const productData = {
+      const productData: any = {
         ...formData,
-        images: formData.images.filter((img) => img.trim() !== ""),
+        images: formData.images.filter((img: string) => img.trim() !== ""),
       };
+
+      // normalize types
+      if (productData.types && productData.types.length > 0) {
+        productData.types = productData.types.map((t: any) => ({
+          name: String(t.name || "").trim(),
+          price: parseFloat(t.price) || 0,
+        }));
+        // keep legacy price field in sync
+        productData.price = productData.types[0].price || 0;
+      } else {
+        productData.types = [];
+      }
 
       onSave(productData);
     } catch (error) {
