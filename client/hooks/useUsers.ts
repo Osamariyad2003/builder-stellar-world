@@ -114,9 +114,11 @@ export function useUsers() {
               Promise.all(
                 missingYearIds.map(async (yid) => {
                   try {
-                    const snap = await getDoc(doc(db, "years", yid));
-                    if (!snap.exists()) return null;
-                    const d = snap.data() as any;
+                    // Search across batches/years using collectionGroup
+                    const snaps = await getDocs(collectionGroup(db, "years"));
+                    const found = snaps.docs.find((sd) => sd.id === yid);
+                    if (!found) return null;
+                    const d = found.data() as any;
                     const yearNumber =
                       d.yearNumber ||
                       d.order ||
