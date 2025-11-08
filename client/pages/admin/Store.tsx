@@ -562,7 +562,7 @@ export default function Store() {
                           </div>
                         </div>
                         <div className="text-2xl font-bold text-green-600">
-                          ${product.price.toFixed(2)}
+                          ${((product.types && product.types.length>0) ? product.types[0].price : (product.price||0)).toFixed(2)}
                         </div>
                       </CardHeader>
                       <CardContent className="pt-0">
