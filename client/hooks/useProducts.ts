@@ -129,7 +129,8 @@ export function useProducts() {
       const newProduct = {
         name: productData.name,
         description: productData.description,
-        price: productData.price,
+        price: (productData as any).price || (productData as any).types?.[0]?.price || 0,
+        types: (productData as any).types || ((productData as any).price ? [{ name: 'Default', price: (productData as any).price }] : []),
         images: productData.images,
         categoryId: productData.categoryId || "",
         createdAt: new Date(),
