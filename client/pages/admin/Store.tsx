@@ -530,6 +530,7 @@ export default function Store() {
                                     window.prompt("Address (optional):", "") ||
                                     "";
 
+                                  const unitPrice = (product.types && product.types.length>0) ? product.types[0].price : (product.price||0);
                                   await createOrder({
                                     username: name,
                                     userName: name,
@@ -541,10 +542,10 @@ export default function Store() {
                                         productId: product.id!,
                                         name: product.name,
                                         quantity: qty,
-                                        price: product.price,
+                                        price: unitPrice,
                                       },
                                     ],
-                                    total: product.price * qty,
+                                    total: unitPrice * qty,
                                     status: "pending",
                                     createdAt: new Date(),
                                   });
