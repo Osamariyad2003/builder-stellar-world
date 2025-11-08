@@ -905,6 +905,83 @@ export function useYears() {
     }
   };
 
+  const createYear = async (batchId: string | null, data: { yearNumber?: number; name?: string; type?: 'basic'|'clinical' } = {}) => {
+    const yearNumber = data.yearNumber || 1;
+    const name = data.name || `Year ${yearNumber}`;
+    const type = data.type || (yearNumber <= 3 ? 'basic' : 'clinical');
+
+    if (isOfflineMode || !navigator.onLine) {
+      const newYear: YearData = {
+        id: `year_${Date.now()}`,
+        yearNumber,
+        name,
+        type: type as 'basic' | 'clinical',
+        batchName: '',
+        batchId: batchId || undefined,
+        imageUrl: '',
+        academicSupervisor: '',
+        actor: '',
+        cr: '',
+        groupUrl: '',
+        subjects: [],
+      };
+
+      setYears((prev) => [...prev, newYear]);
+
+      if (batchId) {
+        setBatches((prev) =>
+          prev.map((b) => (b.id === batchId ? { ...b } : b)),
+        );
+      }
+
+      console.log('✅ Added year in offline mode:', newYear);
+      return;
+    }
+
+    try {
+      await retryOperation(async () => {
+        if (batchId) {
+          const batchRef = doc(db, 'batches', batchId);
+          const yearsRef = collection(batchRef, 'years');
+          const docRef = await addDoc(yearsRef, {
+            name,
+            order: yearNumber,
+            imageUrl: '',
+            batch_name: name,
+            createdAt: new Date(),
+          });
+          try {
+            await updateDoc(docRef, { yearId: docRef.id });
+          } catch (e) {
+            // ignore
+          }
+        } else {
+          const yearsRef = collection(db, 'years');
+          const docRef = await addDoc(yearsRef, {
+            name,
+            order: yearNumber,
+            imageUrl: '',
+            batch_name: name,
+            createdAt: new Date(),
+          });
+          try {
+            await updateDoc(docRef, { yearId: docRef.id });
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        // Trigger a refresh to load the new year
+        setRetryCount((prev) => prev + 1);
+      });
+    } catch (error) {
+      console.error('Error creating year:', error);
+      // Fallback to offline creation
+      setIsOfflineMode(true);
+      await createYear(batchId, data);
+    }
+  };
+
   return {
     years,
     batches,
