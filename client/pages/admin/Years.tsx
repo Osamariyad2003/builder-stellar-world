@@ -1039,9 +1039,43 @@ export default function Years() {
                     </CardContent>
                   </Card>
                 ) : (
-                  years
-                    .filter((year) => year.type === "basic")
-                    .map((yearData) => renderYearCard(yearData, "basic"))
+                  // Group years by batch (batchId or batchName)
+                  (() => {
+                    const basicYears = years.filter((year) => year.type === "basic");
+                    const groups: Record<string, any> = {};
+                    basicYears.forEach((y) => {
+                      const key = y.batchId || y.batchName || `no-batch-${y.yearNumber}`;
+                      if (!groups[key]) groups[key] = { batchId: y.batchId || null, batchName: y.batchName || null, years: [] };
+                      groups[key].years.push(y);
+                    });
+                    return Object.values(groups).map((g: any) => (
+                      <Card key={g.batchId || g.batchName || g.years.map((yy:any)=>yy.id).join("_")}>
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <CardTitle className="text-lg">
+                                {g.batchName || `Batch ${g.years.map((yy:any)=>yy.yearNumber).join(", ")}`}
+                              </CardTitle>
+                              <CardDescription>
+                                {g.batchId ? `Batch ID: ${g.batchId}` : "No batch metadata"}
+                              </CardDescription>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button variant="ghost" size="sm" onClick={() => { /* noop for now */ }}>
+                                <Plus className="h-4 w-4" />
+                                Add Year
+                              </Button>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {g.years.sort((a:any,b:any)=>a.yearNumber-b.yearNumber).map((yearData:any)=>(
+                            <div key={yearData.id}>{renderYearCard(yearData, "basic")}</div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    ));
+                  })()
                 )}
               </div>
             </TabsContent>
@@ -1069,9 +1103,42 @@ export default function Years() {
                     </CardContent>
                   </Card>
                 ) : (
-                  years
-                    .filter((year) => year.type === "clinical")
-                    .map((yearData) => renderYearCard(yearData, "clinical"))
+                  (() => {
+                    const clinicalYears = years.filter((year) => year.type === "clinical");
+                    const groups: Record<string, any> = {};
+                    clinicalYears.forEach((y) => {
+                      const key = y.batchId || y.batchName || `no-batch-${y.yearNumber}`;
+                      if (!groups[key]) groups[key] = { batchId: y.batchId || null, batchName: y.batchName || null, years: [] };
+                      groups[key].years.push(y);
+                    });
+                    return Object.values(groups).map((g: any) => (
+                      <Card key={g.batchId || g.batchName || g.years.map((yy:any)=>yy.id).join("_")}>
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <CardTitle className="text-lg">
+                                {g.batchName || `Batch ${g.years.map((yy:any)=>yy.yearNumber).join(", ")}`}
+                              </CardTitle>
+                              <CardDescription>
+                                {g.batchId ? `Batch ID: ${g.batchId}` : "No batch metadata"}
+                              </CardDescription>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button variant="ghost" size="sm" onClick={() => { /* noop for now */ }}>
+                                <Plus className="h-4 w-4" />
+                                Add Year
+                              </Button>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {g.years.sort((a:any,b:any)=>a.yearNumber-b.yearNumber).map((yearData:any)=>(
+                            <div key={yearData.id}>{renderYearCard(yearData, "clinical")}</div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    ));
+                  })()
                 )}
               </div>
             </TabsContent>
