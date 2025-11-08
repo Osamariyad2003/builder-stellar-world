@@ -814,7 +814,7 @@ export default function Years() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="primary" onClick={async () => {
+          <Button onClick={async () => {
             try {
               const name = window.prompt('Batch name (e.g. Batch A):');
               if (!name) return;
