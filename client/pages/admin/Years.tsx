@@ -904,22 +904,74 @@ export default function Years() {
                       if (!groups[key]) groups[key] = { batchId: y.batchId || null, batchName: y.batchName || null, years: [] };
                       groups[key].years.push(y);
                     });
-                    return Object.values(groups).map((g: any) => (
+                    return Object.values(groups).map((g: any) => {
+                      const batchMeta = (batches || []).find((b:any) => b.id === g.batchId) || {};
+                      return (
                       <Card key={g.batchId || g.batchName || g.years.map((yy:any)=>yy.id).join("_")}>
                         <CardHeader>
                           <div className="flex items-center justify-between">
-                            <div>
-                              <CardTitle className="text-lg">
-                                {g.batchName || `Batch ${g.years.map((yy:any)=>yy.yearNumber).join(", ")}`}
-                              </CardTitle>
-                              <CardDescription>
-                                {g.batchId ? `Batch ID: ${g.batchId}` : "No batch metadata"}
-                              </CardDescription>
+                            <div className="flex items-center gap-4">
+                              {batchMeta.imageUrl ? (
+                                <img src={batchMeta.imageUrl} alt={batchMeta.batchName || "Batch"} className="w-24 h-16 object-cover rounded-md" onError={(e)=>{e.currentTarget.style.display = 'none'}} />
+                              ) : (
+                                <div className="w-24 h-16 rounded-md bg-muted flex items-center justify-center">
+                                  <BookOpen className="h-6 w-6 text-muted-foreground" />
+                                </div>
+                              )}
+
+                              <div>
+                                {editingBatchId === (g.batchId || g.batchName) ? (
+                                  <div className="flex items-center gap-2">
+                                    <Input value={editingBatchValue} onChange={(e)=>setEditingBatchValue(e.target.value)} placeholder="Batch name" className="w-48" />
+                                    <Input value={editingBatchCR || ''} onChange={(e)=>setEditingBatchCR(e.target.value)} placeholder="CR" className="w-32" />
+                                    <Button size="sm" onClick={async ()=>{
+                                      try{
+                                        const bid = g.batchId || g.batchName;
+                                        await updateBatch?.(bid, { batch_name: editingBatchValue, batchName: editingBatchValue, cr: editingBatchCR });
+                                        setEditingBatchId(null); setEditingBatchValue(''); setEditingBatchCR('');
+                                      }catch(e){console.error(e); alert('Failed to save batch');}
+                                    }}>Save</Button>
+                                    <Button variant="ghost" size="sm" onClick={()=>{setEditingBatchId(null); setEditingBatchValue(''); setEditingBatchCR('');}}>Cancel</Button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <CardTitle className="text-lg">{batchMeta.batchName || g.batchName || `Batch ${g.years.map((yy:any)=>yy.yearNumber).join(", ")}`}</CardTitle>
+                                    <CardDescription>{g.batchId ? `Batch ID: ${g.batchId}` : "No batch metadata"}</CardDescription>
+                                    <div className="text-sm text-muted-foreground mt-1">
+                                      {batchMeta.cr && <div>CR: {batchMeta.cr}</div>}
+                                      {batchMeta.aca_supervisor && <div>Academic Supervisor: {batchMeta.aca_supervisor}</div>}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
                             </div>
+
                             <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="sm" onClick={() => { /* noop for now */ }}>
-                                <Plus className="h-4 w-4" />
-                                Add Year
+                              <Button variant="ghost" size="sm" onClick={async ()=>{
+                                try{
+                                  const input = document.createElement('input'); input.type='file'; input.accept='image/*';
+                                  input.onchange = async ()=>{
+                                    const file = input.files?.[0]; if(!file) return;
+                                    try{
+                                      let imageUrl:string|null = null;
+                                      try{ imageUrl = await uploadImageToCloudinary(file); }catch(_){ imageUrl = await uploadToImageKitServer(file, file.name); }
+                                      if(!imageUrl) { alert('Upload failed'); return; }
+                                      await updateBatch?.(g.batchId, { image_url: imageUrl, imageUrl });
+                                    }catch(e){ console.error(e); alert('Failed to upload image'); }
+                                  };
+                                  input.click();
+                                }catch(e){ console.error(e); alert('Could not open file dialog'); }
+                              }}>
+                                <Upload className="h-4 w-4" />
+                                {batchMeta.imageUrl ? 'Change Image' : 'Add Image'}
+                              </Button>
+
+                              <Button variant="ghost" size="sm" onClick={()=>{ setEditingBatchId(g.batchId || g.batchName); setEditingBatchValue(batchMeta.batchName || g.batchName || ''); setEditingBatchCR(batchMeta.cr || ''); }}>
+                                Batch Name
+                              </Button>
+
+                              <Button variant="ghost" size="sm" onClick={()=>{ /* Add year action - open creation modal or navigate */ }}>
+                                <Plus className="h-4 w-4" /> Add Year
                               </Button>
                             </div>
                           </div>
@@ -930,7 +982,8 @@ export default function Years() {
                           ))}
                         </CardContent>
                       </Card>
-                    ));
+                      )
+                    });
                   })()
                 )}
               </div>
