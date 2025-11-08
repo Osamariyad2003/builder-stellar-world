@@ -110,7 +110,7 @@ export function useProducts() {
   }, []);
 
   const createProduct = async (
-    productData: Omit<Product, "id" | "productId" | "createdAt">,
+    productData: Omit<Product, "id" | "productId" | "createdAt"> & { types?: { name: string; price: number }[] },
   ) => {
     if (isOfflineMode) {
       const newProduct: Product = {
@@ -183,7 +183,7 @@ export function useProducts() {
         payload.price = (productData as any).types[0]?.price || (productData as any).price || 0;
       }
       await updateDoc(productRef, payload);
-      console.log("��� Updated product in Firebase:", productId);
+      console.log("✅ Updated product in Firebase:", productId);
 
       // Refresh data — use replace to force full navigation avoiding HMR race
       window.location.replace(window.location.href);
