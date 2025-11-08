@@ -17,24 +17,24 @@ export function createServer() {
   app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
   // Example API routes
-  app.get("/api/ping", (_req, res) => {
+  app.get("/ping", (_req, res) => {
     res.json({ message: "Hello from Express server v2!" });
   });
 
-  app.get("/api/demo", handleDemo);
+  app.get("/demo", handleDemo);
 
   // Cloudinary signing endpoint
-  app.post("/api/cloudinary/sign", handleSign);
+  app.post("/cloudinary/sign", handleSign);
 
   // Server-side upload endpoint (accepts data URL and uploads to Cloudinary)
-  app.post("/api/cloudinary/upload", handleUpload);
+  app.post("/cloudinary/upload", handleUpload);
   // Server-side ImageKit upload endpoint
-  app.post("/api/imagekit/upload", handleImageKitUpload);
+  app.post("/imagekit/upload", handleImageKitUpload);
   // ImageKit auth endpoint for client-side direct uploads
-  app.get("/api/imagekit/auth", handleImageKitAuth);
+  app.get("/imagekit/auth", handleImageKitAuth);
 
   // Provide Cloudinary config (runtime) to clients when VITE_* not available
-  app.get("/api/cloudinary/config", handleConfig);
+  app.get("/cloudinary/config", handleConfig);
 
   // Log registered API routes for debugging
   try {
