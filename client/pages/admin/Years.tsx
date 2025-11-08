@@ -69,6 +69,7 @@ export default function Years() {
   // Inline editor state for batch name per-year card
   const [editingBatchId, setEditingBatchId] = useState<string | null>(null);
   const [editingBatchValue, setEditingBatchValue] = useState<string>("");
+  const [editingBatchCR, setEditingBatchCR] = useState<string>("");
 
   const toggleSection = (
     lectureId: string,
