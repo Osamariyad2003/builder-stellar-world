@@ -406,6 +406,24 @@ export function useYears() {
     }
   };
 
+  // Update batch document by id
+  const updateBatch = async (batchId: string, patch: Partial<any>) => {
+    if (!batchId) return;
+    if (isOfflineMode || !navigator.onLine) {
+      setBatches((prev) => prev.map((b) => (b.id === batchId ? { ...b, ...patch } : b)));
+      return;
+    }
+    try {
+      const batchRef = doc(db, "batches", batchId);
+      await updateDoc(batchRef, { ...patch, updatedAt: new Date() });
+      // refresh retry to trigger re-fetch
+      setRetryCount((prev) => prev + 1);
+    } catch (err) {
+      console.error("Failed to update batch:", err);
+      setBatches((prev) => prev.map((b) => (b.id === batchId ? { ...b, ...patch } : b)));
+    }
+  };
+
   const retryOperation = async (
     operation: () => Promise<any>,
     maxRetries = 3,
