@@ -72,9 +72,10 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
     const fetchYearsDirect = async () => {
       try {
         if ((years && years.length > 0) || localYears) return;
-        const snap = await getDocs(collection(db, "years"));
+        // Search across batches/years
+        const snaps = await getDocs(collectionGroup(db, "years"));
         const fetched: any[] = [];
-        snap.forEach((d) => {
+        snaps.forEach((d) => {
           const data = d.data() as any;
           let yearNumber = data.order || 1;
           if (data.name) {
