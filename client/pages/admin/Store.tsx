@@ -295,6 +295,20 @@ export default function Store() {
                           <CardTitle className="text-lg line-clamp-1">
                             {product.name}
                           </CardTitle>
+                          <div className="mt-2">
+                            {(product.types && product.types.length>0) ? (
+                              <div className="flex gap-2 flex-wrap">
+                                {product.types.map((t:any, i:number)=>(
+                                  <Badge key={i} variant="secondary" className="flex items-center gap-2">
+                                    <span className="font-medium">{t.name}</span>
+                                    <span className="text-sm text-muted-foreground">${t.price.toFixed(2)}</span>
+                                  </Badge>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-xl font-bold">${(product.price||0).toFixed(2)}</div>
+                            )}
+                          </div>
                           <div className="flex gap-1">
                             <Button
                               variant="ghost"
