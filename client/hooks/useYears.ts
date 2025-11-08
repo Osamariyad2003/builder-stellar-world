@@ -308,7 +308,7 @@ export function useYears() {
                 const yearsSnap = await getDocs(collection(batchDoc.ref, "years"));
                 for (const docSnap of yearsSnap.docs) {
                   const d = docSnap.data();
-                  const ref = doc(batchDoc.ref, "years", docSnap.id);
+                  const ref = doc(collection(batchDoc.ref, "years"), docSnap.id);
                   const updates: any = {};
                   if (d.imageUrl === undefined) {
                     updates.imageUrl = "";
