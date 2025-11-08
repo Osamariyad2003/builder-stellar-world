@@ -49,7 +49,7 @@ export function createServer() {
           if (handler.route) {
             const path = handler.route.path;
             const methods = Object.keys(handler.route.methods).join(",").toUpperCase();
-            routes.push(`${methods} ${path}`);
+            routes.push(`${methods} /api${path}`);
           }
         });
       }
