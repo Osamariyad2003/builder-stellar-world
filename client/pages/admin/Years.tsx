@@ -812,6 +812,19 @@ export default function Years() {
             )}
           </div>
         </div>
+
+        <div className="flex items-center gap-2">
+          <Button variant="primary" onClick={async () => {
+            try {
+              const name = window.prompt('Batch name (e.g. Batch A):');
+              if (!name) return;
+              await createBatch?.({ batchName: name });
+              alert('Batch created');
+            } catch (e) { console.error(e); alert('Failed to create batch'); }
+          }}>
+            <FolderPlus className="h-4 w-4 mr-2" /> Add Batch
+          </Button>
+        </div>
       </div>
 
       {/* Loading State */}
