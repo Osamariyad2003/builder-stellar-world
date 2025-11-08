@@ -188,11 +188,13 @@ export function useYears() {
             yearsData.push({
               id: doc.id,
               yearNumber: yearNumber,
+              name: data.name || data.title || "",
               type: yearNumber <= 3 ? "basic" : "clinical",
               batchName: data.batch_name || data.batchName || "",
-              imageUrl: data.imageUrl || "",
-              academicSupervisor: data.acadmic_supervisor || data.academic_supervisor || "",
+              imageUrl: data.imageUrl || data.image_url || "",
+              academicSupervisor: data.aca_supervisor || data.acadmic_supervisor || data.academic_supervisor || "",
               actor: data.actor || "",
+              cr: data.cr || "",
               groupUrl: data.group_url || data.groupUrl || "",
               subjects: [],
             });
