@@ -19,12 +19,14 @@ import { db } from "@/lib/firebase";
 export interface YearData {
   id?: string;
   yearNumber: number;
+  name?: string;
   type: "basic" | "clinical";
   batchName?: string;
   batchId?: string;
   imageUrl?: string;
   academicSupervisor?: string;
   actor?: string;
+  cr?: string;
   groupUrl?: string;
   subjects: SubjectData[];
 }
