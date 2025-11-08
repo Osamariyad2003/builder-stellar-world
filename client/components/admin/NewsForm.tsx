@@ -24,7 +24,7 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import { useYears } from "@/hooks/useYears";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, collectionGroup } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 interface NewsFormProps {
