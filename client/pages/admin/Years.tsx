@@ -115,6 +115,7 @@ export default function Years() {
     createLecture,
     createYear,
     createBatch,
+    deleteBatch,
     deleteLecture,
     deleteSubject,
     addVideo,
