@@ -1037,6 +1037,74 @@ export function useYears() {
     }
   };
 
+  // Delete a batch and optionally its nested years
+  const deleteBatch = async (batchId: string, options: { deleteYears?: boolean } = { deleteYears: true }) => {
+    if (!batchId) return;
+
+    // Optimistic removal
+    const prevBatches = batches;
+    const prevYears = years;
+    setBatches((prev) => prev.filter((b) => b.id !== batchId));
+    setYears((prev) => prev.filter((y) => (y.batchId || y.batch_name) !== batchId));
+
+    if (isOfflineMode || !navigator.onLine) {
+      console.log("✅ Removed batch in offline mode:", batchId);
+      return;
+    }
+
+    try {
+      await retryOperation(async () => {
+        const batchRef = doc(db, "batches", batchId);
+        if (options.deleteYears) {
+          // Delete nested years documents if present
+          try {
+            const yearsCol = collection(batchRef, "years");
+            const snaps = await getDocs(yearsCol);
+            for (const d of snaps.docs) {
+              await deleteDoc(d.ref);
+            }
+          } catch (e) {
+            // If nested years are stored elsewhere, try collectionGroup fallback
+            const cg = collectionGroup(db, "years");
+            const snaps = await getDocs(cg);
+            for (const d of snaps.docs) {
+              const data = d.data() as any;
+              if ((data.batchId || data.batch_id) === batchId) {
+                await deleteDoc(d.ref);
+              }
+            }
+          }
+        } else {
+          // If not deleting years, unset their batch reference
+          const cg = collectionGroup(db, "years");
+          const snaps = await getDocs(cg);
+          for (const d of snaps.docs) {
+            const data = d.data() as any;
+            if ((data.batchId || data.batch_id) === batchId) {
+              try {
+                await updateDoc(d.ref, { batchId: null, batch_name: null });
+              } catch (e) {
+                // ignore
+              }
+            }
+          }
+        }
+
+        // Finally delete the batch doc
+        await deleteDoc(batchRef);
+
+        // refresh
+        setRetryCount((prev) => prev + 1);
+      });
+    } catch (error) {
+      console.error("Error deleting batch:", error);
+      // rollback optimistic updates
+      setBatches(prevBatches || []);
+      setYears(prevYears || []);
+      throw error;
+    }
+  };
+
   return {
     years,
     batches,
