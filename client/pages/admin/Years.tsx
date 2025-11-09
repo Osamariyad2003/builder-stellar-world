@@ -71,6 +71,10 @@ export default function Years() {
   const [editingBatchValue, setEditingBatchValue] = useState<string>("");
   const [editingBatchCR, setEditingBatchCR] = useState<string>("");
 
+  // Add Batch dialog state
+  const [batchName, setBatchName] = useState<string>("");
+  const [batchCR, setBatchCR] = useState<string>("");
+
   const toggleSection = (
     lectureId: string,
     section: "videos" | "files" | "quizzes",
