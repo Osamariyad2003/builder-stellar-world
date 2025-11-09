@@ -78,6 +78,7 @@ export default function Years() {
   const [editingBatchId, setEditingBatchId] = useState<string | null>(null);
   const [editingBatchValue, setEditingBatchValue] = useState<string>("");
   const [editingBatchCR, setEditingBatchCR] = useState<string>("");
+  const [editingBatchImage, setEditingBatchImage] = useState<string>("");
 
   // Add Batch dialog state
   const [batchName, setBatchName] = useState<string>("");
