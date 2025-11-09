@@ -28,7 +28,7 @@ import {
 } from "@/lib/cloudinary";
 import { uploadToImageKitServer } from "@/lib/imagekit";
 import { useNews } from "@/hooks/useNews";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   BookOpen,
   Plus,
