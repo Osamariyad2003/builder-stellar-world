@@ -957,6 +957,9 @@ export default function Years() {
                         <Button onClick={async ()=>{ try{ const yearNumStr = window.prompt('Enter year number for this batch:'); if(!yearNumStr) return; const yearNum = parseInt(yearNumStr,10); if(isNaN(yearNum)){ alert('Invalid'); return;} await createYear?.(batch?.id || null, { yearNumber: yearNum }); alert('Year created'); }catch(e){console.error(e); alert('Failed');}}}>
                           <Plus className="h-4 w-4 mr-2" /> Add Year
                         </Button>
+                        <Button variant="destructive" onClick={async ()=>{ try{ if(!confirm('Delete this batch and all its years?')) return; await deleteBatch?.(batch?.id); setSelectedBatchId(null); navigate('/admin/years'); alert('Batch deleted'); }catch(e){ console.error(e); alert('Failed to delete batch'); } }}>
+                          <Trash2 className="h-4 w-4" /> Delete
+                        </Button>
                       </div>
                     </div>
 
