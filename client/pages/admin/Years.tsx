@@ -992,6 +992,7 @@ export default function Years() {
                         <div className="flex items-center gap-2">
                           <Button size="sm" variant="outline" onClick={(e)=>{ e.stopPropagation(); navigate(`/admin/years?batch=${b.id}`); setSelectedBatchId(b.id); }}>View Years</Button>
                           <Button size="sm" variant="ghost" onClick={(e)=>{ e.stopPropagation(); setEditingBatchId(b.id); setEditingBatchValue(b.batchName || ''); setEditingBatchCR(b.cr || ''); }}>Edit</Button>
+                          <Button size="sm" variant="destructive" onClick={async (e)=>{ e.stopPropagation(); try{ if(!confirm('Delete this batch and all its years? This cannot be undone.')) return; await deleteBatch?.(b.id); alert('Batch deleted'); }catch(err){ console.error(err); alert('Failed to delete batch'); } }}>Delete</Button>
                         </div>
                       </div>
                     </CardContent>
