@@ -1238,6 +1238,7 @@ export default function Years() {
                               setEditingBatchId(b.id);
                               setEditingBatchValue(b.batchName || "");
                               setEditingBatchCR(b.cr || "");
+                              setEditingBatchImage(b.imageUrl || "");
                             }}
                           >
                             Edit
