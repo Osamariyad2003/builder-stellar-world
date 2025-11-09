@@ -1145,7 +1145,16 @@ export default function Years() {
                                 placeholder="CR"
                                 className="w-32"
                               />
+                              <Input
+                                value={editingBatchImage}
+                                onChange={(e)=>setEditingBatchImage(e.target.value)}
+                                placeholder="Image URL (or upload)"
+                                className="w-64"
+                              />
                               <div className="flex items-center gap-2">
+                                <Button size="sm" onClick={(e)=>{ e.stopPropagation(); try{ const input = document.createElement('input'); input.type='file'; input.accept='image/*'; input.onchange = async ()=>{ const file = input.files?.[0]; if(!file) return; try{ let imageUrl:string|null=null; try{ imageUrl = await uploadImageToCloudinary(file); } catch(cloudErr:any){ console.warn('Cloudinary upload failed, trying ImageKit', cloudErr?.message||cloudErr); imageUrl = await uploadToImageKitServer(file, file.name); } if(!imageUrl){ alert('Upload failed'); return; } setEditingBatchImage(imageUrl); }catch(err){ console.error(err); alert('Upload failed'); } }; input.click(); }catch(err){ console.error(err); alert('Could not open file dialog'); } }}>
+                                  Upload
+                                </Button>
                                 <Button
                                   size="sm"
                                   onClick={async (e) => {
@@ -1155,10 +1164,13 @@ export default function Years() {
                                         batch_name: editingBatchValue,
                                         batchName: editingBatchValue,
                                         cr: editingBatchCR,
+                                        image_url: editingBatchImage,
+                                        imageUrl: editingBatchImage,
                                       });
                                       setEditingBatchId(null);
                                       setEditingBatchValue("");
                                       setEditingBatchCR("");
+                                      setEditingBatchImage("");
                                       alert("Saved");
                                     } catch (err) {
                                       console.error(err);
@@ -1176,6 +1188,7 @@ export default function Years() {
                                     setEditingBatchId(null);
                                     setEditingBatchValue("");
                                     setEditingBatchCR("");
+                                    setEditingBatchImage("");
                                   }}
                                 >
                                   Cancel
