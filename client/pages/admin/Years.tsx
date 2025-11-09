@@ -313,13 +313,13 @@ export default function Years() {
               <img
                 src={yearData.imageUrl}
                 alt={`Year ${yearData.yearNumber}`}
-                className="w-24 h-16 object-cover rounded-md"
+                className="w-24 h-24 object-cover rounded-md"
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}
               />
             ) : (
-              <div className="w-24 h-16 rounded-md bg-muted flex items-center justify-center">
+              <div className="w-24 h-24 rounded-md bg-muted flex items-center justify-center">
                 {type === "basic" ? (
                   <GraduationCap className="h-6 w-6 text-blue-600" />
                 ) : (
@@ -1012,10 +1012,10 @@ export default function Years() {
                           <img
                             src={batch.imageUrl}
                             alt={batch.batchName}
-                            className="w-24 h-16 object-cover rounded-md"
+                            className="w-24 h-24 object-cover rounded-md"
                           />
                         ) : (
-                          <div className="w-24 h-16 rounded-md bg-muted flex items-center justify-center">
+                          <div className="w-24 h-24 rounded-md bg-muted flex items-center justify-center">
                             <BookOpen className="h-6 w-6 text-muted-foreground" />
                           </div>
                         )}
@@ -1159,7 +1159,7 @@ export default function Years() {
                 {(batches || []).map((b: any) => (
                   <Card
                     key={b.id}
-                    className="cursor-pointer"
+                    className="cursor-pointer h-44"
                     onClick={() => {
                       navigate(`/admin/years?batch=${b.id}`);
                       setSelectedBatchId(b.id);
@@ -1171,10 +1171,10 @@ export default function Years() {
                           <img
                             src={b.imageUrl}
                             alt={b.batchName}
-                            className="w-24 h-16 object-cover rounded-md"
+                            className="w-24 h-24 object-cover rounded-md"
                           />
                         ) : (
-                          <div className="w-24 h-16 rounded-md bg-muted" />
+                          <div className="w-24 h-24 rounded-md bg-muted" />
                         )}
                         <div>
                           {editingBatchId === b.id ? (
