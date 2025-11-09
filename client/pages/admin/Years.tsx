@@ -313,7 +313,7 @@ export default function Years() {
               <img
                 src={yearData.imageUrl}
                 alt={`Year ${yearData.yearNumber}`}
-                className="w-24 h-24 object-cover rounded-md"
+                className="w-24 h-24 object-cover rounded-md flex-shrink-0"
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}
@@ -1012,7 +1012,7 @@ export default function Years() {
                           <img
                             src={batch.imageUrl}
                             alt={batch.batchName}
-                            className="w-24 h-24 object-cover rounded-md"
+                            className="w-24 h-24 object-cover rounded-md flex-shrink-0"
                           />
                         ) : (
                           <div className="w-24 h-24 rounded-md bg-muted flex items-center justify-center">
@@ -1171,7 +1171,7 @@ export default function Years() {
                           <img
                             src={b.imageUrl}
                             alt={b.batchName}
-                            className="w-24 h-24 object-cover rounded-md"
+                            className="w-24 h-24 object-cover rounded-md flex-shrink-0"
                           />
                         ) : (
                           <div className="w-24 h-24 rounded-md bg-muted" />
