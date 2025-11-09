@@ -74,6 +74,17 @@ export default function Years() {
   const [batchName, setBatchName] = useState<string>("");
   const [batchCR, setBatchCR] = useState<string>("");
 
+  // Selected batch for viewing years (sync with ?batch= query param)
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  React.useEffect(() => {
+    const qp = new URLSearchParams(location.search);
+    const b = qp.get("batch");
+    setSelectedBatchId(b);
+  }, [location.search]);
+
   const toggleSection = (
     lectureId: string,
     section: "videos" | "files" | "quizzes",
