@@ -1039,6 +1039,55 @@ export default function Years() {
                           Back to Batches
                         </Button>
                         <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={async () => {
+                            try {
+                              const input = document.createElement("input");
+                              input.type = "file";
+                              input.accept = "image/*";
+                              input.onchange = async () => {
+                                const file = input.files?.[0];
+                                if (!file) return;
+                                try {
+                                  let imageUrl: string | null = null;
+                                  try {
+                                    imageUrl = await uploadImageToCloudinary(file);
+                                  } catch (cloudErr: any) {
+                                    console.warn(
+                                      "Cloudinary upload failed, trying ImageKit",
+                                      cloudErr?.message || cloudErr,
+                                    );
+                                    imageUrl = await uploadToImageKitServer(
+                                      file,
+                                      file.name,
+                                    );
+                                  }
+                                  if (!imageUrl) {
+                                    alert("Upload failed");
+                                    return;
+                                  }
+                                  await updateBatch?.(batch?.id, {
+                                    image_url: imageUrl,
+                                    imageUrl,
+                                  });
+                                  alert("Image updated");
+                                } catch (err) {
+                                  console.error(err);
+                                  alert("Failed to upload image");
+                                }
+                              };
+                              input.click();
+                            } catch (err) {
+                              console.error(err);
+                              alert("Could not open file dialog");
+                            }
+                          }}
+                        >
+                          Change Image
+                        </Button>
+
+                        <Button
                           onClick={async () => {
                             try {
                               const yearNumStr = window.prompt(
