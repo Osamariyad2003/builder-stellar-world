@@ -101,12 +101,48 @@ export function useYears() {
     setError(null); // Clear error in offline mode
 
     const offlineYears: YearData[] = [
-      { id: "offline_year1", yearNumber: 1, type: "basic", batchName: "", subjects: [] },
-      { id: "offline_year2", yearNumber: 2, type: "basic", batchName: "", subjects: [] },
-      { id: "offline_year3", yearNumber: 3, type: "basic", batchName: "", subjects: [] },
-      { id: "offline_year4", yearNumber: 4, type: "clinical", batchName: "", subjects: [] },
-      { id: "offline_year5", yearNumber: 5, type: "clinical", batchName: "", subjects: [] },
-      { id: "offline_year6", yearNumber: 6, type: "clinical", batchName: "", subjects: [] },
+      {
+        id: "offline_year1",
+        yearNumber: 1,
+        type: "basic",
+        batchName: "",
+        subjects: [],
+      },
+      {
+        id: "offline_year2",
+        yearNumber: 2,
+        type: "basic",
+        batchName: "",
+        subjects: [],
+      },
+      {
+        id: "offline_year3",
+        yearNumber: 3,
+        type: "basic",
+        batchName: "",
+        subjects: [],
+      },
+      {
+        id: "offline_year4",
+        yearNumber: 4,
+        type: "clinical",
+        batchName: "",
+        subjects: [],
+      },
+      {
+        id: "offline_year5",
+        yearNumber: 5,
+        type: "clinical",
+        batchName: "",
+        subjects: [],
+      },
+      {
+        id: "offline_year6",
+        yearNumber: 6,
+        type: "clinical",
+        batchName: "",
+        subjects: [],
+      },
     ];
 
     setYears(offlineYears);
@@ -151,10 +187,18 @@ export function useYears() {
             id: batchId,
             batchName,
             imageUrl: batchData.image_url || batchData.imageUrl || "",
-            aca_supervisor: batchData.aca_supervisor || batchData.acadmic_supervisor || batchData.academic_supervisor || "",
+            aca_supervisor:
+              batchData.aca_supervisor ||
+              batchData.acadmic_supervisor ||
+              batchData.academic_supervisor ||
+              "",
             cr: batchData.cr || "",
             actor: batchData.actor || "",
-            group_link: batchData.group_link || batchData.groupUrl || batchData.group_url || "",
+            group_link:
+              batchData.group_link ||
+              batchData.groupUrl ||
+              batchData.group_url ||
+              "",
           });
 
           try {
@@ -174,10 +218,15 @@ export function useYears() {
                 type: yearNumber <= 3 ? "basic" : "clinical",
                 batchName: batchName,
                 imageUrl: data.imageUrl || data.image_url || "",
-                academicSupervisor: data.aca_supervisor || data.acadmic_supervisor || data.academic_supervisor || "",
+                academicSupervisor:
+                  data.aca_supervisor ||
+                  data.acadmic_supervisor ||
+                  data.academic_supervisor ||
+                  "",
                 actor: data.actor || "",
                 cr: data.cr || "",
-                groupUrl: data.group_link || data.group_url || data.groupUrl || "",
+                groupUrl:
+                  data.group_link || data.group_url || data.groupUrl || "",
                 subjects: [],
                 // include batchId for possible updates
                 batchId,
@@ -190,7 +239,11 @@ export function useYears() {
         // set batches state so UI can render batch-level controls
         setBatches(batchesData);
 
-        if (typeof yearsSnapshot !== "undefined" && yearsSnapshot && !yearsSnapshot.empty) {
+        if (
+          typeof yearsSnapshot !== "undefined" &&
+          yearsSnapshot &&
+          !yearsSnapshot.empty
+        ) {
           yearsSnapshot.forEach((doc) => {
             const data = doc.data();
             let yearNumber = data.order || 1;
@@ -208,7 +261,11 @@ export function useYears() {
               type: yearNumber <= 3 ? "basic" : "clinical",
               batchName: data.batch_name || data.batchName || "",
               imageUrl: data.imageUrl || data.image_url || "",
-              academicSupervisor: data.aca_supervisor || data.acadmic_supervisor || data.academic_supervisor || "",
+              academicSupervisor:
+                data.aca_supervisor ||
+                data.acadmic_supervisor ||
+                data.academic_supervisor ||
+                "",
               actor: data.actor || "",
               cr: data.cr || "",
               groupUrl: data.group_url || data.groupUrl || "",
@@ -327,28 +384,46 @@ export function useYears() {
           if (navigator.onLine) {
             for (const batchDoc of batchesSnapshot.docs) {
               try {
-                const yearsSnap = await getDocs(collection(batchDoc.ref, "years"));
+                const yearsSnap = await getDocs(
+                  collection(batchDoc.ref, "years"),
+                );
                 for (const docSnap of yearsSnap.docs) {
                   const d = docSnap.data();
-                  const ref = doc(collection(batchDoc.ref, "years"), docSnap.id);
+                  const ref = doc(
+                    collection(batchDoc.ref, "years"),
+                    docSnap.id,
+                  );
                   const updates: any = {};
                   if (d.imageUrl === undefined) {
                     updates.imageUrl = "";
                   }
                   if (d.batch_name === undefined && d.batchName === undefined) {
-                    updates.batch_name = batchDoc.data()?.batch_name || batchDoc.data()?.batchName || "";
+                    updates.batch_name =
+                      batchDoc.data()?.batch_name ||
+                      batchDoc.data()?.batchName ||
+                      "";
                   }
                   if (Object.keys(updates).length > 0) {
                     try {
                       await updateDoc(ref, updates);
-                      console.log(`🔄 Set missing fields for year ${docSnap.id}:`, updates);
+                      console.log(
+                        `🔄 Set missing fields for year ${docSnap.id}:`,
+                        updates,
+                      );
                     } catch (e) {
-                      console.warn(`Failed to set defaults for ${docSnap.id}:`, e);
+                      console.warn(
+                        `Failed to set defaults for ${docSnap.id}:`,
+                        e,
+                      );
                     }
                   }
                 }
               } catch (e) {
-                console.warn("Could not ensure fields for years under batch", batchDoc.id, e);
+                console.warn(
+                  "Could not ensure fields for years under batch",
+                  batchDoc.id,
+                  e,
+                );
               }
             }
           }
@@ -395,7 +470,9 @@ export function useYears() {
       }
 
       // If not found, fallback to local update
-      setYears((prev) => prev.map((y) => (y.id === yearId ? { ...y, ...patch } : y)));
+      setYears((prev) =>
+        prev.map((y) => (y.id === yearId ? { ...y, ...patch } : y)),
+      );
     } catch (error) {
       console.error("Error updating year:", error);
       // Fall back to offline update
@@ -409,7 +486,9 @@ export function useYears() {
   const updateBatch = async (batchId: string, patch: Partial<any>) => {
     if (!batchId) return;
     if (isOfflineMode || !navigator.onLine) {
-      setBatches((prev) => prev.map((b) => (b.id === batchId ? { ...b, ...patch } : b)));
+      setBatches((prev) =>
+        prev.map((b) => (b.id === batchId ? { ...b, ...patch } : b)),
+      );
       return;
     }
     try {
@@ -419,7 +498,9 @@ export function useYears() {
       setRetryCount((prev) => prev + 1);
     } catch (err) {
       console.error("Failed to update batch:", err);
-      setBatches((prev) => prev.map((b) => (b.id === batchId ? { ...b, ...patch } : b)));
+      setBatches((prev) =>
+        prev.map((b) => (b.id === batchId ? { ...b, ...patch } : b)),
+      );
     }
   };
 
@@ -905,24 +986,31 @@ export function useYears() {
     }
   };
 
-  const createYear = async (batchId: string | null, data: { yearNumber?: number; name?: string; type?: 'basic'|'clinical' } = {}) => {
+  const createYear = async (
+    batchId: string | null,
+    data: {
+      yearNumber?: number;
+      name?: string;
+      type?: "basic" | "clinical";
+    } = {},
+  ) => {
     const yearNumber = data.yearNumber || 1;
     const name = data.name || `Year ${yearNumber}`;
-    const type = data.type || (yearNumber <= 3 ? 'basic' : 'clinical');
+    const type = data.type || (yearNumber <= 3 ? "basic" : "clinical");
 
     if (isOfflineMode || !navigator.onLine) {
       const newYear: YearData = {
         id: `year_${Date.now()}`,
         yearNumber,
         name,
-        type: type as 'basic' | 'clinical',
-        batchName: '',
+        type: type as "basic" | "clinical",
+        batchName: "",
         batchId: batchId || undefined,
-        imageUrl: '',
-        academicSupervisor: '',
-        actor: '',
-        cr: '',
-        groupUrl: '',
+        imageUrl: "",
+        academicSupervisor: "",
+        actor: "",
+        cr: "",
+        groupUrl: "",
         subjects: [],
       };
 
@@ -934,19 +1022,19 @@ export function useYears() {
         );
       }
 
-      console.log('✅ Added year in offline mode:', newYear);
+      console.log("✅ Added year in offline mode:", newYear);
       return;
     }
 
     try {
       await retryOperation(async () => {
         if (batchId) {
-          const batchRef = doc(db, 'batches', batchId);
-          const yearsRef = collection(batchRef, 'years');
+          const batchRef = doc(db, "batches", batchId);
+          const yearsRef = collection(batchRef, "years");
           const docRef = await addDoc(yearsRef, {
             name,
             order: yearNumber,
-            imageUrl: '',
+            imageUrl: "",
             batch_name: name,
             createdAt: new Date(),
           });
@@ -956,11 +1044,11 @@ export function useYears() {
             // ignore
           }
         } else {
-          const yearsRef = collection(db, 'years');
+          const yearsRef = collection(db, "years");
           const docRef = await addDoc(yearsRef, {
             name,
             order: yearNumber,
-            imageUrl: '',
+            imageUrl: "",
             batch_name: name,
             createdAt: new Date(),
           });
@@ -975,14 +1063,16 @@ export function useYears() {
         setRetryCount((prev) => prev + 1);
       });
     } catch (error) {
-      console.error('Error creating year:', error);
+      console.error("Error creating year:", error);
       // Fallback to offline creation
       setIsOfflineMode(true);
       await createYear(batchId, data);
     }
   };
 
-  const createBatch = async (data: { batchName?: string; imageUrl?: string; cr?: string } = {}) => {
+  const createBatch = async (
+    data: { batchName?: string; imageUrl?: string; cr?: string } = {},
+  ) => {
     const name = data.batchName || "New Batch";
     const imageUrl = data.imageUrl || "";
     const cr = data.cr || "";
@@ -1020,7 +1110,10 @@ export function useYears() {
           imageUrl,
           cr,
         };
-        setBatches((prev) => [realBatch, ...prev.filter((b) => b.id !== tempId)]);
+        setBatches((prev) => [
+          realBatch,
+          ...prev.filter((b) => b.id !== tempId),
+        ]);
 
         // trigger a fresh fetch to load nested years if any
         setRetryCount((prev) => prev + 1);
@@ -1032,20 +1125,30 @@ export function useYears() {
       // fallback to offline mode
       setIsOfflineMode(true);
       // optionally add as offline batch
-      const offlineBatch = { id: `batch_${Date.now()}`, batchName: name, imageUrl, cr };
+      const offlineBatch = {
+        id: `batch_${Date.now()}`,
+        batchName: name,
+        imageUrl,
+        cr,
+      };
       setBatches((prev) => [offlineBatch, ...prev]);
     }
   };
 
   // Delete a batch and optionally its nested years
-  const deleteBatch = async (batchId: string, options: { deleteYears?: boolean } = { deleteYears: true }) => {
+  const deleteBatch = async (
+    batchId: string,
+    options: { deleteYears?: boolean } = { deleteYears: true },
+  ) => {
     if (!batchId) return;
 
     // Optimistic removal
     const prevBatches = batches;
     const prevYears = years;
     setBatches((prev) => prev.filter((b) => b.id !== batchId));
-    setYears((prev) => prev.filter((y) => (y.batchId || y.batch_name) !== batchId));
+    setYears((prev) =>
+      prev.filter((y) => (y.batchId || y.batch_name) !== batchId),
+    );
 
     if (isOfflineMode || !navigator.onLine) {
       console.log("✅ Removed batch in offline mode:", batchId);

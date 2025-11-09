@@ -1,7 +1,16 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 import {
   Card,
   CardContent,
@@ -367,18 +376,27 @@ export default function Years() {
                         {yearData.batchName}
                       </Link>
                       <div className="text-sm text-muted-foreground mt-1">
-                        <span className="text-sm text-muted">Year {yearData.yearNumber}</span>
-                        {yearData.name && (<span className="ml-2">• {yearData.name}</span>)}
+                        <span className="text-sm text-muted">
+                          Year {yearData.yearNumber}
+                        </span>
+                        {yearData.name && (
+                          <span className="ml-2">• {yearData.name}</span>
+                        )}
                         {yearData.academicSupervisor && (
-                          <div className="mt-1 text-sm text-muted-foreground">Academic Supervisor: {yearData.academicSupervisor}</div>
+                          <div className="mt-1 text-sm text-muted-foreground">
+                            Academic Supervisor: {yearData.academicSupervisor}
+                          </div>
                         )}
                         {yearData.cr && (
-                          <div className="text-sm text-muted-foreground">CR: {yearData.cr}</div>
+                          <div className="text-sm text-muted-foreground">
+                            CR: {yearData.cr}
+                          </div>
                         )}
                         {yearData.actor && (
-                          <div className="text-sm text-muted-foreground">Actor: {yearData.actor}</div>
+                          <div className="text-sm text-muted-foreground">
+                            Actor: {yearData.actor}
+                          </div>
                         )}
-
                       </div>
                     </>
                   ) : (
@@ -390,17 +408,26 @@ export default function Years() {
                         Year {yearData.yearNumber}
                       </Link>
                       <div className="text-sm text-muted-foreground mt-1">
-                        {yearData.name ? (<span className="mr-2">{yearData.name}</span>) : (<span className="italic">No batch name</span>)}
+                        {yearData.name ? (
+                          <span className="mr-2">{yearData.name}</span>
+                        ) : (
+                          <span className="italic">No batch name</span>
+                        )}
                         {yearData.academicSupervisor && (
-                          <div className="mt-1 text-sm text-muted-foreground">Academic Supervisor: {yearData.academicSupervisor}</div>
+                          <div className="mt-1 text-sm text-muted-foreground">
+                            Academic Supervisor: {yearData.academicSupervisor}
+                          </div>
                         )}
                         {yearData.cr && (
-                          <div className="text-sm text-muted-foreground">CR: {yearData.cr}</div>
+                          <div className="text-sm text-muted-foreground">
+                            CR: {yearData.cr}
+                          </div>
                         )}
                         {yearData.actor && (
-                          <div className="text-sm text-muted-foreground">Actor: {yearData.actor}</div>
+                          <div className="text-sm text-muted-foreground">
+                            Actor: {yearData.actor}
+                          </div>
                         )}
-
                       </div>
                     </>
                   )}
@@ -839,36 +866,66 @@ export default function Years() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add Batch</DialogTitle>
-                <DialogDescription>Create a new batch for grouping years</DialogDescription>
+                <DialogDescription>
+                  Create a new batch for grouping years
+                </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-3 mt-2">
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Batch name</label>
-                  <Input value={batchName} onChange={(e)=>setBatchName(e.target.value)} placeholder="e.g., Batch A" />
+                  <label className="text-sm font-medium mb-1 block">
+                    Batch name
+                  </label>
+                  <Input
+                    value={batchName}
+                    onChange={(e) => setBatchName(e.target.value)}
+                    placeholder="e.g., Batch A"
+                  />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">CR (optional)</label>
-                  <Input value={batchCR} onChange={(e)=>setBatchCR(e.target.value)} placeholder="Class representative" />
+                  <label className="text-sm font-medium mb-1 block">
+                    CR (optional)
+                  </label>
+                  <Input
+                    value={batchCR}
+                    onChange={(e) => setBatchCR(e.target.value)}
+                    placeholder="Class representative"
+                  />
                 </div>
               </div>
 
               <DialogFooter className="mt-4">
-                <Button onClick={async ()=>{
-                  try{
-                    if(!batchName || !batchName.trim()) { alert('Please provide a batch name'); return; }
-                    await createBatch?.({ batchName: batchName.trim(), cr: batchCR?.trim() });
-                    setBatchName(''); setBatchCR('');
-                    // close dialog
-                    const closeBtn = document.querySelector('[data-dialog-close]') as HTMLElement | null;
-                    if(closeBtn) closeBtn.click();
-                    alert('Batch created');
-                  }catch(e){ console.error(e); alert('Failed to create batch'); }
-                }}>
+                <Button
+                  onClick={async () => {
+                    try {
+                      if (!batchName || !batchName.trim()) {
+                        alert("Please provide a batch name");
+                        return;
+                      }
+                      await createBatch?.({
+                        batchName: batchName.trim(),
+                        cr: batchCR?.trim(),
+                      });
+                      setBatchName("");
+                      setBatchCR("");
+                      // close dialog
+                      const closeBtn = document.querySelector(
+                        "[data-dialog-close]",
+                      ) as HTMLElement | null;
+                      if (closeBtn) closeBtn.click();
+                      alert("Batch created");
+                    } catch (e) {
+                      console.error(e);
+                      alert("Failed to create batch");
+                    }
+                  }}
+                >
                   Create
                 </Button>
                 <DialogClose asChild>
-                  <Button variant="ghost" className="ml-2" data-dialog-close>Cancel</Button>
+                  <Button variant="ghost" className="ml-2" data-dialog-close>
+                    Cancel
+                  </Button>
                 </DialogClose>
               </DialogFooter>
             </DialogContent>
@@ -926,39 +983,102 @@ export default function Years() {
 
           {/* Show batches list or the selected batch's years */}
           <div className="space-y-6">
-            {(!batches || batches.length === 0) ? (
+            {!batches || batches.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">No batches found</h3>
-                  <p className="text-muted-foreground mb-4">Create a batch to start adding academic years.</p>
+                  <h3 className="text-lg font-semibold mb-2">
+                    No batches found
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    Create a batch to start adding academic years.
+                  </p>
                 </CardContent>
               </Card>
             ) : selectedBatchId ? (
               (() => {
-                const batch = (batches || []).find((b:any) => b.id === selectedBatchId) || null;
-                const yearsForBatch = (years || []).filter((y:any) => (y.batchId || y.batch_name) === selectedBatchId);
+                const batch =
+                  (batches || []).find((b: any) => b.id === selectedBatchId) ||
+                  null;
+                const yearsForBatch = (years || []).filter(
+                  (y: any) => (y.batchId || y.batch_name) === selectedBatchId,
+                );
                 return (
                   <div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         {batch?.imageUrl ? (
-                          <img src={batch.imageUrl} alt={batch.batchName} className="w-24 h-16 object-cover rounded-md" />
+                          <img
+                            src={batch.imageUrl}
+                            alt={batch.batchName}
+                            className="w-24 h-16 object-cover rounded-md"
+                          />
                         ) : (
-                          <div className="w-24 h-16 rounded-md bg-muted flex items-center justify-center"><BookOpen className="h-6 w-6 text-muted-foreground" /></div>
+                          <div className="w-24 h-16 rounded-md bg-muted flex items-center justify-center">
+                            <BookOpen className="h-6 w-6 text-muted-foreground" />
+                          </div>
                         )}
                         <div>
-                          <h2 className="text-xl font-semibold">{batch?.batchName || 'Batch'}</h2>
-                          <div className="text-sm text-muted-foreground">{batch?.cr ? `CR: ${batch.cr}` : ''}</div>
+                          <h2 className="text-xl font-semibold">
+                            {batch?.batchName || "Batch"}
+                          </h2>
+                          <div className="text-sm text-muted-foreground">
+                            {batch?.cr ? `CR: ${batch.cr}` : ""}
+                          </div>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Button onClick={() => { setSelectedBatchId(null); navigate('/admin/years'); }}>Back to Batches</Button>
-                        <Button onClick={async ()=>{ try{ const yearNumStr = window.prompt('Enter year number for this batch:'); if(!yearNumStr) return; const yearNum = parseInt(yearNumStr,10); if(isNaN(yearNum)){ alert('Invalid'); return;} await createYear?.(batch?.id || null, { yearNumber: yearNum }); alert('Year created'); }catch(e){console.error(e); alert('Failed');}}}>
+                        <Button
+                          onClick={() => {
+                            setSelectedBatchId(null);
+                            navigate("/admin/years");
+                          }}
+                        >
+                          Back to Batches
+                        </Button>
+                        <Button
+                          onClick={async () => {
+                            try {
+                              const yearNumStr = window.prompt(
+                                "Enter year number for this batch:",
+                              );
+                              if (!yearNumStr) return;
+                              const yearNum = parseInt(yearNumStr, 10);
+                              if (isNaN(yearNum)) {
+                                alert("Invalid");
+                                return;
+                              }
+                              await createYear?.(batch?.id || null, {
+                                yearNumber: yearNum,
+                              });
+                              alert("Year created");
+                            } catch (e) {
+                              console.error(e);
+                              alert("Failed");
+                            }
+                          }}
+                        >
                           <Plus className="h-4 w-4 mr-2" /> Add Year
                         </Button>
-                        <Button variant="destructive" onClick={async ()=>{ try{ if(!confirm('Delete this batch and all its years?')) return; await deleteBatch?.(batch?.id); setSelectedBatchId(null); navigate('/admin/years'); alert('Batch deleted'); }catch(e){ console.error(e); alert('Failed to delete batch'); } }}>
+                        <Button
+                          variant="destructive"
+                          onClick={async () => {
+                            try {
+                              if (
+                                !confirm("Delete this batch and all its years?")
+                              )
+                                return;
+                              await deleteBatch?.(batch?.id);
+                              setSelectedBatchId(null);
+                              navigate("/admin/years");
+                              alert("Batch deleted");
+                            } catch (e) {
+                              console.error(e);
+                              alert("Failed to delete batch");
+                            }
+                          }}
+                        >
                           <Trash2 className="h-4 w-4" /> Delete
                         </Button>
                       </div>
@@ -966,11 +1086,17 @@ export default function Years() {
 
                     <div className="mt-4 space-y-4">
                       {yearsForBatch.length === 0 ? (
-                        <Card><CardContent className="p-6 text-center">No years in this batch yet.</CardContent></Card>
+                        <Card>
+                          <CardContent className="p-6 text-center">
+                            No years in this batch yet.
+                          </CardContent>
+                        </Card>
                       ) : (
-                        yearsForBatch.sort((a:any,b:any)=>a.yearNumber-b.yearNumber).map((yd:any)=> (
-                          <div key={yd.id}>{renderYearCard(yd, yd.type)}</div>
-                        ))
+                        yearsForBatch
+                          .sort((a: any, b: any) => a.yearNumber - b.yearNumber)
+                          .map((yd: any) => (
+                            <div key={yd.id}>{renderYearCard(yd, yd.type)}</div>
+                          ))
                       )}
                     </div>
                   </div>
@@ -979,25 +1105,90 @@ export default function Years() {
             ) : (
               // list batches
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {(batches || []).map((b:any)=> (
-                  <Card key={b.id} className="cursor-pointer" onClick={()=>{ navigate(`/admin/years?batch=${b.id}`); setSelectedBatchId(b.id); }}>
+                {(batches || []).map((b: any) => (
+                  <Card
+                    key={b.id}
+                    className="cursor-pointer"
+                    onClick={() => {
+                      navigate(`/admin/years?batch=${b.id}`);
+                      setSelectedBatchId(b.id);
+                    }}
+                  >
                     <CardHeader>
                       <div className="flex items-center gap-4">
-                        {b.imageUrl ? <img src={b.imageUrl} alt={b.batchName} className="w-24 h-16 object-cover rounded-md" /> : <div className="w-24 h-16 rounded-md bg-muted" />}
+                        {b.imageUrl ? (
+                          <img
+                            src={b.imageUrl}
+                            alt={b.batchName}
+                            className="w-24 h-16 object-cover rounded-md"
+                          />
+                        ) : (
+                          <div className="w-24 h-16 rounded-md bg-muted" />
+                        )}
                         <div>
                           {editingBatchId === b.id ? (
                             <div className="flex flex-col gap-2">
-                              <Input value={editingBatchValue} onChange={(e)=>setEditingBatchValue(e.target.value)} placeholder="Batch name" className="w-48" />
-                              <Input value={editingBatchCR || ''} onChange={(e)=>setEditingBatchCR(e.target.value)} placeholder="CR" className="w-32" />
+                              <Input
+                                value={editingBatchValue}
+                                onChange={(e) =>
+                                  setEditingBatchValue(e.target.value)
+                                }
+                                placeholder="Batch name"
+                                className="w-48"
+                              />
+                              <Input
+                                value={editingBatchCR || ""}
+                                onChange={(e) =>
+                                  setEditingBatchCR(e.target.value)
+                                }
+                                placeholder="CR"
+                                className="w-32"
+                              />
                               <div className="flex items-center gap-2">
-                                <Button size="sm" onClick={async (e)=>{ e.stopPropagation(); try{ await updateBatch?.(b.id, { batch_name: editingBatchValue, batchName: editingBatchValue, cr: editingBatchCR }); setEditingBatchId(null); setEditingBatchValue(''); setEditingBatchCR(''); alert('Saved'); }catch(err){ console.error(err); alert('Failed to save'); } }}>Save</Button>
-                                <Button size="sm" variant="ghost" onClick={(e)=>{ e.stopPropagation(); setEditingBatchId(null); setEditingBatchValue(''); setEditingBatchCR(''); }}>Cancel</Button>
+                                <Button
+                                  size="sm"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      await updateBatch?.(b.id, {
+                                        batch_name: editingBatchValue,
+                                        batchName: editingBatchValue,
+                                        cr: editingBatchCR,
+                                      });
+                                      setEditingBatchId(null);
+                                      setEditingBatchValue("");
+                                      setEditingBatchCR("");
+                                      alert("Saved");
+                                    } catch (err) {
+                                      console.error(err);
+                                      alert("Failed to save");
+                                    }
+                                  }}
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingBatchId(null);
+                                    setEditingBatchValue("");
+                                    setEditingBatchCR("");
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
                               </div>
                             </div>
                           ) : (
                             <>
-                              <CardTitle className="text-lg">{b.batchName || 'Batch'}</CardTitle>
-                              <CardDescription className="text-sm text-muted-foreground">{b.cr ? `CR: ${b.cr}` : ''}</CardDescription>
+                              <CardTitle className="text-lg">
+                                {b.batchName || "Batch"}
+                              </CardTitle>
+                              <CardDescription className="text-sm text-muted-foreground">
+                                {b.cr ? `CR: ${b.cr}` : ""}
+                              </CardDescription>
                             </>
                           )}
                         </div>
@@ -1005,11 +1196,60 @@ export default function Years() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between">
-                        <div className="text-sm text-muted-foreground">Years: {(years||[]).filter(y=> (y.batchId||y.batch_name)===b.id).length}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Years:{" "}
+                          {
+                            (years || []).filter(
+                              (y) => (y.batchId || y.batch_name) === b.id,
+                            ).length
+                          }
+                        </div>
                         <div className="flex items-center gap-2">
-                          <Button size="sm" variant="outline" onClick={(e)=>{ e.stopPropagation(); navigate(`/admin/years?batch=${b.id}`); setSelectedBatchId(b.id); }}>View Years</Button>
-                          <Button size="sm" variant="ghost" onClick={(e)=>{ e.stopPropagation(); setEditingBatchId(b.id); setEditingBatchValue(b.batchName || ''); setEditingBatchCR(b.cr || ''); }}>Edit</Button>
-                          <Button size="sm" variant="destructive" onClick={async (e)=>{ e.stopPropagation(); try{ if(!confirm('Delete this batch and all its years? This cannot be undone.')) return; await deleteBatch?.(b.id); alert('Batch deleted'); }catch(err){ console.error(err); alert('Failed to delete batch'); } }}>Delete</Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/admin/years?batch=${b.id}`);
+                              setSelectedBatchId(b.id);
+                            }}
+                          >
+                            View Years
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingBatchId(b.id);
+                              setEditingBatchValue(b.batchName || "");
+                              setEditingBatchCR(b.cr || "");
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                if (
+                                  !confirm(
+                                    "Delete this batch and all its years? This cannot be undone.",
+                                  )
+                                )
+                                  return;
+                                await deleteBatch?.(b.id);
+                                alert("Batch deleted");
+                              } catch (err) {
+                                console.error(err);
+                                alert("Failed to delete batch");
+                              }
+                            }}
+                          >
+                            Delete
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
