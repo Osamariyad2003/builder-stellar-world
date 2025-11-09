@@ -1120,6 +1120,7 @@ export function useYears() {
     createLecture,
     createYear,
     createBatch,
+    deleteBatch,
     deleteLecture,
     deleteSubject,
     addVideo,
