@@ -319,7 +319,7 @@ export default function Years() {
                 }}
               />
             ) : (
-              <div className="w-24 h-24 rounded-md bg-muted flex items-center justify-center">
+              <div className="w-24 h-24 rounded-md flex-shrink-0 bg-muted flex items-center justify-center">
                 {type === "basic" ? (
                   <GraduationCap className="h-6 w-6 text-blue-600" />
                 ) : (
@@ -1015,7 +1015,7 @@ export default function Years() {
                             className="w-24 h-24 object-cover rounded-md flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-24 h-24 rounded-md bg-muted flex items-center justify-center">
+                          <div className="w-24 h-24 rounded-md flex-shrink-0 bg-muted flex items-center justify-center">
                             <BookOpen className="h-6 w-6 text-muted-foreground" />
                           </div>
                         )}
@@ -1174,7 +1174,7 @@ export default function Years() {
                             className="w-24 h-24 object-cover rounded-md flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-24 h-24 rounded-md bg-muted" />
+                          <div className="w-24 h-24 rounded-md flex-shrink-0 bg-muted" />
                         )}
                         <div>
                           {editingBatchId === b.id ? (
