@@ -819,16 +819,49 @@ export default function Years() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button onClick={async () => {
-            try {
-              const name = window.prompt('Batch name (e.g. Batch A):');
-              if (!name) return;
-              await createBatch?.({ batchName: name });
-              alert('Batch created');
-            } catch (e) { console.error(e); alert('Failed to create batch'); }
-          }}>
-            <FolderPlus className="h-4 w-4 mr-2" /> Add Batch
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <FolderPlus className="h-4 w-4 mr-2" /> Add Batch
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Batch</DialogTitle>
+                <DialogDescription>Create a new batch for grouping years</DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-3 mt-2">
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Batch name</label>
+                  <Input value={batchName} onChange={(e)=>setBatchName(e.target.value)} placeholder="e.g., Batch A" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">CR (optional)</label>
+                  <Input value={batchCR} onChange={(e)=>setBatchCR(e.target.value)} placeholder="Class representative" />
+                </div>
+              </div>
+
+              <DialogFooter className="mt-4">
+                <Button onClick={async ()=>{
+                  try{
+                    if(!batchName || !batchName.trim()) { alert('Please provide a batch name'); return; }
+                    await createBatch?.({ batchName: batchName.trim(), cr: batchCR?.trim() });
+                    setBatchName(''); setBatchCR('');
+                    // close dialog
+                    const closeBtn = document.querySelector('[data-dialog-close]') as HTMLElement | null;
+                    if(closeBtn) closeBtn.click();
+                    alert('Batch created');
+                  }catch(e){ console.error(e); alert('Failed to create batch'); }
+                }}>
+                  Create
+                </Button>
+                <DialogClose asChild>
+                  <Button variant="ghost" className="ml-2" data-dialog-close>Cancel</Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
