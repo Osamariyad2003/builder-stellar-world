@@ -1052,7 +1052,8 @@ export default function Years() {
                                 try {
                                   let imageUrl: string | null = null;
                                   try {
-                                    imageUrl = await uploadImageToCloudinary(file);
+                                    imageUrl =
+                                      await uploadImageToCloudinary(file);
                                   } catch (cloudErr: any) {
                                     console.warn(
                                       "Cloudinary upload failed, trying ImageKit",
@@ -1196,12 +1197,60 @@ export default function Years() {
                               />
                               <Input
                                 value={editingBatchImage}
-                                onChange={(e)=>setEditingBatchImage(e.target.value)}
+                                onChange={(e) =>
+                                  setEditingBatchImage(e.target.value)
+                                }
                                 placeholder="Image URL (or upload)"
                                 className="w-64"
                               />
                               <div className="flex items-center gap-2">
-                                <Button size="sm" onClick={(e)=>{ e.stopPropagation(); try{ const input = document.createElement('input'); input.type='file'; input.accept='image/*'; input.onchange = async ()=>{ const file = input.files?.[0]; if(!file) return; try{ let imageUrl:string|null=null; try{ imageUrl = await uploadImageToCloudinary(file); } catch(cloudErr:any){ console.warn('Cloudinary upload failed, trying ImageKit', cloudErr?.message||cloudErr); imageUrl = await uploadToImageKitServer(file, file.name); } if(!imageUrl){ alert('Upload failed'); return; } setEditingBatchImage(imageUrl); }catch(err){ console.error(err); alert('Upload failed'); } }; input.click(); }catch(err){ console.error(err); alert('Could not open file dialog'); } }}>
+                                <Button
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      const input =
+                                        document.createElement("input");
+                                      input.type = "file";
+                                      input.accept = "image/*";
+                                      input.onchange = async () => {
+                                        const file = input.files?.[0];
+                                        if (!file) return;
+                                        try {
+                                          let imageUrl: string | null = null;
+                                          try {
+                                            imageUrl =
+                                              await uploadImageToCloudinary(
+                                                file,
+                                              );
+                                          } catch (cloudErr: any) {
+                                            console.warn(
+                                              "Cloudinary upload failed, trying ImageKit",
+                                              cloudErr?.message || cloudErr,
+                                            );
+                                            imageUrl =
+                                              await uploadToImageKitServer(
+                                                file,
+                                                file.name,
+                                              );
+                                          }
+                                          if (!imageUrl) {
+                                            alert("Upload failed");
+                                            return;
+                                          }
+                                          setEditingBatchImage(imageUrl);
+                                        } catch (err) {
+                                          console.error(err);
+                                          alert("Upload failed");
+                                        }
+                                      };
+                                      input.click();
+                                    } catch (err) {
+                                      console.error(err);
+                                      alert("Could not open file dialog");
+                                    }
+                                  }}
+                                >
                                   Upload
                                 </Button>
                                 <Button
@@ -1307,7 +1356,8 @@ export default function Years() {
                                   try {
                                     let imageUrl: string | null = null;
                                     try {
-                                      imageUrl = await uploadImageToCloudinary(file);
+                                      imageUrl =
+                                        await uploadImageToCloudinary(file);
                                     } catch (cloudErr: any) {
                                       console.warn(
                                         "Cloudinary upload failed, trying ImageKit",
@@ -1322,7 +1372,10 @@ export default function Years() {
                                       alert("Upload failed");
                                       return;
                                     }
-                                    await updateBatch?.(b.id, { image_url: imageUrl, imageUrl });
+                                    await updateBatch?.(b.id, {
+                                      image_url: imageUrl,
+                                      imageUrl,
+                                    });
                                     alert("Image updated");
                                   } catch (err) {
                                     console.error(err);
