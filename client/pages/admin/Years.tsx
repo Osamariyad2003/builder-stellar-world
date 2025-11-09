@@ -923,117 +923,81 @@ export default function Years() {
             </CardContent>
           </Card>
 
-          {/* All years grouped by batch */}
+          {/* Show batches list or the selected batch's years */}
           <div className="space-y-6">
-            {years.length === 0 ? (
+            {(!batches || batches.length === 0) ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">Setting Up Years...</h3>
-                  <p className="text-muted-foreground mb-4">The academic years structure is being initialized. Please refresh the page in a moment.</p>
-                  <Button onClick={() => window.location.replace(window.location.href)}>Refresh Page</Button>
+                  <h3 className="text-lg font-semibold mb-2">No batches found</h3>
+                  <p className="text-muted-foreground mb-4">Create a batch to start adding academic years.</p>
                 </CardContent>
               </Card>
-            ) : (
+            ) : selectedBatchId ? (
               (() => {
-                const groups: Record<string, any> = {};
-                years.forEach((y:any) => {
-                  const key = y.batchId || y.batchName || `no-batch-${y.yearNumber}`;
-                  if (!groups[key]) groups[key] = { batchId: y.batchId || null, batchName: y.batchName || null, years: [] };
-                  groups[key].years.push(y);
-                });
-
-                return Object.values(groups).map((g: any) => {
-                  const batchMeta = (batches || []).find((b:any) => b.id === g.batchId) || {};
-                  return (
-                    <Card key={g.batchId || g.batchName || g.years.map((yy:any)=>yy.id).join("_")}>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            {batchMeta.imageUrl ? (
-                              <img src={batchMeta.imageUrl} alt={batchMeta.batchName || "Batch"} className="w-24 h-16 object-cover rounded-md" onError={(e:any)=>{e.currentTarget.style.display = 'none'}} />
-                            ) : (
-                              <div className="w-24 h-16 rounded-md bg-muted flex items-center justify-center">
-                                <BookOpen className="h-6 w-6 text-muted-foreground" />
-                              </div>
-                            )}
-
-                            <div>
-                              {editingBatchId === (g.batchId || g.batchName) ? (
-                                <div className="flex items-center gap-2">
-                                  <Input value={editingBatchValue} onChange={(e)=>setEditingBatchValue(e.target.value)} placeholder="Batch name" className="w-48" />
-                                  <Input value={editingBatchCR || ''} onChange={(e)=>setEditingBatchCR(e.target.value)} placeholder="CR" className="w-32" />
-                                  <Button size="sm" onClick={async ()=>{
-                                    try{
-                                      const bid = g.batchId || g.batchName;
-                                      await updateBatch?.(bid, { batch_name: editingBatchValue, batchName: editingBatchValue, cr: editingBatchCR });
-                                      setEditingBatchId(null); setEditingBatchValue(''); setEditingBatchCR('');
-                                    }catch(e){console.error(e); alert('Failed to save batch');}
-                                  }}>Save</Button>
-                                  <Button variant="ghost" size="sm" onClick={()=>{setEditingBatchId(null); setEditingBatchValue(''); setEditingBatchCR('');}}>Cancel</Button>
-                                </div>
-                              ) : (
-                                <>
-                                  <CardTitle className="text-lg">{batchMeta.batchName || g.batchName || `Batch ${g.years.map((yy:any)=>yy.yearNumber).join(", ")}`}</CardTitle>
-                                  <CardDescription>{g.batchId ? '' : "No batch metadata"}</CardDescription>
-                                  <div className="text-sm text-muted-foreground mt-1">
-                                    {batchMeta.cr && <div>CR: {batchMeta.cr}</div>}
-                                    {batchMeta.aca_supervisor && <div>Academic Supervisor: {batchMeta.aca_supervisor}</div>}
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" onClick={async ()=>{
-                              try{
-                                const input = document.createElement('input'); input.type='file'; input.accept='image/*';
-                                input.onchange = async ()=>{
-                                  const file = input.files?.[0]; if(!file) return;
-                                  try{
-                                    let imageUrl:string|null = null;
-                                    try{ imageUrl = await uploadImageToCloudinary(file); }catch(_){ imageUrl = await uploadToImageKitServer(file, file.name); }
-                                    if(!imageUrl) { alert('Upload failed'); return; }
-                                    await updateBatch?.(g.batchId, { image_url: imageUrl, imageUrl });
-                                  }catch(e){ console.error(e); alert('Failed to upload image'); }
-                                };
-                                input.click();
-                              }catch(e){ console.error(e); alert('Could not open file dialog'); }
-                            }}>
-                              <Upload className="h-4 w-4" />
-                              {batchMeta.imageUrl ? 'Change Image' : 'Add Image'}
-                            </Button>
-
-                            <Button variant="ghost" size="sm" onClick={()=>{ setEditingBatchId(g.batchId || g.batchName); setEditingBatchValue(batchMeta.batchName || g.batchName || ''); setEditingBatchCR(batchMeta.cr || ''); }}>
-                              Batch Name
-                            </Button>
-
-                            <Button variant="ghost" size="sm" onClick={async ()=>{
-                              try{
-                                const input = window.prompt('Enter year number (e.g. 1,2,3,4...):');
-                                if(!input) return;
-                                const yearNum = parseInt(input, 10);
-                                if(isNaN(yearNum)) { alert('Invalid year number'); return; }
-                                const name = window.prompt('Optional: Batch or Year name:', '');
-                                await createYear?.(g.batchId || null, { yearNumber: yearNum, name });
-                                alert('Year created');
-                              }catch(e){ console.error(e); alert('Failed to create year'); }
-                            }}>
-                              <Plus className="h-4 w-4" /> Add Year
-                            </Button>
-                          </div>
+                const batch = (batches || []).find((b:any) => b.id === selectedBatchId) || null;
+                const yearsForBatch = (years || []).filter((y:any) => (y.batchId || y.batch_name) === selectedBatchId);
+                return (
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        {batch?.imageUrl ? (
+                          <img src={batch.imageUrl} alt={batch.batchName} className="w-24 h-16 object-cover rounded-md" />
+                        ) : (
+                          <div className="w-24 h-16 rounded-md bg-muted flex items-center justify-center"><BookOpen className="h-6 w-6 text-muted-foreground" /></div>
+                        )}
+                        <div>
+                          <h2 className="text-xl font-semibold">{batch?.batchName || 'Batch'}</h2>
+                          <div className="text-sm text-muted-foreground">{batch?.cr ? `CR: ${batch.cr}` : ''}</div>
                         </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {g.years.sort((a:any,b:any)=>a.yearNumber-b.yearNumber).map((yearData:any)=>(
-                          <div key={yearData.id}>{renderYearCard(yearData, yearData.type)}</div>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  );
-                });
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Button onClick={() => { setSelectedBatchId(null); navigate('/admin/years'); }}>Back to Batches</Button>
+                        <Button onClick={async ()=>{ try{ const yearNumStr = window.prompt('Enter year number for this batch:'); if(!yearNumStr) return; const yearNum = parseInt(yearNumStr,10); if(isNaN(yearNum)){ alert('Invalid'); return;} await createYear?.(batch?.id || null, { yearNumber: yearNum }); alert('Year created'); }catch(e){console.error(e); alert('Failed');}}}>
+                          <Plus className="h-4 w-4 mr-2" /> Add Year
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-4">
+                      {yearsForBatch.length === 0 ? (
+                        <Card><CardContent className="p-6 text-center">No years in this batch yet.</CardContent></Card>
+                      ) : (
+                        yearsForBatch.sort((a:any,b:any)=>a.yearNumber-b.yearNumber).map((yd:any)=> (
+                          <div key={yd.id}>{renderYearCard(yd, yd.type)}</div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                );
               })()
+            ) : (
+              // list batches
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {(batches || []).map((b:any)=> (
+                  <Card key={b.id} className="cursor-pointer" onClick={()=>{ navigate(`/admin/years?batch=${b.id}`); setSelectedBatchId(b.id); }}>
+                    <CardHeader>
+                      <div className="flex items-center gap-4">
+                        {b.imageUrl ? <img src={b.imageUrl} alt={b.batchName} className="w-24 h-16 object-cover rounded-md" /> : <div className="w-24 h-16 rounded-md bg-muted" />}
+                        <div>
+                          <CardTitle className="text-lg">{b.batchName || 'Batch'}</CardTitle>
+                          <CardDescription className="text-sm text-muted-foreground">{b.cr ? `CR: ${b.cr}` : ''}</CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">Years: {(years||[]).filter(y=> (y.batchId||y.batch_name)===b.id).length}</div>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="outline" onClick={(e)=>{ e.stopPropagation(); navigate(`/admin/years?batch=${b.id}`); setSelectedBatchId(b.id); }}>View Years</Button>
+                          <Button size="sm" variant="ghost" onClick={(e)=>{ e.stopPropagation(); setEditingBatchId(b.id); setEditingBatchValue(b.batchName || ''); setEditingBatchCR(b.cr || ''); }}>Edit</Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             )}
           </div>
         </>
