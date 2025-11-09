@@ -985,8 +985,21 @@ export default function Years() {
                       <div className="flex items-center gap-4">
                         {b.imageUrl ? <img src={b.imageUrl} alt={b.batchName} className="w-24 h-16 object-cover rounded-md" /> : <div className="w-24 h-16 rounded-md bg-muted" />}
                         <div>
-                          <CardTitle className="text-lg">{b.batchName || 'Batch'}</CardTitle>
-                          <CardDescription className="text-sm text-muted-foreground">{b.cr ? `CR: ${b.cr}` : ''}</CardDescription>
+                          {editingBatchId === b.id ? (
+                            <div className="flex flex-col gap-2">
+                              <Input value={editingBatchValue} onChange={(e)=>setEditingBatchValue(e.target.value)} placeholder="Batch name" className="w-48" />
+                              <Input value={editingBatchCR || ''} onChange={(e)=>setEditingBatchCR(e.target.value)} placeholder="CR" className="w-32" />
+                              <div className="flex items-center gap-2">
+                                <Button size="sm" onClick={async (e)=>{ e.stopPropagation(); try{ await updateBatch?.(b.id, { batch_name: editingBatchValue, batchName: editingBatchValue, cr: editingBatchCR }); setEditingBatchId(null); setEditingBatchValue(''); setEditingBatchCR(''); alert('Saved'); }catch(err){ console.error(err); alert('Failed to save'); } }}>Save</Button>
+                                <Button size="sm" variant="ghost" onClick={(e)=>{ e.stopPropagation(); setEditingBatchId(null); setEditingBatchValue(''); setEditingBatchCR(''); }}>Cancel</Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <CardTitle className="text-lg">{b.batchName || 'Batch'}</CardTitle>
+                              <CardDescription className="text-sm text-muted-foreground">{b.cr ? `CR: ${b.cr}` : ''}</CardDescription>
+                            </>
+                          )}
                         </div>
                       </div>
                     </CardHeader>
