@@ -1159,13 +1159,13 @@ export default function Years() {
                 {(batches || []).map((b: any) => (
                   <Card
                     key={b.id}
-                    className="cursor-pointer h-44"
+                    className="cursor-pointer h-44 flex flex-col overflow-hidden"
                     onClick={() => {
                       navigate(`/admin/years?batch=${b.id}`);
                       setSelectedBatchId(b.id);
                     }}
                   >
-                    <CardHeader>
+                    <CardHeader className="flex-1">
                       <div className="flex items-center gap-4">
                         {b.imageUrl ? (
                           <img
@@ -1306,7 +1306,7 @@ export default function Years() {
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="mt-auto">
                       <div className="flex items-center justify-between">
                         <div className="text-sm text-muted-foreground">
                           Years:{" "}
