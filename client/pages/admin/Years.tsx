@@ -1012,10 +1012,10 @@ export default function Years() {
                           <img
                             src={batch.imageUrl}
                             alt={batch.batchName}
-                            className="w-24 h-24 object-cover rounded-md flex-shrink-0"
+                            className="w-40 h-40 object-cover rounded-md flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-24 h-24 rounded-md flex-shrink-0 bg-muted flex items-center justify-center">
+                          <div className="w-40 h-40 rounded-md flex-shrink-0 bg-muted flex items-center justify-center">
                             <BookOpen className="h-6 w-6 text-muted-foreground" />
                           </div>
                         )}
@@ -1159,7 +1159,7 @@ export default function Years() {
                 {(batches || []).map((b: any) => (
                   <Card
                     key={b.id}
-                    className="cursor-pointer h-44 flex flex-col overflow-hidden"
+                    className="cursor-pointer h-64 flex flex-col overflow-hidden"
                     onClick={() => {
                       navigate(`/admin/years?batch=${b.id}`);
                       setSelectedBatchId(b.id);
@@ -1171,10 +1171,10 @@ export default function Years() {
                           <img
                             src={b.imageUrl}
                             alt={b.batchName}
-                            className="w-24 h-24 object-cover rounded-md flex-shrink-0"
+                            className="w-40 h-40 object-cover rounded-md flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-24 h-24 rounded-md flex-shrink-0 bg-muted" />
+                          <div className="w-40 h-40 rounded-md flex-shrink-0 bg-muted" />
                         )}
                         <div>
                           {editingBatchId === b.id ? (
