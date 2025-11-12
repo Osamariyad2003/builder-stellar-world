@@ -130,18 +130,38 @@ if (!(window.fetch as any).__firebasePatched) {
           return response;
         })
         .catch((error) => {
-          console.log(
-            "🔴 Firebase request failed:",
-            error?.message || String(error),
-          );
-          // If this error comes from a browser extension or third-party script, do not
-          // count it towards Firebase failure thresholds (these are noisy and out of our control).
+          // If this error comes from a browser extension or third-party script, try XHR fallback
           const stack = String((error && (error.stack || "")) || "");
           const message = String(error?.message || error || "").toLowerCase();
           const isExtensionError =
             stack.includes("chrome-extension://") ||
             stack.includes("extension://") ||
             message.includes("extension");
+
+          if (isExtensionError) {
+            console.log("🔴 Firebase fetch intercepted by extension, attempting XHR fallback");
+            // Attempt XHR fallback to perform the request
+            return xhrFallback(args[0] as RequestInfo, args[1] as RequestInit).then((resLike: any) => {
+              // If fallback succeeded and response ok, reset error count
+              if (resLike && resLike.ok) {
+                errorCount = 0;
+                if (isFirebaseOffline) {
+                  console.log("🟢 Firebase connection restored via XHR fallback");
+                  setFirebaseOffline(false);
+                }
+              }
+              return resLike;
+            }).catch((xhrErr) => {
+              console.log("🔴 XHR fallback also failed:", xhrErr?.message || String(xhrErr));
+              // Do not count extension-origin failures toward Firebase error threshold
+              return Promise.reject(error);
+            });
+          }
+
+          console.log(
+            "🔴 Firebase request failed:",
+            error?.message || String(error),
+          );
 
           if (!isExtensionError && navigator.onLine) reportFirebaseError(error);
           // Re-throw so callers get the original failure
