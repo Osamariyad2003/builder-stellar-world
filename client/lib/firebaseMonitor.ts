@@ -42,6 +42,55 @@ export const reportFirebaseError = (error: any) => {
 if (!(window.fetch as any).__firebasePatched) {
   const originalFetch = window.fetch;
   const patchedFetch = (...args: Parameters<typeof fetch>) => {
+    // Helper: XHR-based fallback to perform requests when fetch is intercepted by extensions
+    const xhrFallback = (input: RequestInfo, init?: RequestInit) => {
+      return new Promise<any>((resolve, reject) => {
+        try {
+          const url = typeof input === "string" ? input : (input as Request).url;
+          const method = (init && init.method) || "GET";
+          const xhr = new XMLHttpRequest();
+          xhr.open(method as string, url, true);
+          // set headers
+          if (init && init.headers) {
+            const headers = init.headers as any;
+            Object.keys(headers).forEach((h) => {
+              try { xhr.setRequestHeader(h, headers[h]); } catch (_) {}
+            });
+          }
+          xhr.onreadystatechange = () => {
+            if (xhr.readyState !== 4) return;
+            const status = xhr.status || 0;
+            const text = xhr.responseText || "";
+            const resLike = {
+              ok: status >= 200 && status < 400,
+              status,
+              text: async () => text,
+              json: async () => { try { return text ? JSON.parse(text) : {}; } catch (e) { throw e; } },
+            } as any;
+            resolve(resLike);
+          };
+          xhr.onerror = () => reject(new Error("XHR network error"));
+          xhr.ontimeout = () => reject(new Error("XHR timeout"));
+          if (init && init.body) {
+            try {
+              if ((init.body as any) instanceof FormData) {
+                xhr.send(init.body as any);
+              } else if (typeof init.body === "string") {
+                xhr.send(init.body as any);
+              } else {
+                xhr.send(JSON.stringify(init.body));
+              }
+            } catch (e) {
+              reject(e);
+            }
+          } else {
+            xhr.send();
+          }
+        } catch (e) {
+          reject(e);
+        }
+      });
+    };
     const url =
       typeof args[0] === "string" ? args[0] : (args[0] as Request)?.url;
     const isFirebaseRequest =
