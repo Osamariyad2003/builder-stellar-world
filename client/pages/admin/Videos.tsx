@@ -4,7 +4,7 @@ import { useLectures } from "@/hooks/useLectures";
 import { useLectureVideos } from "@/hooks/useLectureResources";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlayCircle } from "lucide-react";
+import { PlayCircle, Edit2, Trash2 } from "lucide-react";
 
 export default function VideosPage() {
   const [searchParams] = useSearchParams();
