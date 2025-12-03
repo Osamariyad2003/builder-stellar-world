@@ -21,7 +21,14 @@ import {
   Trash2,
   Clock,
   Target,
+  Upload,
+  Image as ImageIcon,
 } from "lucide-react";
+import {
+  uploadImageToCloudinary,
+  setLocalCloudinaryConfig,
+} from "@/lib/cloudinary";
+import { uploadToImageKitServer } from "@/lib/imagekit";
 
 interface QuizQuestion {
   question: string;
