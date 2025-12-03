@@ -148,6 +148,10 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
           correctAnswer: 0,
           imageUrl: "",
           weight: 1,
+          explanation: {
+            text: "",
+            imageUrl: "",
+          },
         });
       }
       return;
@@ -172,6 +176,10 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
         correctAnswer: 0,
         imageUrl: "",
         weight: 1,
+        explanation: {
+          text: "",
+          imageUrl: "",
+        },
       });
     }
   };
