@@ -682,28 +682,199 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                           ))}
                         </div>
 
-                        {question.explanation?.text && (
-                          <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900 rounded border border-blue-200">
-                            <div className="flex items-center gap-2 mb-2">
-                              <HelpCircle className="h-4 w-4 text-blue-600" />
-                              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                                Explanation
-                              </p>
-                            </div>
-                            <div className="space-y-2">
-                              <p className="text-sm text-blue-800 dark:text-blue-200">
-                                {question.explanation.text}
-                              </p>
-                              {question.explanation.imageUrl && (
-                                <img
-                                  src={question.explanation.imageUrl}
-                                  alt="Explanation"
-                                  className="max-h-40 rounded border"
+                        <div className="mt-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              setExpandedExplanationIndex(
+                                expandedExplanationIndex === index ? null : index
+                              )
+                            }
+                            className="w-full"
+                          >
+                            <HelpCircle className="h-4 w-4 mr-2" />
+                            {question.explanation?.text
+                              ? "Edit Explanation"
+                              : "Add Explanation"}
+                          </Button>
+
+                          {expandedExplanationIndex === index && (
+                            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900 rounded border border-blue-200 space-y-3">
+                              <div className="space-y-2">
+                                <Label className="text-sm">Explanation Text</Label>
+                                <Textarea
+                                  placeholder="Explain why this answer is correct..."
+                                  value={question.explanation?.text || ""}
+                                  onChange={(e) => {
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      questions: prev.questions.map((q, i) =>
+                                        i === index
+                                          ? {
+                                              ...q,
+                                              explanation: {
+                                                ...(q.explanation || {}),
+                                                text: e.target.value,
+                                              },
+                                            }
+                                          : q,
+                                      ),
+                                    }));
+                                  }}
+                                  rows={2}
                                 />
-                              )}
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm">
+                                  Explanation Image (Optional)
+                                </Label>
+                                <div className="flex gap-2">
+                                  <Input
+                                    placeholder="https://example.com/image.jpg"
+                                    value={question.explanation?.imageUrl || ""}
+                                    onChange={(e) => {
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        questions: prev.questions.map((q, i) =>
+                                          i === index
+                                            ? {
+                                                ...q,
+                                                explanation: {
+                                                  ...(q.explanation || {}),
+                                                  imageUrl: e.target.value,
+                                                },
+                                              }
+                                            : q,
+                                        ),
+                                      }));
+                                    }}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      const input =
+                                        document.createElement("input");
+                                      input.type = "file";
+                                      input.accept = "image/*";
+                                      input.onchange = async (e: any) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        setUploadingQuestionExplanationImage(
+                                          index
+                                        );
+                                        try {
+                                          const imageUrl =
+                                            await uploadImageToCloudinary(
+                                              file
+                                            );
+                                          setFormData((prev) => ({
+                                            ...prev,
+                                            questions:
+                                              prev.questions.map((q, i) =>
+                                                i === index
+                                                  ? {
+                                                      ...q,
+                                                      explanation: {
+                                                        ...(q.explanation ||
+                                                          {}),
+                                                        imageUrl: imageUrl,
+                                                      },
+                                                    }
+                                                  : q,
+                                              ),
+                                          }));
+                                        } catch (cloudErr: any) {
+                                          console.warn(
+                                            "Cloudinary upload failed, trying ImageKit",
+                                            cloudErr?.message || cloudErr
+                                          );
+                                          try {
+                                            const imageUrl =
+                                              await uploadToImageKitServer(
+                                                file
+                                              );
+                                            setFormData((prev) => ({
+                                              ...prev,
+                                              questions:
+                                                prev.questions.map((q, i) =>
+                                                  i === index
+                                                    ? {
+                                                        ...q,
+                                                        explanation: {
+                                                          ...(q.explanation ||
+                                                            {}),
+                                                          imageUrl: imageUrl,
+                                                        },
+                                                      }
+                                                    : q,
+                                                ),
+                                            }));
+                                          } catch (err) {
+                                            console.error(err);
+                                            alert("Failed to upload image");
+                                          }
+                                        } finally {
+                                          setUploadingQuestionExplanationImage(
+                                            null
+                                          );
+                                        }
+                                      };
+                                      input.click();
+                                    }}
+                                    disabled={
+                                      uploadingQuestionExplanationImage ===
+                                      index
+                                    }
+                                  >
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    {uploadingQuestionExplanationImage ===
+                                    index
+                                      ? "Uploading..."
+                                      : "Upload"}
+                                  </Button>
+                                </div>
+                                {question.explanation?.imageUrl && (
+                                  <div className="mt-2">
+                                    <img
+                                      src={question.explanation.imageUrl}
+                                      alt="Explanation preview"
+                                      className="max-h-32 rounded border"
+                                    />
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
+
+                          {question.explanation?.text &&
+                            expandedExplanationIndex !== index && (
+                              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900 rounded border border-blue-200">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <HelpCircle className="h-4 w-4 text-blue-600" />
+                                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                                    Explanation
+                                  </p>
+                                </div>
+                                <div className="space-y-2">
+                                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                                    {question.explanation.text}
+                                  </p>
+                                  {question.explanation.imageUrl && (
+                                    <img
+                                      src={question.explanation.imageUrl}
+                                      alt="Explanation"
+                                      className="max-h-40 rounded border"
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                        </div>
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <Button
