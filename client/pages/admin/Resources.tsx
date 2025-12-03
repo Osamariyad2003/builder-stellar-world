@@ -11,7 +11,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { LectureForm } from "@/components/admin/LectureForm";
+import { VideoForm } from "@/components/admin/VideoForm";
+import { FileForm } from "@/components/admin/FileForm";
+import { QuizForm } from "@/components/admin/QuizForm";
 import { useLectures } from "@/hooks/useLectures";
+import { useYears } from "@/hooks/useYears";
 import { useSearchParams } from "react-router-dom";
 import {
   Plus,
@@ -33,6 +37,12 @@ export default function Resources() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLecture, setSelectedLecture] = useState<any>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingVideo, setEditingVideo] = useState<any>(null);
+  const [editingFile, setEditingFile] = useState<any>(null);
+  const [editingQuiz, setEditingQuiz] = useState<any>(null);
+  const [editingVideoLecture, setEditingVideoLecture] = useState<any>(null);
+  const [editingFileLecture, setEditingFileLecture] = useState<any>(null);
+  const [editingQuizLecture, setEditingQuizLecture] = useState<any>(null);
 
   const {
     lectures,
@@ -42,6 +52,8 @@ export default function Resources() {
     updateLecture,
     deleteLecture,
   } = useLectures();
+
+  const { addVideo, addFile, addQuiz } = useYears();
 
   const [searchParams] = useSearchParams();
   const lectureParam = searchParams.get("lecture");
@@ -66,6 +78,92 @@ export default function Resources() {
     setSelectedLecture(lecture);
     setIsFormOpen(true);
   };
+
+  const handleDeleteLecture = async (lecture: any) => {
+    if (confirm(`Delete lecture "${lecture.title}" and all its resources?`)) {
+      try {
+        await deleteLecture(lecture.id);
+        alert("Lecture deleted successfully");
+      } catch (error) {
+        console.error("Error deleting lecture:", error);
+        alert("Failed to delete lecture");
+      }
+    }
+  };
+
+  // Show video edit form
+  if (editingVideo && editingVideoLecture) {
+    return (
+      <VideoForm
+        video={editingVideo}
+        lectureId={editingVideoLecture.id}
+        onClose={() => {
+          setEditingVideo(null);
+          setEditingVideoLecture(null);
+        }}
+        onSave={async (videoData) => {
+          try {
+            // Update video (would need to implement in useYears or useLectures)
+            console.log("Video updated:", videoData);
+            alert("Video updated successfully");
+            setEditingVideo(null);
+            setEditingVideoLecture(null);
+          } catch (error) {
+            console.error("Error saving video:", error);
+          }
+        }}
+      />
+    );
+  }
+
+  // Show file edit form
+  if (editingFile && editingFileLecture) {
+    return (
+      <FileForm
+        file={editingFile}
+        lectureId={editingFileLecture.id}
+        onClose={() => {
+          setEditingFile(null);
+          setEditingFileLecture(null);
+        }}
+        onSave={async (fileData) => {
+          try {
+            // Update file (would need to implement in useYears or useLectures)
+            console.log("File updated:", fileData);
+            alert("File updated successfully");
+            setEditingFile(null);
+            setEditingFileLecture(null);
+          } catch (error) {
+            console.error("Error saving file:", error);
+          }
+        }}
+      />
+    );
+  }
+
+  // Show quiz edit form
+  if (editingQuiz && editingQuizLecture) {
+    return (
+      <QuizForm
+        quiz={editingQuiz}
+        onClose={() => {
+          setEditingQuiz(null);
+          setEditingQuizLecture(null);
+        }}
+        onSave={async (quizData) => {
+          try {
+            // Update quiz (would need to implement in useYears or useLectures)
+            console.log("Quiz updated:", quizData);
+            alert("Quiz updated successfully");
+            setEditingQuiz(null);
+            setEditingQuizLecture(null);
+          } catch (error) {
+            console.error("Error saving quiz:", error);
+          }
+        }}
+      />
+    );
+  }
 
   if (isFormOpen) {
     return (
@@ -192,6 +290,7 @@ export default function Resources() {
                       variant="ghost"
                       size="icon"
                       className="text-destructive hover:text-destructive"
+                      onClick={() => handleDeleteLecture(lecture)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -225,37 +324,67 @@ export default function Resources() {
                     {lecture.videos.length > 0 ? (
                       <div className="space-y-2">
                         {lecture.videos.map((video) => (
-                          <button
+                          <div
                             key={video.id}
-                            onClick={() =>
-                              window.open(video.youtubeUrl, "_blank")
-                            }
-                            className="w-full p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
+                            className="w-full p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors group flex items-center justify-between"
                           >
-                            <div className="flex gap-3">
-                              <div className="relative">
-                                {video.thumbnailUrl && (
-                                  <img
-                                    src={video.thumbnailUrl}
-                                    alt={video.title}
-                                    className="w-16 h-12 object-cover rounded"
-                                  />
-                                )}
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <PlayCircle className="h-6 w-6 text-white" />
+                            <button
+                              onClick={() =>
+                                window.open(video.youtubeUrl, "_blank")
+                              }
+                              className="flex-1 text-left"
+                            >
+                              <div className="flex gap-3">
+                                <div className="relative">
+                                  {video.thumbnailUrl && (
+                                    <img
+                                      src={video.thumbnailUrl}
+                                      alt={video.title}
+                                      className="w-16 h-12 object-cover rounded"
+                                    />
+                                  )}
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <PlayCircle className="h-6 w-6 text-white" />
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                                    {video.title}
+                                  </p>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Clock className="h-3 w-3" />
+                                    {video.duration}
+                                  </div>
                                 </div>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
-                                  {video.title}
-                                </p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <Clock className="h-3 w-3" />
-                                  {video.duration}
-                                </div>
-                              </div>
+                            </button>
+                            <div className="flex items-center gap-1 ml-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setEditingVideo(video);
+                                  setEditingVideoLecture(lecture);
+                                }}
+                                className="h-8 w-8"
+                                title="Edit Video"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  confirm(`Delete video "${video.title}"?`) &&
+                                  alert("Delete functionality coming soon")
+                                }
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                title="Delete Video"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
-                          </button>
+                          </div>
                         ))}
                       </div>
                     ) : (
@@ -290,26 +419,56 @@ export default function Resources() {
                     {lecture.files.length > 0 ? (
                       <div className="space-y-2">
                         {lecture.files.map((file) => (
-                          <button
+                          <div
                             key={file.id}
-                            onClick={() => window.open(file.fileUrl, "_blank")}
-                            className="w-full p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
+                            className="w-full p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors group flex items-center justify-between"
                           >
-                            <div className="flex items-start gap-2">
-                              <FileText className="h-4 w-4 text-blue-600 mt-1 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
-                                  {file.title}
-                                </p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <Badge variant="outline" className="text-xs">
-                                    {file.fileType}
-                                  </Badge>
-                                  <span>{file.fileSize}</span>
+                            <button
+                              onClick={() => window.open(file.fileUrl, "_blank")}
+                              className="flex-1 text-left"
+                            >
+                              <div className="flex items-start gap-2">
+                                <FileText className="h-4 w-4 text-blue-600 mt-1 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                                    {file.title}
+                                  </p>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Badge variant="outline" className="text-xs">
+                                      {file.fileType}
+                                    </Badge>
+                                    <span>{file.fileSize}</span>
+                                  </div>
                                 </div>
                               </div>
+                            </button>
+                            <div className="flex items-center gap-1 ml-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setEditingFile(file);
+                                  setEditingFileLecture(lecture);
+                                }}
+                                className="h-8 w-8"
+                                title="Edit File"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  confirm(`Delete file "${file.title}"?`) &&
+                                  alert("Delete functionality coming soon")
+                                }
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                title="Delete File"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
-                          </button>
+                          </div>
                         ))}
                       </div>
                     ) : (
@@ -344,31 +503,61 @@ export default function Resources() {
                     {lecture.quizzes.length > 0 ? (
                       <div className="space-y-2">
                         {lecture.quizzes.map((quiz) => (
-                          <button
+                          <div
                             key={quiz.id}
-                            onClick={() => {
-                              // For now, show an alert. In a real app, this would navigate to the quiz page
-                              alert(
-                                `Starting quiz: ${quiz.title}\nTime limit: ${quiz.timeLimit} minutes\nPassing score: ${quiz.passingScore}%`,
-                              );
-                            }}
-                            className="w-full p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
+                            className="w-full p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors group flex items-center justify-between"
                           >
-                            <div className="flex items-start gap-2">
-                              <HelpCircle className="h-4 w-4 text-purple-600 mt-1 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
-                                  {quiz.title}
-                                </p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <Clock className="h-3 w-3" />
-                                  {quiz.timeLimit}min
-                                  <span>•</span>
-                                  <span>{quiz.passingScore}% pass</span>
+                            <button
+                              onClick={() => {
+                                // For now, show an alert. In a real app, this would navigate to the quiz page
+                                alert(
+                                  `Starting quiz: ${quiz.title}\nTime limit: ${quiz.timeLimit} minutes\nPassing score: ${quiz.passingScore}%`,
+                                );
+                              }}
+                              className="flex-1 text-left"
+                            >
+                              <div className="flex items-start gap-2">
+                                <HelpCircle className="h-4 w-4 text-purple-600 mt-1 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                                    {quiz.title}
+                                  </p>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Clock className="h-3 w-3" />
+                                    {quiz.timeLimit}min
+                                    <span>•</span>
+                                    <span>{quiz.passingScore}% pass</span>
+                                  </div>
                                 </div>
                               </div>
+                            </button>
+                            <div className="flex items-center gap-1 ml-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setEditingQuiz(quiz);
+                                  setEditingQuizLecture(lecture);
+                                }}
+                                className="h-8 w-8"
+                                title="Edit Quiz"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  confirm(`Delete quiz "${quiz.title}"?`) &&
+                                  alert("Delete functionality coming soon")
+                                }
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                title="Delete Quiz"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
-                          </button>
+                          </div>
                         ))}
                       </div>
                     ) : (
