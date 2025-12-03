@@ -89,7 +89,10 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
         description: quiz.description || "",
         timeLimit: quiz.timeLimit || 30,
         passingScore: quiz.passingScore || 70,
-        questions: quiz.questions || [],
+        questions: (quiz.questions || []).map((q) => ({
+          ...q,
+          explanation: q.explanation || { text: "", imageUrl: "" },
+        })),
         type: (quiz as any).type || "multiple_choice",
       });
     }
