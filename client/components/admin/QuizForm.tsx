@@ -28,6 +28,10 @@ interface QuizQuestion {
   options: string[];
   correctAnswer: number;
   imageUrl?: string;
+  explanation?: {
+    text: string;
+    imageUrl?: string;
+  };
 }
 
 interface Quiz {
