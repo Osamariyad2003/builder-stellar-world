@@ -80,6 +80,7 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
   });
 
   const [loading, setLoading] = useState(false);
+  const [uploadingExplanationImage, setUploadingExplanationImage] = useState(false);
 
   useEffect(() => {
     if (quiz) {
