@@ -50,16 +50,44 @@ export default function FilesPage() {
           {files && files.length > 0 ? (
             <div className="space-y-3">
               {files.map((f: any) => (
-                <div key={f.id} className="p-3 border rounded flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-6 w-6 text-blue-600" />
-                    <div>
-                      <div className="font-medium">{f.title || f.name || "Untitled File"}</div>
+                <div key={f.id} className="p-4 border rounded flex items-center justify-between hover:bg-muted/50 transition">
+                  <div className="flex items-center gap-4 flex-1">
+                    <FileText className="h-8 w-8 text-green-600 flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="font-medium text-base">{f.filename || f.title || f.name || "Untitled File"}</div>
                       <div className="text-sm text-muted-foreground">{f.description}</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {f.fileSize && <span>Size: <strong>{f.fileSize}</strong></span>}
+                        {f.uploadedAt && <span> • Uploaded: <strong>{new Date(f.uploadedAt).toLocaleDateString()}</strong></span>}
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <Button onClick={() => window.open(f.fileUrl || f.url || "_blank")}>Download</Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => window.open(f.fileUrl || f.url || "", "_blank")}
+                      title="Download File"
+                    >
+                      <Download className="h-5 w-5 text-green-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => alert('Edit file functionality coming soon')}
+                      title="Edit File"
+                    >
+                      <Edit2 className="h-5 w-5 text-amber-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => alert('Delete file functionality coming soon')}
+                      className="text-destructive"
+                      title="Delete File"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
                   </div>
                 </div>
               ))}
