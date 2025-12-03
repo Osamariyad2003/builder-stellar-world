@@ -4,7 +4,7 @@ import { useLectures } from "@/hooks/useLectures";
 import { useLectureFiles } from "@/hooks/useLectureResources";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
+import { FileText, Download, Edit2, Trash2 } from "lucide-react";
 
 export default function FilesPage() {
   const [searchParams] = useSearchParams();
