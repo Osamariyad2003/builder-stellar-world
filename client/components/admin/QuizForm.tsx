@@ -73,6 +73,10 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
     correctAnswer: 0,
     imageUrl: "",
     weight: 1,
+    explanation: {
+      text: "",
+      imageUrl: "",
+    },
   });
 
   const [loading, setLoading] = useState(false);
