@@ -50,20 +50,48 @@ export default function VideosPage() {
           {videos && videos.length > 0 ? (
             <div className="space-y-3">
               {videos.map((v: any) => (
-                <div key={v.id} className="p-3 border rounded flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div key={v.id} className="p-4 border rounded flex items-center justify-between hover:bg-muted/50 transition">
+                  <div className="flex items-center gap-4 flex-1">
                     {v.thumbnailUrl ? (
-                      <img src={v.thumbnailUrl} alt={v.title} className="w-32 h-18 object-cover rounded" />
+                      <img src={v.thumbnailUrl} alt={v.title} className="w-32 h-20 object-cover rounded flex-shrink-0" />
                     ) : (
-                      <div className="w-32 h-18 bg-muted rounded" />
+                      <div className="w-32 h-20 bg-muted rounded flex-shrink-0" />
                     )}
-                    <div>
-                      <div className="font-medium">{v.title || "Untitled"}</div>
+                    <div className="flex-1">
+                      <div className="font-medium text-base">{v.title || "Untitled Video"}</div>
                       <div className="text-sm text-muted-foreground">{v.description}</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {v.duration && <span>Duration: <strong>{v.duration}</strong></span>}
+                        {v.url && <span> • <strong>{v.url.split('/').pop()?.substring(0, 30)}</strong></span>}
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <Button onClick={() => window.open(v.url || v.youtubeUrl || "", "_blank")}> <PlayCircle className="h-4 w-4 mr-2" /> Play </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => window.open(v.url || v.youtubeUrl || "", "_blank")}
+                      title="Play Video"
+                    >
+                      <PlayCircle className="h-5 w-5 text-blue-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => alert('Edit video functionality coming soon')}
+                      title="Edit Video"
+                    >
+                      <Edit2 className="h-5 w-5 text-amber-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => alert('Delete video functionality coming soon')}
+                      className="text-destructive"
+                      title="Delete Video"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
                   </div>
                 </div>
               ))}
