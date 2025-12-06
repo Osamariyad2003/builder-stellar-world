@@ -72,8 +72,7 @@ export function LectureForm({
       const lectureData = {
         ...formData,
         subjectId: subjectId,
-        createdAt: new Date(),
-        uploadedBy: "Current User",
+        ...(isEditing && lecture ? { id: lecture.id } : { createdAt: new Date(), uploadedBy: "Current User" }),
       };
 
       onSave(lectureData);
@@ -93,9 +92,13 @@ export function LectureForm({
             Back
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Add Lecture</h1>
+            <h1 className="text-2xl font-bold">
+              {isEditing ? "Edit Lecture" : "Add Lecture"}
+            </h1>
             <p className="text-muted-foreground">
-              Add a new lecture to {subjectName}
+              {isEditing
+                ? `Editing "${lecture?.name}" in ${subjectName}`
+                : `Add a new lecture to ${subjectName}`}
             </p>
           </div>
         </div>
