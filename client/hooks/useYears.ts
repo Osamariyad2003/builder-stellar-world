@@ -239,42 +239,7 @@ export function useYears() {
         // set batches state so UI can render batch-level controls
         setBatches(batchesData);
 
-        if (
-          typeof yearsSnapshot !== "undefined" &&
-          yearsSnapshot &&
-          !yearsSnapshot.empty
-        ) {
-          yearsSnapshot.forEach((doc) => {
-            const data = doc.data();
-            let yearNumber = data.order || 1;
-            if (data.name) {
-              const match = data.name.match(/\d+/);
-              if (match) {
-                yearNumber = parseInt(match[0]);
-              }
-            }
-
-            yearsData.push({
-              id: doc.id,
-              yearNumber: yearNumber,
-              name: data.name || data.title || "",
-              type: yearNumber <= 3 ? "basic" : "clinical",
-              batchName: data.batch_name || data.batchName || "",
-              imageUrl: data.imageUrl || data.image_url || "",
-              academicSupervisor:
-                data.aca_supervisor ||
-                data.acadmic_supervisor ||
-                data.academic_supervisor ||
-                "",
-              actor: data.actor || "",
-              cr: data.cr || "",
-              groupUrl: data.group_url || data.groupUrl || "",
-              subjects: [],
-            });
-          });
-        }
-
-        // Fetch subjects from Subjects collection
+        // Fetch subjects from Subjects collection (WITHOUT nested lectures/videos/files/quizzes)
         const subjectsSnapshot = await getDocs(collection(db, "Subjects"));
         const allSubjects: SubjectData[] = [];
 
@@ -288,56 +253,6 @@ export function useYears() {
           for (const lectureDoc of lecturesSnapshot.docs) {
             const lectureData = lectureDoc.data();
 
-            // Fetch videos for this lecture
-            const videosSnapshot = await getDocs(
-              collection(lectureDoc.ref, "videos"),
-            );
-            const videos: VideoData[] = [];
-            videosSnapshot.forEach((videoDoc) => {
-              const videoData = videoDoc.data();
-              videos.push({
-                id: videoDoc.id,
-                title: videoData.title || videoData.name || "",
-                url: videoData.url || "",
-                thumbnailUrl: videoData.thumbnailUrl || "",
-                description: videoData.description || "",
-                uploadedAt: videoData.uploadedAt?.toDate() || new Date(),
-              });
-            });
-
-            // Fetch files for this lecture
-            const filesSnapshot = await getDocs(
-              collection(lectureDoc.ref, "files"),
-            );
-            const files: FileData[] = [];
-            filesSnapshot.forEach((fileDoc) => {
-              const fileData = fileDoc.data();
-              files.push({
-                id: fileDoc.id,
-                title: fileData.title || fileData.name || "",
-                url: fileData.url || "",
-                description: fileData.description || "",
-                uploadedAt: fileData.uploadedAt?.toDate() || new Date(),
-              });
-            });
-
-            // Fetch quizzes for this lecture
-            const quizzesSnapshot = await getDocs(
-              collection(lectureDoc.ref, "quizzes"),
-            );
-            const quizzes: QuizData[] = [];
-            quizzesSnapshot.forEach((quizDoc) => {
-              const quizData = quizDoc.data();
-              quizzes.push({
-                id: quizDoc.id,
-                title: quizData.title || quizData.name || "",
-                description: quizData.description || "",
-                duration: quizData.duration || 30,
-                passRate: quizData.passRate || 70,
-                questions: quizData.questions || [],
-              });
-            });
-
             lectures.push({
               id: lectureDoc.id,
               name: lectureData.name || lectureData.title || "",
@@ -347,9 +262,9 @@ export function useYears() {
               imageUrl: lectureData.imageUrl || "",
               createdAt: lectureData.createdAt?.toDate() || new Date(),
               uploadedBy: lectureData.uploadedBy || "Unknown",
-              videos: videos,
-              files: files,
-              quizzes: quizzes,
+              videos: undefined,
+              files: undefined,
+              quizzes: undefined,
             });
           }
 
@@ -377,7 +292,7 @@ export function useYears() {
         setIsOfflineMode(false);
         setConnectionStatus("connected");
         setError(null);
-        console.log("✅ Firebase data loaded successfully");
+        console.log("✅ Firebase data loaded successfully (lectures loaded, videos/files/quizzes lazy-loaded)");
 
         // Ensure every year document has an imageUrl field (empty string if missing)
         try {
