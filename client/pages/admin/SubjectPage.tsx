@@ -11,7 +11,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlayCircle, FileText, HelpCircle, Plus, Trash2 } from "lucide-react";
+import { PlayCircle, FileText, HelpCircle, Plus, Trash2, Edit2 } from "lucide-react";
 import { VideoForm } from "@/components/admin/VideoForm";
 import { FileForm } from "@/components/admin/FileForm";
 import { QuizForm } from "@/components/admin/QuizForm";
