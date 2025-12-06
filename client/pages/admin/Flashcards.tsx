@@ -247,7 +247,14 @@ export default function FlashcardsPage() {
                     >
                       Cancel
                     </Button>
-                    {feedback && <div className="ml-2 text-sm">{feedback}</div>}
+                    {feedback && (
+                      <div className={`ml-2 text-sm font-medium flex items-center gap-2 ${
+                        feedback === "correct" ? "text-green-600" : "text-red-600"
+                      }`}>
+                        {feedback === "correct" && <CheckCircle className="h-4 w-4" />}
+                        {feedback === "correct" ? "Correct!" : "Incorrect"}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
