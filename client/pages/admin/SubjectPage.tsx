@@ -208,15 +208,24 @@ export default function SubjectPage() {
   if (isLectureFormOpen) {
     return (
       <LectureForm
+        lecture={editingLecture}
         subjectId={subject?.id || null}
         subjectName={subject?.name}
         yearType={years.find((y) => y.id === subject?.yearId)?.type}
-        onClose={() => setIsLectureFormOpen(false)}
+        onClose={() => {
+          setIsLectureFormOpen(false);
+          setEditingLecture(null);
+        }}
         onSave={async (lectureData) => {
           if (subject?.id) {
-            await createLecture(lectureData);
+            if (editingLecture) {
+              await updateLecture(subject.id, editingLecture.id, lectureData);
+            } else {
+              await createLecture(lectureData);
+            }
           }
           setIsLectureFormOpen(false);
+          setEditingLecture(null);
         }}
       />
     );
