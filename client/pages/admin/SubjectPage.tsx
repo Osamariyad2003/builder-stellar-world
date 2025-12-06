@@ -61,6 +61,7 @@ export default function SubjectPage() {
   } = useYears();
 
   const [selectedLecture, setSelectedLecture] = useState<string | null>(null);
+  const [editingLecture, setEditingLecture] = useState<any>(null);
   const [isVideoFormOpen, setIsVideoFormOpen] = useState(false);
   const [isFileFormOpen, setIsFileFormOpen] = useState(false);
   const [isQuizFormOpen, setIsQuizFormOpen] = useState(false);
