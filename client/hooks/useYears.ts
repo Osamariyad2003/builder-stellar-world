@@ -592,6 +592,71 @@ export function useYears() {
     }
   };
 
+  const updateLecture = async (
+    subjectId: string,
+    lectureId: string,
+    lectureData: Partial<LectureData>,
+  ) => {
+    if (isOfflineMode) {
+      setSubjects((prev) =>
+        prev.map((subject) =>
+          subject.id === subjectId
+            ? {
+                ...subject,
+                lectures: subject.lectures.map((l) =>
+                  l.id === lectureId ? { ...l, ...lectureData } : l,
+                ),
+              }
+            : subject,
+        ),
+      );
+
+      setYears((prev) =>
+        prev.map((year) => ({
+          ...year,
+          subjects: year.subjects.map((subject) =>
+            subject.id === subjectId
+              ? {
+                  ...subject,
+                  lectures: subject.lectures.map((l) =>
+                    l.id === lectureId ? { ...l, ...lectureData } : l,
+                  ),
+                }
+              : subject,
+          ),
+        })),
+      );
+
+      console.log("✅ Updated lecture in offline mode:", lectureData.name);
+      return;
+    }
+
+    try {
+      await retryOperation(async () => {
+        const subjectRef = doc(db, "Subjects", subjectId);
+        const lectureRef = doc(subjectRef, "lectures", lectureId);
+
+        const updatePayload: any = {
+          title: lectureData.name,
+          description: lectureData.description || "",
+          imageUrl: lectureData.imageUrl || "",
+          order: lectureData.order || 1,
+          updatedAt: new Date(),
+        };
+
+        await updateDoc(lectureRef, updatePayload);
+        console.log("✅ Updated lecture in Firebase");
+
+        // Refresh data
+        setRetryCount((prev) => prev + 1);
+      });
+    } catch (error) {
+      console.error("Error updating lecture:", error);
+      setIsOfflineMode(true);
+      await updateLecture(subjectId, lectureId, lectureData);
+    }
+  };
+
   const deleteLecture = async (subjectId: string, lectureId: string) => {
     if (isOfflineMode) {
       setSubjects((prev) =>
