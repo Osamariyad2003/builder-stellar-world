@@ -171,7 +171,8 @@ export function useYears() {
       try {
         console.log("🔄 Attempting Firebase connection...");
 
-        // Try to fetch batches and their nested years
+        // PHASE 1: Fetch batches and their years first
+        console.log("📦 Phase 1: Fetching batches and years...");
         const batchesSnapshot = await getDocs(collection(db, "batches"));
         let yearsData: YearData[] = [];
 
@@ -236,10 +237,18 @@ export function useYears() {
             console.warn("Failed to fetch years for batch", batchId, e);
           }
         }
-        // set batches state so UI can render batch-level controls
-        setBatches(batchesData);
 
-        // Fetch subjects from Subjects collection (WITHOUT nested lectures/videos/files/quizzes)
+        // Set batches and years immediately (before subjects)
+        setBatches(batchesData);
+        const sortedYears = yearsData.sort((a, b) => a.yearNumber - b.yearNumber);
+        setYears(sortedYears);
+        setLoading(false);
+        setIsOfflineMode(false);
+        setConnectionStatus("connected");
+        console.log("✅ Phase 1 complete: Batches and years loaded");
+
+        // PHASE 2: Fetch subjects collection (non-blocking)
+        console.log("📚 Phase 2: Fetching subjects...");
         const subjectsSnapshot = await getDocs(collection(db, "Subjects"));
         const allSubjects: SubjectData[] = [];
 
@@ -278,21 +287,18 @@ export function useYears() {
           });
         }
 
-        // Link subjects to years
-        const completeYears = yearsData.map((year) => ({
+        // Link subjects to years and update state
+        const completeYears = sortedYears.map((year) => ({
           ...year,
           subjects: allSubjects
             .filter((subject) => subject.yearId === year.id)
             .sort((a, b) => a.name.localeCompare(b.name)),
         }));
 
-        setYears(completeYears.sort((a, b) => a.yearNumber - b.yearNumber));
+        setYears(completeYears);
         setSubjects(completeYears.flatMap((year) => year.subjects));
-        setLoading(false);
-        setIsOfflineMode(false);
-        setConnectionStatus("connected");
         setError(null);
-        console.log("✅ Firebase data loaded successfully (lectures loaded, videos/files/quizzes lazy-loaded)");
+        console.log("✅ Phase 2 complete: Subjects and lectures loaded");
 
       } catch (error: any) {
         console.log("❌ Firebase connection failed - staying in offline mode");
