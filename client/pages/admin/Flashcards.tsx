@@ -132,7 +132,7 @@ export default function FlashcardsPage() {
     });
 
     const allCorrect = results.every(Boolean);
-    setFeedback(allCorrect ? "Correct" : "Incorrect");
+    setFeedback(allCorrect ? "correct" : "incorrect");
 
     // If correct, auto-mark full weight; else leave mark as 0 so admin can grade
     if (allCorrect) setMarkForIndex(index, currentWeight);
