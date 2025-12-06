@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,16 @@ import {
   Stethoscope,
 } from "lucide-react";
 
+interface Lecture {
+  id?: string;
+  name: string;
+  description?: string;
+  order?: number;
+  imageUrl?: string;
+}
+
 interface LectureFormProps {
+  lecture?: Lecture | null;
   subjectId?: string | null;
   subjectName?: string;
   yearType?: "basic" | "clinical";
@@ -27,12 +36,14 @@ interface LectureFormProps {
 }
 
 export function LectureForm({
+  lecture,
   subjectId,
   subjectName,
   yearType,
   onClose,
   onSave,
 }: LectureFormProps) {
+  const isEditing = !!lecture?.id;
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -41,6 +52,17 @@ export function LectureForm({
   });
 
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (lecture) {
+      setFormData({
+        name: lecture.name || "",
+        description: lecture.description || "",
+        order: lecture.order || 1,
+        imageUrl: lecture.imageUrl || "",
+      });
+    }
+  }, [lecture]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
