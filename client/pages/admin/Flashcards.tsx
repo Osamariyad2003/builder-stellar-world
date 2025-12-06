@@ -4,6 +4,8 @@ import { useLectureQuizzes } from "@/hooks/useLectureResources";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle, HelpCircle } from "lucide-react";
 
 export default function FlashcardsPage() {
   const [searchParams] = useSearchParams();
