@@ -222,13 +222,13 @@ export default function SubjectPage() {
 
   if (loading) return <div>Loading...</div>;
 
-  if (!subject) {
+  if (error || !subject) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
           <h3 className="text-lg font-semibold">Subject not found</h3>
           <p className="text-muted-foreground mt-2">
-            The subject you requested does not exist.
+            {error || "The subject you requested does not exist."}
           </p>
           <div className="mt-4">
             <Link to="/admin/years">
