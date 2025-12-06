@@ -1252,6 +1252,7 @@ export function useYears() {
     updateBatch,
     createSubject,
     createLecture,
+    updateLecture,
     createYear,
     createBatch,
     deleteBatch,
