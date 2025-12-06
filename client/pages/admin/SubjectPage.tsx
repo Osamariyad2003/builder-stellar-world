@@ -50,7 +50,7 @@ export default function SubjectPage() {
   const {
     years,
     subjects,
-    loading,
+    loading: globalLoading,
     createLecture,
     deleteLecture,
     deleteSubject,
@@ -64,8 +64,74 @@ export default function SubjectPage() {
   const [isFileFormOpen, setIsFileFormOpen] = useState(false);
   const [isQuizFormOpen, setIsQuizFormOpen] = useState(false);
   const [isLectureFormOpen, setIsLectureFormOpen] = useState(false);
+  const [loadingSubject, setLoadingSubject] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [directSubject, setDirectSubject] = useState<any>(null);
 
-  const subject = subjects.find((s) => s.id === id);
+  // Check global subjects first
+  let subject = subjects.find((s) => s.id === id);
+
+  // If not found globally, load directly from Firestore
+  useEffect(() => {
+    if (subject || !id) return; // Skip if already found or no ID
+
+    const loadSubject = async () => {
+      setLoadingSubject(true);
+      setError(null);
+      try {
+        // Try to find subject directly in Firestore by searching the Subjects collection
+        const subjectsRef = collection(db, "Subjects");
+        const querySnap = await getDocs(subjectsRef);
+
+        let foundSubject: any = null;
+        for (const doc of querySnap.docs) {
+          if (doc.id === id) {
+            foundSubject = doc.data();
+            foundSubject.id = doc.id;
+            break;
+          }
+        }
+
+        if (foundSubject) {
+          // Load lectures for this subject
+          const lecturesRef = collection(db, "Subjects", id, "lectures");
+          const lecturesSnap = await getDocs(lecturesRef);
+          const lectures = lecturesSnap.docs.map((lectureDoc) => ({
+            id: lectureDoc.id,
+            name: lectureDoc.data().name || lectureDoc.data().title || "",
+            description: lectureDoc.data().description || "",
+            imageUrl: lectureDoc.data().imageUrl || "",
+            videos: undefined,
+            files: undefined,
+            quizzes: undefined,
+          }));
+
+          setDirectSubject({
+            ...foundSubject,
+            lectures: lectures.sort(
+              (a, b) => (a.order || 0) - (b.order || 0)
+            ),
+          });
+        } else {
+          setError("Subject not found");
+        }
+      } catch (err) {
+        console.error("Error loading subject:", err);
+        setError("Failed to load subject");
+      } finally {
+        setLoadingSubject(false);
+      }
+    };
+
+    loadSubject();
+  }, [id, subject]);
+
+  // Use direct subject if global not found
+  if (!subject && directSubject) {
+    subject = directSubject;
+  }
+
+  const loading = globalLoading || loadingSubject;
 
   const openVideoForm = (lectureId?: string | null) => {
     setSelectedLecture(lectureId || null);
