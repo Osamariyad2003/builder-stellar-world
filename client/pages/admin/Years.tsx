@@ -607,7 +607,7 @@ export default function Years() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() =>
-                                        toggleSection(lecture.id, "videos")
+                                        toggleSection(lecture.id, "videos", subject.id)
                                       }
                                       className={`h-6 px-2 text-xs ${expanded[lecture.id]?.videos ? "bg-accent" : ""}`}
                                     >
@@ -618,7 +618,7 @@ export default function Years() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() =>
-                                        toggleSection(lecture.id, "files")
+                                        toggleSection(lecture.id, "files", subject.id)
                                       }
                                       className={`h-6 px-2 text-xs ${expanded[lecture.id]?.files ? "bg-accent" : ""}`}
                                     >
@@ -629,7 +629,7 @@ export default function Years() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() =>
-                                        toggleSection(lecture.id, "quizzes")
+                                        toggleSection(lecture.id, "quizzes", subject.id)
                                       }
                                       className={`h-6 px-2 text-xs ${expanded[lecture.id]?.quizzes ? "bg-accent" : ""}`}
                                     >
