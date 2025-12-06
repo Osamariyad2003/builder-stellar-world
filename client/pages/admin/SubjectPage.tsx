@@ -52,6 +52,7 @@ export default function SubjectPage() {
     subjects,
     loading: globalLoading,
     createLecture,
+    updateLecture,
     deleteLecture,
     deleteSubject,
     addVideo,
