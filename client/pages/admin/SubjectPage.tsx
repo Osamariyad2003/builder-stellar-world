@@ -377,6 +377,20 @@ export default function SubjectPage() {
 
                       <Button
                         variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditingLecture(lecture);
+                          setIsLectureFormOpen(true);
+                        }}
+                        className="flex items-center gap-1 px-2 py-1 text-xs"
+                        title="Edit Lecture"
+                      >
+                        <Edit2 className="h-3 w-3 text-blue-600" />
+                        <span>Edit</span>
+                      </Button>
+
+                      <Button
+                        variant="ghost"
                         size="icon"
                         className="text-destructive"
                         onClick={async () => {
