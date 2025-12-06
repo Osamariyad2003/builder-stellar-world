@@ -235,7 +235,13 @@ export function LectureForm({
           </Button>
           <Button type="submit" disabled={loading}>
             <Save className="h-4 w-4 mr-2" />
-            {loading ? "Adding..." : "Add Lecture"}
+            {loading
+              ? isEditing
+                ? "Saving..."
+                : "Adding..."
+              : isEditing
+                ? "Save Changes"
+                : "Add Lecture"}
           </Button>
         </div>
       </form>
