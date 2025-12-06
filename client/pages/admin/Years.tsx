@@ -862,18 +862,6 @@ export default function Years() {
             <p className="text-muted-foreground">
               Manage curriculum by academic years, subjects, and lectures
             </p>
-            {connectionStatus === "connecting" && (
-              <span className="flex items-center gap-1 text-blue-600 font-medium text-sm">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Connecting...
-              </span>
-            )}
-            {connectionStatus === "connected" && (
-              <span className="flex items-center gap-1 text-green-600 font-medium text-sm">
-                <div className="h-2 w-2 bg-green-600 rounded-full" />
-                Connected
-              </span>
-            )}
             {connectionStatus === "offline" && (
               <span className="flex items-center gap-1 text-orange-600 font-medium text-sm">
                 <div className="h-2 w-2 bg-orange-600 rounded-full" />
