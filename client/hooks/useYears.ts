@@ -294,57 +294,6 @@ export function useYears() {
         setError(null);
         console.log("✅ Firebase data loaded successfully (lectures loaded, videos/files/quizzes lazy-loaded)");
 
-        // Ensure every year document has an imageUrl field (empty string if missing)
-        try {
-          if (navigator.onLine) {
-            for (const batchDoc of batchesSnapshot.docs) {
-              try {
-                const yearsSnap = await getDocs(
-                  collection(batchDoc.ref, "years"),
-                );
-                for (const docSnap of yearsSnap.docs) {
-                  const d = docSnap.data();
-                  const ref = doc(
-                    collection(batchDoc.ref, "years"),
-                    docSnap.id,
-                  );
-                  const updates: any = {};
-                  if (d.imageUrl === undefined) {
-                    updates.imageUrl = "";
-                  }
-                  if (d.batch_name === undefined && d.batchName === undefined) {
-                    updates.batch_name =
-                      batchDoc.data()?.batch_name ||
-                      batchDoc.data()?.batchName ||
-                      "";
-                  }
-                  if (Object.keys(updates).length > 0) {
-                    try {
-                      await updateDoc(ref, updates);
-                      console.log(
-                        `🔄 Set missing fields for year ${docSnap.id}:`,
-                        updates,
-                      );
-                    } catch (e) {
-                      console.warn(
-                        `Failed to set defaults for ${docSnap.id}:`,
-                        e,
-                      );
-                    }
-                  }
-                }
-              } catch (e) {
-                console.warn(
-                  "Could not ensure fields for years under batch",
-                  batchDoc.id,
-                  e,
-                );
-              }
-            }
-          }
-        } catch (e) {
-          console.warn("Could not ensure imageUrl fields:", e);
-        }
       } catch (error: any) {
         console.log("❌ Firebase connection failed - staying in offline mode");
         activateOfflineMode();
