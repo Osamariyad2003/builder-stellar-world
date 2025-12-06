@@ -1072,6 +1072,102 @@ export function useYears() {
     }
   };
 
+  // Lazy-load videos, files, and quizzes for a specific lecture
+  const loadLectureResources = async (
+    subjectId: string,
+    lectureId: string,
+  ): Promise<{ videos?: VideoData[]; files?: FileData[]; quizzes?: QuizData[] }> => {
+    if (isOfflineMode || !navigator.onLine) {
+      return { videos: [], files: [], quizzes: [] };
+    }
+
+    try {
+      const resources: { videos?: VideoData[]; files?: FileData[]; quizzes?: QuizData[] } = {};
+
+      const lectureRef = doc(db, "Subjects", subjectId, "lectures", lectureId);
+
+      // Fetch videos
+      try {
+        const videosSnapshot = await getDocs(collection(lectureRef, "videos"));
+        resources.videos = videosSnapshot.docs.map((videoDoc) => {
+          const videoData = videoDoc.data();
+          return {
+            id: videoDoc.id,
+            title: videoData.title || videoData.name || "",
+            url: videoData.url || "",
+            thumbnailUrl: videoData.thumbnailUrl || "",
+            description: videoData.description || "",
+            uploadedAt: videoData.uploadedAt?.toDate() || new Date(),
+          };
+        });
+      } catch (e) {
+        console.warn("Failed to fetch videos:", e);
+        resources.videos = [];
+      }
+
+      // Fetch files
+      try {
+        const filesSnapshot = await getDocs(collection(lectureRef, "files"));
+        resources.files = filesSnapshot.docs.map((fileDoc) => {
+          const fileData = fileDoc.data();
+          return {
+            id: fileDoc.id,
+            title: fileData.title || fileData.name || "",
+            url: fileData.url || "",
+            description: fileData.description || "",
+            uploadedAt: fileData.uploadedAt?.toDate() || new Date(),
+          };
+        });
+      } catch (e) {
+        console.warn("Failed to fetch files:", e);
+        resources.files = [];
+      }
+
+      // Fetch quizzes
+      try {
+        const quizzesSnapshot = await getDocs(collection(lectureRef, "quizzes"));
+        resources.quizzes = quizzesSnapshot.docs.map((quizDoc) => {
+          const quizData = quizDoc.data();
+          return {
+            id: quizDoc.id,
+            title: quizData.title || quizData.name || "",
+            description: quizData.description || "",
+            duration: quizData.duration || 30,
+            passRate: quizData.passRate || 70,
+            questions: quizData.questions || [],
+          };
+        });
+      } catch (e) {
+        console.warn("Failed to fetch quizzes:", e);
+        resources.quizzes = [];
+      }
+
+      // Update the years state with the loaded resources
+      setYears((prevYears) =>
+        prevYears.map((year) => ({
+          ...year,
+          subjects: year.subjects.map((subject) =>
+            subject.id === subjectId
+              ? {
+                  ...subject,
+                  lectures: subject.lectures.map((lecture) =>
+                    lecture.id === lectureId
+                      ? { ...lecture, ...resources }
+                      : lecture,
+                  ),
+                }
+              : subject,
+          ),
+        })),
+      );
+
+      return resources;
+    } catch (error) {
+      console.error("Error loading lecture resources:", error);
+      return { videos: [], files: [], quizzes: [] };
+    }
+  };
+
   return {
     years,
     batches,
@@ -1093,5 +1189,6 @@ export function useYears() {
     addVideo,
     addFile,
     addQuiz,
+    loadLectureResources,
   };
 }
