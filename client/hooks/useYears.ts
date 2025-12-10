@@ -1289,6 +1289,11 @@ export function useYears() {
     setRetryCount((prev) => prev + 1);
   };
 
+  const invalidateCache = () => {
+    console.log("📦 Invalidating cache after mutation...");
+    clearCache();
+  };
+
   return {
     years,
     batches,
