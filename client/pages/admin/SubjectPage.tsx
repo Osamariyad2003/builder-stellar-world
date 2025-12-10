@@ -419,6 +419,20 @@ export default function SubjectPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleUploadLectureImage(lecture.id)}
+                        disabled={uploadingImageFor === lecture.id}
+                        className="flex items-center gap-1 px-2 py-1 text-xs"
+                        title="Upload Lecture Image"
+                      >
+                        <ImagePlus className="h-3 w-3 text-orange-600" />
+                        <span>
+                          {uploadingImageFor === lecture.id ? "Uploading..." : "Image"}
+                        </span>
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => openVideoForm(lecture.id)}
                         className="flex items-center gap-1 px-2 py-1 text-xs"
                         title="Add Video"
