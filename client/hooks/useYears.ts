@@ -977,6 +977,9 @@ export function useYears() {
       type?: "basic" | "clinical";
     } = {},
   ) => {
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     const yearNumber = data.yearNumber || 1;
     const name = data.name || `Year ${yearNumber}`;
     const type = data.type || (yearNumber <= 3 ? "basic" : "clinical");
