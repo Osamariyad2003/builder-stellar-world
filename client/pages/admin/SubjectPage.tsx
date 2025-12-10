@@ -95,6 +95,16 @@ export default function SubjectPage() {
     null,
   );
 
+  // Expandable sections state: { lectureId: { videos: boolean, files: boolean, quizzes: boolean } }
+  const [expandedSections, setExpandedSections] = useState<
+    Record<string, { videos: boolean; files: boolean; quizzes: boolean }>
+  >({});
+
+  // Edit item state
+  const [editingVideo, setEditingVideo] = useState<any>(null);
+  const [editingFile, setEditingFile] = useState<any>(null);
+  const [editingQuiz, setEditingQuiz] = useState<any>(null);
+
   // Check global subjects first
   let subject = subjects.find((s) => s.id === id);
 
