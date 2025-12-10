@@ -400,6 +400,10 @@ export function useYears() {
   // Update batch document by id
   const updateBatch = async (batchId: string, patch: Partial<any>) => {
     if (!batchId) return;
+
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     if (isOfflineMode || !navigator.onLine) {
       setBatches((prev) =>
         prev.map((b) => (b.id === batchId ? { ...b, ...patch } : b)),
