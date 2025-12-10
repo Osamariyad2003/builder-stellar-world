@@ -167,7 +167,31 @@ export function useYears() {
       }
 
       setConnectionStatus("connecting");
-      setLoading(true);
+
+      // Try to load from cache first
+      const hasCachedYears = cacheManager.isCacheValid("years");
+      const hasCachedBatches = cacheManager.isCacheValid("batches");
+      const hasCachedSubjects = cacheManager.isCacheValid("subjects");
+
+      if (hasCachedYears && hasCachedBatches && hasCachedSubjects) {
+        console.log("📦 Loading data from cache...");
+        const cachedYears = cacheManager.getCache<YearData[]>("years") || [];
+        const cachedBatches = cacheManager.getCache<any[]>("batches") || [];
+        const cachedSubjects = cacheManager.getCache<SubjectData[]>("subjects") || [];
+
+        setBatches(cachedBatches);
+        setYears(cachedYears);
+        setSubjects(cachedSubjects);
+        setLoading(false);
+        setIsOfflineMode(false);
+        setConnectionStatus("connected");
+        console.log("✅ Loaded from cache - fetching fresh data in background...");
+
+        // Continue fetching fresh data in background
+      } else {
+        // No valid cache, show loading state
+        setLoading(true);
+      }
 
       try {
         console.log("🔄 Attempting Firebase connection...");
@@ -248,6 +272,10 @@ export function useYears() {
         setConnectionStatus("connected");
         console.log("✅ Phase 1 complete: Batches and years loaded");
 
+        // Cache batches and years
+        cacheManager.setCache("batches", batchesData);
+        cacheManager.setCache("years", sortedYears);
+
         // PHASE 2: Fetch subjects collection (non-blocking)
         console.log("📚 Phase 2: Fetching subjects...");
         const subjectsSnapshot = await getDocs(collection(db, "Subjects"));
@@ -297,13 +325,26 @@ export function useYears() {
         }));
 
         setYears(completeYears);
-        setSubjects(completeYears.flatMap((year) => year.subjects));
+        setSubjects(allSubjects);
         setError(null);
         console.log("✅ Phase 2 complete: Subjects and lectures loaded");
 
+        // Cache subjects
+        cacheManager.setCache("subjects", allSubjects);
+
       } catch (error: any) {
-        console.log("❌ Firebase connection failed - staying in offline mode");
-        activateOfflineMode();
+        console.log("❌ Firebase connection failed");
+
+        // If we haven't already loaded from cache, activate offline mode
+        if (!cacheManager.isCacheValid("years")) {
+          console.log("No cache available - activating offline mode");
+          activateOfflineMode();
+        } else {
+          console.log("Using cached data in offline mode");
+          setConnectionStatus("offline");
+          setIsOfflineMode(true);
+          setLoading(false);
+        }
       }
     };
 
