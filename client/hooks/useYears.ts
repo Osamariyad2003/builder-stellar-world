@@ -15,6 +15,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import cacheManager from "@/lib/cacheManager";
 
 export interface YearData {
   id?: string;
