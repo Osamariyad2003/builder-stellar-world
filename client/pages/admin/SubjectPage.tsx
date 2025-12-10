@@ -349,7 +349,12 @@ export default function SubjectPage() {
 
           // Reload subject to refresh the UI
           if (subject?.id) {
-            const lecturesRef = collection(db, "Subjects", subject.id, "lectures");
+            const lecturesRef = collection(
+              db,
+              "Subjects",
+              subject.id,
+              "lectures",
+            );
             const lecturesSnap = await getDocs(lecturesRef);
             const lectures = lecturesSnap.docs.map((lectureDoc) => ({
               id: lectureDoc.id,
@@ -364,7 +369,7 @@ export default function SubjectPage() {
             setDirectSubject({
               ...subject,
               lectures: lectures.sort(
-                (a, b) => (a.order || 0) - (b.order || 0)
+                (a, b) => (a.order || 0) - (b.order || 0),
               ),
             });
           }
