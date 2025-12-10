@@ -144,6 +144,7 @@ export default function Years() {
     isOfflineMode,
     connectionStatus,
     retryConnection,
+    clearCache,
     updateYear,
     updateBatch,
     createSubject,
