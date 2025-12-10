@@ -16,7 +16,14 @@ import {
   BookOpen,
   GraduationCap,
   Stethoscope,
+  Upload,
+  Loader2,
 } from "lucide-react";
+import {
+  uploadImageToCloudinary,
+  setLocalCloudinaryConfig,
+} from "@/lib/cloudinary";
+import { uploadToImageKitServer } from "@/lib/imagekit";
 
 interface Lecture {
   id?: string;
