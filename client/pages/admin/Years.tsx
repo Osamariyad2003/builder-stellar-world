@@ -873,6 +873,17 @@ export default function Years() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              clearCache();
+              alert("Cache cleared. Data will be refreshed from server.");
+            }}
+            title="Clear cached data and fetch fresh from server"
+          >
+            🔄 Refresh Cache
+          </Button>
           <Dialog>
             <DialogTrigger asChild>
               <Button>
