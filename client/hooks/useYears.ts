@@ -756,6 +756,9 @@ export function useYears() {
   const deleteSubject = async (subjectId: string) => {
     if (!subjectId) return;
 
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     if (isOfflineMode) {
       setSubjects((prev) => prev.filter((s) => s.id !== subjectId));
       setYears((prev) =>
