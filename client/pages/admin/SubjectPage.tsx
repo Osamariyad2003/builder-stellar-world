@@ -309,17 +309,65 @@ export default function SubjectPage() {
   if (isVideoFormOpen && selectedLecture) {
     return (
       <VideoForm
+        video={editingVideo}
         lectureId={selectedLecture}
+        subjectId={subject?.id}
         onClose={() => {
           setIsVideoFormOpen(false);
           setSelectedLecture(null);
+          setEditingVideo(null);
         }}
         onSave={async (videoData) => {
           if (subject?.id && selectedLecture) {
-            await addVideo(subject.id, selectedLecture, videoData);
+            if (editingVideo?.id) {
+              // Update existing video
+              const videoRef = doc(
+                db,
+                "Subjects",
+                subject.id,
+                "lectures",
+                selectedLecture,
+                "videos",
+                editingVideo.id,
+              );
+              await updateDoc(videoRef, {
+                title: videoData.title,
+                description: videoData.description,
+                url: videoData.url,
+                duration: videoData.duration,
+                thumbnailUrl: videoData.thumbnailUrl,
+                platform: videoData.platform,
+              });
+            } else {
+              // Create new video
+              await addVideo(subject.id, selectedLecture, videoData);
+            }
           }
           setIsVideoFormOpen(false);
           setSelectedLecture(null);
+          setEditingVideo(null);
+
+          // Reload subject to refresh the UI
+          if (subject?.id) {
+            const lecturesRef = collection(db, "Subjects", subject.id, "lectures");
+            const lecturesSnap = await getDocs(lecturesRef);
+            const lectures = lecturesSnap.docs.map((lectureDoc) => ({
+              id: lectureDoc.id,
+              name: lectureDoc.data().name || lectureDoc.data().title || "",
+              description: lectureDoc.data().description || "",
+              imageUrl: lectureDoc.data().imageUrl || "",
+              videos: undefined,
+              files: undefined,
+              quizzes: undefined,
+            }));
+
+            setDirectSubject({
+              ...subject,
+              lectures: lectures.sort(
+                (a, b) => (a.order || 0) - (b.order || 0)
+              ),
+            });
+          }
         }}
       />
     );
