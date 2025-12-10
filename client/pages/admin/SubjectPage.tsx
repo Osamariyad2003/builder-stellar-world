@@ -25,6 +25,8 @@ import {
   Trash2,
   Edit2,
   ImagePlus,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import {
   uploadImageToCloudinary,
