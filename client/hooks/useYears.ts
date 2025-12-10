@@ -1122,6 +1122,9 @@ export function useYears() {
   ) => {
     if (!batchId) return;
 
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     // Optimistic removal
     const prevBatches = batches;
     const prevYears = years;
