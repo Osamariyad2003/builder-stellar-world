@@ -562,6 +562,9 @@ export function useYears() {
   };
 
   const createLecture = async (lectureData: Omit<LectureData, "id">) => {
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     if (isOfflineMode) {
       const newLecture: LectureData = {
         id: `lecture_${Date.now()}`,
