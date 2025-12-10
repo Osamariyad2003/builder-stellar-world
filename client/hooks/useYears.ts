@@ -363,6 +363,9 @@ export function useYears() {
   const updateYear = async (yearId: string, patch: Partial<YearData>) => {
     if (!yearId) return;
 
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     if (isOfflineMode || !navigator.onLine) {
       setYears((prev) =>
         prev.map((y) => (y.id === yearId ? { ...y, ...patch } : y)),
