@@ -706,6 +706,9 @@ export function useYears() {
   };
 
   const deleteLecture = async (subjectId: string, lectureId: string) => {
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     if (isOfflineMode) {
       setSubjects((prev) =>
         prev.map((subject) =>
