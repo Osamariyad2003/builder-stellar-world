@@ -74,6 +74,9 @@ export default function SubjectPage() {
   const [loadingSubject, setLoadingSubject] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [directSubject, setDirectSubject] = useState<any>(null);
+  const [uploadingImageFor, setUploadingImageFor] = useState<string | null>(
+    null,
+  );
 
   // Check global subjects first
   let subject = subjects.find((s) => s.id === id);
