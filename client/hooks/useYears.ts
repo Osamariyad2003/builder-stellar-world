@@ -1281,6 +1281,14 @@ export function useYears() {
     }
   };
 
+  const clearCache = () => {
+    console.log("🗑️  Clearing Years Tab cache...");
+    cacheManager.clearCache("years");
+    cacheManager.clearCache("batches");
+    cacheManager.clearCache("subjects");
+    setRetryCount((prev) => prev + 1);
+  };
+
   return {
     years,
     batches,
@@ -1290,6 +1298,7 @@ export function useYears() {
     isOfflineMode,
     connectionStatus,
     retryConnection,
+    clearCache,
     updateYear,
     updateBatch,
     createSubject,
