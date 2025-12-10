@@ -59,6 +59,7 @@ export function LectureForm({
   });
 
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (lecture) {
