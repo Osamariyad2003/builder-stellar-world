@@ -124,7 +124,9 @@ export function LectureForm({
       const lectureData = {
         ...formData,
         subjectId: subjectId,
-        ...(isEditing && lecture ? { id: lecture.id } : { createdAt: new Date(), uploadedBy: "Current User" }),
+        ...(isEditing && lecture
+          ? { id: lecture.id }
+          : { createdAt: new Date(), uploadedBy: "Current User" }),
       };
 
       onSave(lectureData);

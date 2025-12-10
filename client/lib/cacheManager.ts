@@ -70,7 +70,9 @@ class CacheManager {
 
       const cacheAge = Date.now() - entry.timestamp;
       const cacheAgeMinutes = Math.round(cacheAge / 1000 / 60);
-      console.log(`✅ Valid cache found for ${type} (${cacheAgeMinutes} minutes old)`);
+      console.log(
+        `✅ Valid cache found for ${type} (${cacheAgeMinutes} minutes old)`,
+      );
       return true;
     } catch (error) {
       console.error(`❌ Error checking cache for ${type}:`, error);

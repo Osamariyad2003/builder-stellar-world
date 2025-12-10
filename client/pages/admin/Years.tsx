@@ -113,9 +113,7 @@ export default function Years() {
           (l) =>
             l.id === lectureId &&
             l.name &&
-            years
-              .flatMap((y) => y.subjects)
-              .find((s) => s.id === subjectId),
+            years.flatMap((y) => y.subjects).find((s) => s.id === subjectId),
         );
 
       if (lecture && !lecture[section]) {
@@ -608,7 +606,11 @@ export default function Years() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() =>
-                                        toggleSection(lecture.id, "videos", subject.id)
+                                        toggleSection(
+                                          lecture.id,
+                                          "videos",
+                                          subject.id,
+                                        )
                                       }
                                       className={`h-6 px-2 text-xs ${expanded[lecture.id]?.videos ? "bg-accent" : ""}`}
                                     >
@@ -619,7 +621,11 @@ export default function Years() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() =>
-                                        toggleSection(lecture.id, "files", subject.id)
+                                        toggleSection(
+                                          lecture.id,
+                                          "files",
+                                          subject.id,
+                                        )
                                       }
                                       className={`h-6 px-2 text-xs ${expanded[lecture.id]?.files ? "bg-accent" : ""}`}
                                     >
@@ -630,7 +636,11 @@ export default function Years() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() =>
-                                        toggleSection(lecture.id, "quizzes", subject.id)
+                                        toggleSection(
+                                          lecture.id,
+                                          "quizzes",
+                                          subject.id,
+                                        )
                                       }
                                       className={`h-6 px-2 text-xs ${expanded[lecture.id]?.quizzes ? "bg-accent" : ""}`}
                                     >

@@ -2,7 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useYears } from "@/hooks/useYears";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, collection, getDocs, updateDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  getDocs,
+  updateDoc,
+} from "firebase/firestore";
 import {
   Card,
   CardContent,
@@ -11,7 +17,15 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlayCircle, FileText, HelpCircle, Plus, Trash2, Edit2, ImagePlus } from "lucide-react";
+import {
+  PlayCircle,
+  FileText,
+  HelpCircle,
+  Plus,
+  Trash2,
+  Edit2,
+  ImagePlus,
+} from "lucide-react";
 import {
   uploadImageToCloudinary,
   setLocalCloudinaryConfig,
@@ -118,9 +132,7 @@ export default function SubjectPage() {
 
           setDirectSubject({
             ...foundSubject,
-            lectures: lectures.sort(
-              (a, b) => (a.order || 0) - (b.order || 0)
-            ),
+            lectures: lectures.sort((a, b) => (a.order || 0) - (b.order || 0)),
           });
         } else {
           setError("Subject not found");
@@ -426,7 +438,9 @@ export default function SubjectPage() {
                       >
                         <ImagePlus className="h-3 w-3 text-orange-600" />
                         <span>
-                          {uploadingImageFor === lecture.id ? "Uploading..." : "Image"}
+                          {uploadingImageFor === lecture.id
+                            ? "Uploading..."
+                            : "Image"}
                         </span>
                       </Button>
 

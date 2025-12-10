@@ -11,6 +11,7 @@ A client-side caching system has been implemented for the Years Tab to improve p
 The `CacheManager` is a singleton class that manages all caching operations:
 
 **Features:**
+
 - **localStorage-based storage**: Persists data across browser sessions
 - **TTL Support**: Default 1 hour (configurable)
 - **Version Compatibility**: Prevents mismatched cache versions
@@ -18,6 +19,7 @@ The `CacheManager` is a singleton class that manages all caching operations:
 - **Cache Statistics**: Debug utilities to monitor cache usage
 
 **API:**
+
 ```typescript
 // Check if cache is still valid
 isCacheValid(type: string): boolean
@@ -43,6 +45,7 @@ getCacheStats(): { totalSize: number; entries: [...] }
 The `useYears` hook integrates caching with a smart fetch strategy:
 
 **Load Pattern:**
+
 1. Check if valid cache exists for years, batches, and subjects
 2. If all caches valid: Load and display immediately
 3. Set connection status to "connected"
@@ -51,11 +54,13 @@ The `useYears` hook integrates caching with a smart fetch strategy:
 6. If no cache available: Show loading state while fetching
 
 **Cache Invalidation:**
+
 - Cache is cleared immediately when any mutation occurs (create, update, delete)
 - Fresh data is fetched to repopulate cache
 - This ensures data consistency
 
 **Functions Modified:**
+
 - `createYear()` - Clears cache before creating
 - `createBatch()` - Clears cache before creating
 - `createSubject()` - Clears cache before creating
@@ -67,6 +72,7 @@ The `useYears` hook integrates caching with a smart fetch strategy:
 - `deleteBatch()` - Clears cache before deleting
 
 **New Exported Functions:**
+
 - `clearCache()` - Manually clear all Years Tab caches
 
 ### UI Changes (`client/pages/admin/Years.tsx`)
@@ -87,29 +93,34 @@ Location: Top right of the Years page, next to the "Add Batch" button
 ## Cache Behavior
 
 ### First Load
+
 - No cache exists
 - Loading spinner shows
 - Firebase data fetches
 - Data displays and gets cached
 
 ### Second Load (within 1 hour)
+
 - Cache is valid
 - Data displays instantly from cache
 - Fresh data fetches in background
 - Cache updated silently
 
 ### Cache Expiration (after 1 hour)
+
 - Cache is invalid
 - Loading spinner shows
 - Fresh data fetches from Firebase
 - Data displays and cache resets
 
 ### After Mutation (create/update/delete)
+
 - Cache immediately cleared
 - Fresh data fetches
 - Updated data displays and caches
 
 ### Manual Refresh
+
 - User clicks "Refresh Cache" button
 - Cache cleared
 - Fresh data fetches
@@ -118,11 +129,13 @@ Location: Top right of the Years page, next to the "Add Batch" button
 ## Storage Details
 
 **localStorage Keys:**
+
 - `medjust_cache_years` - Cached years data
 - `medjust_cache_batches` - Cached batches data
 - `medjust_cache_subjects` - Cached subjects data
 
 **Cache Entry Structure:**
+
 ```typescript
 {
   data: YearData[] | BatchData[] | SubjectData[],
@@ -132,42 +145,50 @@ Location: Top right of the Years page, next to the "Add Batch" button
 ```
 
 **Cache Size:**
+
 - Typical size: 50-200KB per cache type
 - Total: ~150-600KB for all three caches
 
 ## Configuration
 
 **TTL (Time To Live):** 1 hour (3,600,000 milliseconds)
+
 - Located in `client/lib/cacheManager.ts`
 - Modify `DEFAULT_TTL` to change
 
 **Cache Version:** 1
+
 - Automatically increments when cache structure changes
 - Prevents stale cache usage after updates
 
 ## Debugging
 
 ### Check Cache Status
+
 Open browser DevTools console and run:
+
 ```typescript
-import cacheManager from '@/lib/cacheManager';
+import cacheManager from "@/lib/cacheManager";
 cacheManager.getCacheStats();
 ```
 
 ### Clear All Cache
+
 ```typescript
 cacheManager.clearAllCache();
 ```
 
 ### Check Specific Cache
+
 ```typescript
-cacheManager.getCache('years');
-cacheManager.isCacheValid('years');
+cacheManager.getCache("years");
+cacheManager.isCacheValid("years");
 ```
 
 ## Browser Compatibility
 
 Works in all modern browsers that support:
+
 - localStorage API
 - JSON serialization
 - ES6 features

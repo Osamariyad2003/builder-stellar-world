@@ -177,7 +177,8 @@ export function useYears() {
         console.log("📦 Loading data from cache...");
         const cachedYears = cacheManager.getCache<YearData[]>("years") || [];
         const cachedBatches = cacheManager.getCache<any[]>("batches") || [];
-        const cachedSubjects = cacheManager.getCache<SubjectData[]>("subjects") || [];
+        const cachedSubjects =
+          cacheManager.getCache<SubjectData[]>("subjects") || [];
 
         setBatches(cachedBatches);
         setYears(cachedYears);
@@ -185,7 +186,9 @@ export function useYears() {
         setLoading(false);
         setIsOfflineMode(false);
         setConnectionStatus("connected");
-        console.log("✅ Loaded from cache - fetching fresh data in background...");
+        console.log(
+          "✅ Loaded from cache - fetching fresh data in background...",
+        );
 
         // Continue fetching fresh data in background
       } else {
@@ -265,7 +268,9 @@ export function useYears() {
 
         // Set batches and years immediately (before subjects)
         setBatches(batchesData);
-        const sortedYears = yearsData.sort((a, b) => a.yearNumber - b.yearNumber);
+        const sortedYears = yearsData.sort(
+          (a, b) => a.yearNumber - b.yearNumber,
+        );
         setYears(sortedYears);
         setLoading(false);
         setIsOfflineMode(false);
@@ -331,7 +336,6 @@ export function useYears() {
 
         // Cache subjects
         cacheManager.setCache("subjects", allSubjects);
-
       } catch (error: any) {
         console.log("❌ Firebase connection failed");
 
@@ -1217,13 +1221,21 @@ export function useYears() {
   const loadLectureResources = async (
     subjectId: string,
     lectureId: string,
-  ): Promise<{ videos?: VideoData[]; files?: FileData[]; quizzes?: QuizData[] }> => {
+  ): Promise<{
+    videos?: VideoData[];
+    files?: FileData[];
+    quizzes?: QuizData[];
+  }> => {
     if (isOfflineMode || !navigator.onLine) {
       return { videos: [], files: [], quizzes: [] };
     }
 
     try {
-      const resources: { videos?: VideoData[]; files?: FileData[]; quizzes?: QuizData[] } = {};
+      const resources: {
+        videos?: VideoData[];
+        files?: FileData[];
+        quizzes?: QuizData[];
+      } = {};
 
       const lectureRef = doc(db, "Subjects", subjectId, "lectures", lectureId);
 
@@ -1266,7 +1278,9 @@ export function useYears() {
 
       // Fetch quizzes
       try {
-        const quizzesSnapshot = await getDocs(collection(lectureRef, "quizzes"));
+        const quizzesSnapshot = await getDocs(
+          collection(lectureRef, "quizzes"),
+        );
         resources.quizzes = quizzesSnapshot.docs.map((quizDoc) => {
           const quizData = quizDoc.data();
           return {
