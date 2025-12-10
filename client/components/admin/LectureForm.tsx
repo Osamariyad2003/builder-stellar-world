@@ -204,24 +204,128 @@ export function LectureForm({
               />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="order">Order</Label>
-                <Input
-                  id="order"
-                  type="number"
-                  min="1"
-                  value={formData.order}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      order: parseInt(e.target.value) || 1,
-                    }))
-                  }
-                />
+            <div className="space-y-2">
+              <Label htmlFor="order">Order</Label>
+              <Input
+                id="order"
+                type="number"
+                min="1"
+                value={formData.order}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    order: parseInt(e.target.value) || 1,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="space-y-4">
+              <Label>Lecture Image (Optional)</Label>
+              <div className="border-2 border-dashed rounded-lg p-6 space-y-3">
+                {formData.imageUrl ? (
+                  <div className="space-y-3">
+                    <div className="relative w-40 h-32 rounded-md overflow-hidden">
+                      <img
+                        src={formData.imageUrl}
+                        alt="Lecture preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.createElement("input");
+                          input.type = "file";
+                          input.accept = "image/*";
+                          input.onchange = (e) =>
+                            handleImageUpload(
+                              e as React.ChangeEvent<HTMLInputElement>,
+                            );
+                          input.click();
+                        }}
+                        disabled={uploadingImage}
+                      >
+                        {uploadingImage ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Change Image
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            imageUrl: "",
+                          }))
+                        }
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center space-y-3">
+                    <BookOpen className="h-12 w-12 mx-auto text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium mb-2">
+                        Upload lecture image
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Click button below to select an image
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.createElement("input");
+                          input.type = "file";
+                          input.accept = "image/*";
+                          input.onchange = (e) =>
+                            handleImageUpload(
+                              e as React.ChangeEvent<HTMLInputElement>,
+                            );
+                          input.click();
+                        }}
+                        disabled={uploadingImage}
+                      >
+                        {uploadingImage ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Upload Image
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">Image URL (Optional)</Label>
+                <Label htmlFor="imageUrl" className="text-xs">
+                  Or paste image URL directly
+                </Label>
                 <Input
                   id="imageUrl"
                   placeholder="https://example.com/image.jpg"
