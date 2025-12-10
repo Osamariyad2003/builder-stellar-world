@@ -156,6 +156,72 @@ export default function SubjectPage() {
     setIsQuizFormOpen(true);
   };
 
+  const handleUploadLectureImage = async (lectureId: string) => {
+    try {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.onchange = async () => {
+        const file = input.files?.[0];
+        if (!file) return;
+
+        setUploadingImageFor(lectureId);
+        try {
+          let imageUrl: string | null = null;
+
+          // Try Cloudinary first
+          try {
+            imageUrl = await uploadImageToCloudinary(file);
+          } catch (cloudErr: any) {
+            console.warn(
+              "Cloudinary upload failed, trying ImageKit",
+              cloudErr?.message || cloudErr,
+            );
+
+            // Fallback to ImageKit
+            imageUrl = await uploadToImageKitServer(file, file.name);
+          }
+
+          if (!imageUrl) {
+            alert("Failed to upload image");
+            return;
+          }
+
+          // Update the lecture in Firebase
+          if (subject?.id) {
+            const lectureRef = doc(
+              db,
+              "Subjects",
+              subject.id,
+              "lectures",
+              lectureId,
+            );
+            await updateDoc(lectureRef, { imageUrl });
+
+            // Update local state
+            setDirectSubject((prev: any) => ({
+              ...prev,
+              lectures: prev.lectures.map((l: any) =>
+                l.id === lectureId ? { ...l, imageUrl } : l,
+              ),
+            }));
+
+            alert("Lecture image updated successfully");
+          }
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          alert("Failed to upload image. Please try again.");
+        } finally {
+          setUploadingImageFor(null);
+        }
+      };
+      input.click();
+    } catch (err) {
+      console.error(err);
+      alert("Could not open file dialog");
+    }
+  };
+
   if (isVideoFormOpen && selectedLecture) {
     return (
       <VideoForm
