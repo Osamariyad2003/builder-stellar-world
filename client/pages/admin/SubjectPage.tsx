@@ -181,6 +181,65 @@ export default function SubjectPage() {
     setIsQuizFormOpen(true);
   };
 
+  const toggleSection = async (
+    lectureId: string,
+    section: "videos" | "files" | "quizzes",
+  ) => {
+    // Check if we need to load resources
+    const lecture = (subject?.lectures || []).find(
+      (l: any) => l.id === lectureId,
+    );
+    if (!lecture) return;
+
+    const currentExpanded = expandedSections[lectureId]?.[section] || false;
+
+    // If opening and resources not loaded, load them
+    if (!currentExpanded && !lecture[section]) {
+      try {
+        const lectureRef = doc(
+          db,
+          "Subjects",
+          subject.id,
+          "lectures",
+          lectureId,
+        );
+        const resourceName =
+          section === "videos"
+            ? "videos"
+            : section === "files"
+              ? "files"
+              : "quizzes";
+        const resourcesRef = collection(lectureRef, resourceName);
+        const resourcesSnap = await getDocs(resourcesRef);
+
+        const resources = resourcesSnap.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // Update local state with loaded resources
+        setDirectSubject((prev: any) => ({
+          ...prev,
+          lectures: prev.lectures.map((l: any) =>
+            l.id === lectureId ? { ...l, [section]: resources } : l,
+          ),
+        }));
+      } catch (err) {
+        console.error(`Error loading ${section}:`, err);
+      }
+    }
+
+    setExpandedSections((prev) => ({
+      ...prev,
+      [lectureId]: {
+        videos: prev[lectureId]?.videos || false,
+        files: prev[lectureId]?.files || false,
+        quizzes: prev[lectureId]?.quizzes || false,
+        [section]: !currentExpanded,
+      },
+    }));
+  };
+
   const handleUploadLectureImage = async (lectureId: string) => {
     try {
       const input = document.createElement("input");
