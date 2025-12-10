@@ -434,6 +434,9 @@ export function useYears() {
   const createSubject = async (
     subjectData: Omit<SubjectData, "id" | "lectures">,
   ) => {
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     if (isOfflineMode || !navigator.onLine) {
       const newSubject: SubjectData = {
         id: `subject_${Date.now()}`,
