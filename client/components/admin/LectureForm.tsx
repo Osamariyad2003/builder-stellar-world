@@ -72,6 +72,50 @@ export function LectureForm({
     }
   }, [lecture]);
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      let imageUrl: string | null = null;
+
+      // Try Cloudinary first
+      try {
+        imageUrl = await uploadImageToCloudinary(file);
+      } catch (cloudErr: any) {
+        console.warn(
+          "Cloudinary upload failed, trying ImageKit",
+          cloudErr?.message || cloudErr,
+        );
+
+        // Fallback to ImageKit
+        imageUrl = await uploadToImageKitServer(file, file.name);
+      }
+
+      if (!imageUrl) {
+        alert("Failed to upload image");
+        return;
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        imageUrl,
+      }));
+
+      alert("Image uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setUploadingImage(false);
+      // Reset file input
+      if (e.target) {
+        e.target.value = "";
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
