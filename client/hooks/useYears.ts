@@ -1054,6 +1054,9 @@ export function useYears() {
     const imageUrl = data.imageUrl || "";
     const cr = data.cr || "";
 
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     // Optimistic temporary batch to update UI immediately
     const tempId = `batch_temp_${Date.now()}`;
     const tempBatch = { id: tempId, batchName: name, imageUrl, cr };
