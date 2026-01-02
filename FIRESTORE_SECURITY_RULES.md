@@ -99,6 +99,17 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /batches/{batchId} {
+      allow read: if true; // Public read
+      allow write, delete: if isAdmin();
+
+      // Allow nested years collection
+      match /years/{yearId} {
+        allow read: if true;
+        allow write, delete: if isAdmin();
+      }
+    }
+
     match /Subjects/{subjectId} {
       allow read: if true; // Public read for students
       allow write: if isAdmin();
