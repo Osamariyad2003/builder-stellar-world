@@ -40,6 +40,15 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    match /batches/{batchId} {
+      allow read, write, delete: if request.auth != null;
+
+      // Allow nested years collection
+      match /years/{yearId} {
+        allow read, write, delete: if request.auth != null;
+      }
+    }
+
     match /Subjects/{subjectId} {
       allow read, write: if request.auth != null;
 
