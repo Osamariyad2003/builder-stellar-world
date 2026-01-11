@@ -64,7 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isNetworkError) {
           if (
             error?.code === "auth/wrong-password" ||
-            error?.code === "auth/user-not-found"
+            error?.code === "auth/user-not-found" ||
+            error?.code === "auth/invalid-credential"
           ) {
             setAuthError("Invalid email or password");
           } else {
