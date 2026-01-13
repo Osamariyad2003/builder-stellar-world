@@ -19,6 +19,8 @@ export const setFirebaseOffline = (offline: boolean) => {
 
 export const isFirebaseInOfflineMode = () => isFirebaseOffline;
 
+export const isExtensionBlocking = () => extensionBlockingDetected;
+
 export const addOfflineModeListener = (listener: () => void) => {
   offlineListeners.push(listener);
   return () => {
