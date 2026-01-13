@@ -192,11 +192,12 @@ if (!(window.fetch as any).__firebasePatched) {
         message.includes("extension") ||
         message.includes("failed to fetch");
 
-      // If extension is blocking requests, switch to offline mode immediately
+      // If extension is blocking requests, switch to permanent offline mode
       if (isExtensionError && message.includes("failed to fetch")) {
         console.log(
-          "🔴 Firefox blocking requests - switching to offline mode",
+          "🔴 Extension blocking Firebase requests - permanent offline mode",
         );
+        extensionBlockingDetected = true;
         setFirebaseOffline(true);
       }
 
