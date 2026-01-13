@@ -59,7 +59,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // If it's not a network related error, break immediately and surface it
         const isNetworkError =
           error?.code === "auth/network-request-failed" ||
-          (error?.message && error.message.toLowerCase().includes("fetch"));
+          (error?.message && (error.message.toLowerCase().includes("fetch") ||
+                               error.message.toLowerCase().includes("network") ||
+                               error.message.toLowerCase().includes("offline")));
 
         if (!isNetworkError) {
           if (
