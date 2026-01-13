@@ -1,6 +1,7 @@
 // Global Firebase connection monitor - start in online mode
 let isFirebaseOffline = false;
 let offlineListeners: Array<() => void> = [];
+let extensionBlockingDetected = false; // Flag to track if an extension is blocking requests
 
 // Monitor for persistent Firebase errors - be less aggressive to avoid false positives
 let errorCount = 0;
