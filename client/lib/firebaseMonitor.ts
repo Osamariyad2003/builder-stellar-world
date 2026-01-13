@@ -230,11 +230,14 @@ console.log("🔄 Starting Firebase monitoring in ONLINE mode");
 window.addEventListener("unhandledrejection", (event) => {
   const msg = String(event?.reason?.message || event?.reason || "");
   const stack = String((event?.reason && (event.reason.stack || "")) || "");
+  const isExtensionOrError = stack.includes("chrome-extension://") ||
+                              stack.includes("extension://") ||
+                              msg.toLowerCase().includes("failed to fetch") ||
+                              msg.toLowerCase().includes("extension");
 
   // If the rejection originates from an extension or analytics script, swallow it
   if (
-    (msg.includes("Failed to fetch") ||
-      msg.toLowerCase().includes("extension")) &&
+    isExtensionOrError &&
     (stack.includes("chrome-extension://") ||
       stack.includes("extension://") ||
       stack.includes("fullstory.com"))
@@ -245,6 +248,12 @@ window.addEventListener("unhandledrejection", (event) => {
 
   // Also ignore noisy XHR/fetch failures that include extension origins in stack
   if (stack.includes("chrome-extension://") || stack.includes("extension://")) {
+    event.preventDefault();
+    return;
+  }
+
+  // Suppress "Failed to fetch" errors from extensions even without stack trace
+  if (msg.toLowerCase().includes("failed to fetch") && stack.includes("chrome-extension")) {
     event.preventDefault();
     return;
   }
