@@ -187,6 +187,13 @@ if (!(window.fetch as any).__firebasePatched) {
         stack.includes("chrome-extension://") ||
         stack.includes("extension://") ||
         message.includes("extension");
+
+      // If extension is blocking requests, switch to offline mode
+      if (isExtensionError && (message.includes("failed to fetch") || message.includes("network"))) {
+        console.log("🔄 Extension blocking Firebase requests - activating offline mode");
+        setFirebaseOffline(true);
+      }
+
       if (!isExtensionError && navigator.onLine) reportFirebaseError(error);
       return Promise.reject(error);
     }
