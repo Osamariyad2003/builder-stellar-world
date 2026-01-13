@@ -371,6 +371,7 @@ export const disableFirebaseWhenOffline = () => {
 export default {
   setFirebaseOffline,
   isFirebaseInOfflineMode,
+  isExtensionBlocking,
   addOfflineModeListener,
   reportFirebaseError,
   disableFirebaseWhenOffline,
