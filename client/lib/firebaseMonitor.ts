@@ -139,54 +139,27 @@ if (!(window.fetch as any).__firebasePatched) {
           return response;
         })
         .catch((error) => {
-          // If this error comes from a browser extension or third-party script, try XHR fallback
+          // If this error comes from a browser extension or third-party script
           const stack = String((error && (error.stack || "")) || "");
           const message = String(error?.message || error || "").toLowerCase();
           const isExtensionError =
             stack.includes("chrome-extension://") ||
             stack.includes("extension://") ||
-            message.includes("extension");
+            message.includes("extension") ||
+            message.includes("failed to fetch");
 
-          if (isExtensionError) {
+          // If extension is blocking, switch to offline mode immediately
+          if (isExtensionError && message.includes("failed to fetch")) {
             console.log(
-              "🔴 Firebase fetch intercepted by extension, attempting XHR fallback",
+              "🔴 Firefox fetch blocked by extension - switching to offline mode",
             );
-            // Attempt XHR fallback to perform the request
-            return xhrFallback(args[0] as RequestInfo, args[1] as RequestInit)
-              .then((resLike: any) => {
-                // If fallback succeeded and response ok, reset error count
-                if (resLike && resLike.ok) {
-                  errorCount = 0;
-                  if (isFirebaseOffline) {
-                    console.log(
-                      "🟢 Firebase connection restored via XHR fallback",
-                    );
-                    setFirebaseOffline(false);
-                  }
-                }
-                return resLike;
-              })
-              .catch((xhrErr: any) => {
-                console.log(
-                  "🔴 XHR fallback also failed:",
-                  xhrErr?.message || String(xhrErr),
-                );
-                // If XHR also fails (extension blocks both), switch to offline mode gracefully
-                const xhrMessage = String(
-                  xhrErr?.message || xhrErr || "",
-                ).toLowerCase();
-                if (
-                  xhrMessage.includes("network") ||
-                  xhrMessage.includes("failed")
-                ) {
-                  console.log(
-                    "🔄 Extension blocking all network requests - activating offline mode",
-                  );
-                  setFirebaseOffline(true);
-                }
-                // Do not count extension-origin failures toward Firebase error threshold
-                return Promise.reject(error);
-              });
+            setFirebaseOffline(true);
+            // Return a rejected promise but don't retry
+            const err = new Error(
+              "Firebase offline (extension blocking requests)",
+            );
+            (err as any).isExtensionBlocked = true;
+            return Promise.reject(err);
           }
 
           console.log(
@@ -211,15 +184,13 @@ if (!(window.fetch as any).__firebasePatched) {
       const isExtensionError =
         stack.includes("chrome-extension://") ||
         stack.includes("extension://") ||
-        message.includes("extension");
+        message.includes("extension") ||
+        message.includes("failed to fetch");
 
-      // If extension is blocking requests, switch to offline mode
-      if (
-        isExtensionError &&
-        (message.includes("failed to fetch") || message.includes("network"))
-      ) {
+      // If extension is blocking requests, switch to offline mode immediately
+      if (isExtensionError && message.includes("failed to fetch")) {
         console.log(
-          "🔄 Extension blocking Firebase requests - activating offline mode",
+          "🔴 Firefox blocking requests - switching to offline mode",
         );
         setFirebaseOffline(true);
       }
