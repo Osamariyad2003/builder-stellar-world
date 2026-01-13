@@ -151,8 +151,14 @@ if (!(window.fetch as any).__firebasePatched) {
                 }
               }
               return resLike;
-            }).catch((xhrErr) => {
+            }).catch((xhrErr: any) => {
               console.log("🔴 XHR fallback also failed:", xhrErr?.message || String(xhrErr));
+              // If XHR also fails (extension blocks both), switch to offline mode gracefully
+              const xhrMessage = String(xhrErr?.message || xhrErr || "").toLowerCase();
+              if (xhrMessage.includes("network") || xhrMessage.includes("failed")) {
+                console.log("🔄 Extension blocking all network requests - activating offline mode");
+                setFirebaseOffline(true);
+              }
               // Do not count extension-origin failures toward Firebase error threshold
               return Promise.reject(error);
             });
