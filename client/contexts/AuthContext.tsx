@@ -34,6 +34,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
   const login = async (email: string, password: string) => {
+    // Check if extension is already blocking
+    if (isExtensionBlocking()) {
+      const err = new Error("Extension is blocking network requests");
+      setAuthError(
+        "Network blocked by browser extension. Try disabling ad blockers, VPNs, or security extensions and refresh the page.",
+      );
+      throw err;
+    }
+
     // Basic quick check for navigator online status
     if (typeof navigator !== "undefined" && !navigator.onLine) {
       const err = new Error("No network connection (navigator offline)");
@@ -64,6 +73,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             (error.message.toLowerCase().includes("fetch") ||
               error.message.toLowerCase().includes("network") ||
               error.message.toLowerCase().includes("offline")));
+
+        // Check if extension started blocking
+        if (isExtensionBlocking()) {
+          setAuthError(
+            "Network blocked by browser extension. Try disabling ad blockers, VPNs, or security extensions and refresh the page.",
+          );
+          throw error;
+        }
 
         if (!isNetworkError) {
           if (
@@ -96,12 +113,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // After retries failed, provide a helpful diagnostic message
     console.error("Login failed after retries:", lastError);
-    const errorMsg = lastError?.message || "";
-    const isExtensionBlocked =
-      errorMsg.toLowerCase().includes("failed to fetch") ||
-      errorMsg.toLowerCase().includes("extension");
 
-    if (isExtensionBlocked) {
+    if (isExtensionBlocking()) {
       setAuthError(
         "Network blocked by browser extension. Try disabling ad blockers, VPNs, or security extensions and refresh the page.",
       );
