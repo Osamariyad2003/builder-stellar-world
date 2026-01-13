@@ -119,8 +119,11 @@ if (!(window.fetch as any).__firebasePatched) {
       }
     }
 
-    // Only block Firebase requests if explicitly offline
-    if (isFirebaseOffline) {
+    // If we've already detected an extension is blocking, immediately switch to offline mode
+    if (extensionBlockingDetected || isFirebaseOffline) {
+      if (extensionBlockingDetected) {
+        setFirebaseOffline(true);
+      }
       const offlineError = new Error("Firebase offline mode - request blocked");
       (offlineError as any).isFirebaseOfflineError = true;
       return Promise.reject(offlineError);
