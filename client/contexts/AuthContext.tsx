@@ -6,6 +6,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { isExtensionBlocking } from "@/lib/firebaseMonitor";
 
 interface AuthContextType {
   currentUser: User | null;
