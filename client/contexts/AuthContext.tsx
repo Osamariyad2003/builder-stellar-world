@@ -94,9 +94,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // After retries failed, provide a helpful diagnostic message
     console.error("Login failed after retries:", lastError);
-    setAuthError(
-      "Network error - unable to reach Firebase. Check your internet connection, disabling browser extensions (adblockers), or ensure your site domain is added to Firebase Authentication -> Authorized domains.",
-    );
+    const errorMsg = lastError?.message || "";
+    const isExtensionBlocked = errorMsg.toLowerCase().includes("failed to fetch") ||
+                                errorMsg.toLowerCase().includes("extension");
+
+    if (isExtensionBlocked) {
+      setAuthError(
+        "Network blocked by browser extension. Try disabling ad blockers, VPNs, or security extensions and refresh the page.",
+      );
+    } else {
+      setAuthError(
+        "Network error - unable to reach Firebase. Check your internet connection or ensure your site domain is added to Firebase Authentication -> Authorized domains.",
+      );
+    }
     throw lastError;
   };
 
