@@ -46,7 +46,8 @@ if (!(window.fetch as any).__firebasePatched) {
     const xhrFallback = (input: RequestInfo, init?: RequestInit) => {
       return new Promise<any>((resolve, reject) => {
         try {
-          const url = typeof input === "string" ? input : (input as Request).url;
+          const url =
+            typeof input === "string" ? input : (input as Request).url;
           const method = (init && init.method) || "GET";
           const xhr = new XMLHttpRequest();
           xhr.open(method as string, url, true);
@@ -54,7 +55,9 @@ if (!(window.fetch as any).__firebasePatched) {
           if (init && init.headers) {
             const headers = init.headers as any;
             Object.keys(headers).forEach((h) => {
-              try { xhr.setRequestHeader(h, headers[h]); } catch (_) {}
+              try {
+                xhr.setRequestHeader(h, headers[h]);
+              } catch (_) {}
             });
           }
           xhr.onreadystatechange = () => {
@@ -65,7 +68,13 @@ if (!(window.fetch as any).__firebasePatched) {
               ok: status >= 200 && status < 400,
               status,
               text: async () => text,
-              json: async () => { try { return text ? JSON.parse(text) : {}; } catch (e) { throw e; } },
+              json: async () => {
+                try {
+                  return text ? JSON.parse(text) : {};
+                } catch (e) {
+                  throw e;
+                }
+              },
             } as any;
             resolve(resLike);
           };
@@ -139,29 +148,45 @@ if (!(window.fetch as any).__firebasePatched) {
             message.includes("extension");
 
           if (isExtensionError) {
-            console.log("🔴 Firebase fetch intercepted by extension, attempting XHR fallback");
+            console.log(
+              "🔴 Firebase fetch intercepted by extension, attempting XHR fallback",
+            );
             // Attempt XHR fallback to perform the request
-            return xhrFallback(args[0] as RequestInfo, args[1] as RequestInit).then((resLike: any) => {
-              // If fallback succeeded and response ok, reset error count
-              if (resLike && resLike.ok) {
-                errorCount = 0;
-                if (isFirebaseOffline) {
-                  console.log("🟢 Firebase connection restored via XHR fallback");
-                  setFirebaseOffline(false);
+            return xhrFallback(args[0] as RequestInfo, args[1] as RequestInit)
+              .then((resLike: any) => {
+                // If fallback succeeded and response ok, reset error count
+                if (resLike && resLike.ok) {
+                  errorCount = 0;
+                  if (isFirebaseOffline) {
+                    console.log(
+                      "🟢 Firebase connection restored via XHR fallback",
+                    );
+                    setFirebaseOffline(false);
+                  }
                 }
-              }
-              return resLike;
-            }).catch((xhrErr: any) => {
-              console.log("🔴 XHR fallback also failed:", xhrErr?.message || String(xhrErr));
-              // If XHR also fails (extension blocks both), switch to offline mode gracefully
-              const xhrMessage = String(xhrErr?.message || xhrErr || "").toLowerCase();
-              if (xhrMessage.includes("network") || xhrMessage.includes("failed")) {
-                console.log("🔄 Extension blocking all network requests - activating offline mode");
-                setFirebaseOffline(true);
-              }
-              // Do not count extension-origin failures toward Firebase error threshold
-              return Promise.reject(error);
-            });
+                return resLike;
+              })
+              .catch((xhrErr: any) => {
+                console.log(
+                  "🔴 XHR fallback also failed:",
+                  xhrErr?.message || String(xhrErr),
+                );
+                // If XHR also fails (extension blocks both), switch to offline mode gracefully
+                const xhrMessage = String(
+                  xhrErr?.message || xhrErr || "",
+                ).toLowerCase();
+                if (
+                  xhrMessage.includes("network") ||
+                  xhrMessage.includes("failed")
+                ) {
+                  console.log(
+                    "🔄 Extension blocking all network requests - activating offline mode",
+                  );
+                  setFirebaseOffline(true);
+                }
+                // Do not count extension-origin failures toward Firebase error threshold
+                return Promise.reject(error);
+              });
           }
 
           console.log(
@@ -189,8 +214,13 @@ if (!(window.fetch as any).__firebasePatched) {
         message.includes("extension");
 
       // If extension is blocking requests, switch to offline mode
-      if (isExtensionError && (message.includes("failed to fetch") || message.includes("network"))) {
-        console.log("🔄 Extension blocking Firebase requests - activating offline mode");
+      if (
+        isExtensionError &&
+        (message.includes("failed to fetch") || message.includes("network"))
+      ) {
+        console.log(
+          "🔄 Extension blocking Firebase requests - activating offline mode",
+        );
         setFirebaseOffline(true);
       }
 
@@ -230,10 +260,11 @@ console.log("🔄 Starting Firebase monitoring in ONLINE mode");
 window.addEventListener("unhandledrejection", (event) => {
   const msg = String(event?.reason?.message || event?.reason || "");
   const stack = String((event?.reason && (event.reason.stack || "")) || "");
-  const isExtensionOrError = stack.includes("chrome-extension://") ||
-                              stack.includes("extension://") ||
-                              msg.toLowerCase().includes("failed to fetch") ||
-                              msg.toLowerCase().includes("extension");
+  const isExtensionOrError =
+    stack.includes("chrome-extension://") ||
+    stack.includes("extension://") ||
+    msg.toLowerCase().includes("failed to fetch") ||
+    msg.toLowerCase().includes("extension");
 
   // If the rejection originates from an extension or analytics script, swallow it
   if (
@@ -253,7 +284,10 @@ window.addEventListener("unhandledrejection", (event) => {
   }
 
   // Suppress "Failed to fetch" errors from extensions even without stack trace
-  if (msg.toLowerCase().includes("failed to fetch") && stack.includes("chrome-extension")) {
+  if (
+    msg.toLowerCase().includes("failed to fetch") &&
+    stack.includes("chrome-extension")
+  ) {
     event.preventDefault();
     return;
   }

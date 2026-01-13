@@ -59,9 +59,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // If it's not a network related error, break immediately and surface it
         const isNetworkError =
           error?.code === "auth/network-request-failed" ||
-          (error?.message && (error.message.toLowerCase().includes("fetch") ||
-                               error.message.toLowerCase().includes("network") ||
-                               error.message.toLowerCase().includes("offline")));
+          (error?.message &&
+            (error.message.toLowerCase().includes("fetch") ||
+              error.message.toLowerCase().includes("network") ||
+              error.message.toLowerCase().includes("offline")));
 
         if (!isNetworkError) {
           if (
@@ -95,8 +96,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // After retries failed, provide a helpful diagnostic message
     console.error("Login failed after retries:", lastError);
     const errorMsg = lastError?.message || "";
-    const isExtensionBlocked = errorMsg.toLowerCase().includes("failed to fetch") ||
-                                errorMsg.toLowerCase().includes("extension");
+    const isExtensionBlocked =
+      errorMsg.toLowerCase().includes("failed to fetch") ||
+      errorMsg.toLowerCase().includes("extension");
 
     if (isExtensionBlocked) {
       setAuthError(
