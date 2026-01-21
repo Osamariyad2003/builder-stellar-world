@@ -12,6 +12,11 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import cacheManager from "@/lib/cacheManager";
+import {
+  isFirebaseInOfflineMode,
+  isExtensionBlocking,
+  addOfflineModeListener,
+} from "@/lib/firebaseMonitor";
 
 export interface BookData {
   id?: string;
