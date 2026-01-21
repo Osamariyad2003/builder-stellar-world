@@ -12,6 +12,7 @@ import {
   HelpCircle,
   BookOpen,
   MapPin,
+  Book,
 } from "lucide-react";
 
 interface SidebarProps {
