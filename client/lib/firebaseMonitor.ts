@@ -45,64 +45,6 @@ export const reportFirebaseError = (error: any) => {
 if (!(window.fetch as any).__firebasePatched) {
   const originalFetch = window.fetch;
   const patchedFetch = (...args: Parameters<typeof fetch>) => {
-    // Helper: XHR-based fallback to perform requests when fetch is intercepted by extensions
-    const xhrFallback = (input: RequestInfo, init?: RequestInit) => {
-      return new Promise<any>((resolve, reject) => {
-        try {
-          const url =
-            typeof input === "string" ? input : (input as Request).url;
-          const method = (init && init.method) || "GET";
-          const xhr = new XMLHttpRequest();
-          xhr.open(method as string, url, true);
-          // set headers
-          if (init && init.headers) {
-            const headers = init.headers as any;
-            Object.keys(headers).forEach((h) => {
-              try {
-                xhr.setRequestHeader(h, headers[h]);
-              } catch (_) {}
-            });
-          }
-          xhr.onreadystatechange = () => {
-            if (xhr.readyState !== 4) return;
-            const status = xhr.status || 0;
-            const text = xhr.responseText || "";
-            const resLike = {
-              ok: status >= 200 && status < 400,
-              status,
-              text: async () => text,
-              json: async () => {
-                try {
-                  return text ? JSON.parse(text) : {};
-                } catch (e) {
-                  throw e;
-                }
-              },
-            } as any;
-            resolve(resLike);
-          };
-          xhr.onerror = () => reject(new Error("XHR network error"));
-          xhr.ontimeout = () => reject(new Error("XHR timeout"));
-          if (init && init.body) {
-            try {
-              if ((init.body as any) instanceof FormData) {
-                xhr.send(init.body as any);
-              } else if (typeof init.body === "string") {
-                xhr.send(init.body as any);
-              } else {
-                xhr.send(JSON.stringify(init.body));
-              }
-            } catch (e) {
-              reject(e);
-            }
-          } else {
-            xhr.send();
-          }
-        } catch (e) {
-          reject(e);
-        }
-      });
-    };
     const url =
       typeof args[0] === "string" ? args[0] : (args[0] as Request)?.url;
     const isFirebaseRequest =
@@ -131,81 +73,78 @@ if (!(window.fetch as any).__firebasePatched) {
       return Promise.reject(offlineError);
     }
 
-    try {
-      const fetchPromise = originalFetch(...args);
-      return Promise.resolve(fetchPromise)
-        .then((response) => {
-          if (response.ok) {
-            errorCount = 0;
-            if (isFirebaseOffline) {
-              console.log("🟢 Firebase connection restored");
-              setFirebaseOffline(false);
-            }
-          }
-          return response;
-        })
-        .catch((error) => {
-          // If this error comes from a browser extension or third-party script
-          const stack = String((error && (error.stack || "")) || "");
-          const message = String(error?.message || error || "").toLowerCase();
+    return Promise.resolve()
+      .then(() => {
+        try {
+          return originalFetch(...args);
+        } catch (syncError) {
+          // Handle synchronous errors thrown by fetch (e.g., from extensions)
+          const stack = String((syncError && (syncError.stack || "")) || "");
+          const message = String(
+            (syncError as any)?.message || syncError || "",
+          ).toLowerCase();
           const isExtensionError =
             stack.includes("chrome-extension://") ||
             stack.includes("extension://") ||
             message.includes("extension") ||
             message.includes("failed to fetch");
 
-          // If extension is blocking, switch to offline mode immediately
           if (isExtensionError && message.includes("failed to fetch")) {
             console.log(
-              "🔴 Extension detected blocking Firebase requests - activating permanent offline mode",
+              "🔴 Extension blocking Firebase requests - permanent offline mode",
             );
             extensionBlockingDetected = true;
             setFirebaseOffline(true);
-            // Return a rejected promise but don't retry
             const err = new Error(
               "Firebase offline (extension blocking requests)",
             );
             (err as any).isExtensionBlocked = true;
             return Promise.reject(err);
           }
+          throw syncError;
+        }
+      })
+      .then((response) => {
+        if (response.ok) {
+          errorCount = 0;
+          if (isFirebaseOffline) {
+            console.log("🟢 Firebase connection restored");
+            setFirebaseOffline(false);
+          }
+        }
+        return response;
+      })
+      .catch((error) => {
+        // If this error comes from a browser extension or third-party script
+        const stack = String((error && (error.stack || "")) || "");
+        const message = String(error?.message || error || "").toLowerCase();
+        const isExtensionError =
+          stack.includes("chrome-extension://") ||
+          stack.includes("extension://") ||
+          message.includes("extension") ||
+          message.includes("failed to fetch");
 
+        // If extension is blocking, switch to offline mode immediately
+        if (isExtensionError && message.includes("failed to fetch")) {
           console.log(
-            "🔴 Firebase request failed:",
-            error?.message || String(error),
+            "🔴 Extension detected blocking Firebase requests - activating permanent offline mode",
           );
+          extensionBlockingDetected = true;
+          setFirebaseOffline(true);
+          // Return a rejected promise but don't retry
+          const err = new Error(
+            "Firebase offline (extension blocking requests)",
+          );
+          (err as any).isExtensionBlocked = true;
+          return Promise.reject(err);
+        }
 
-          if (!isExtensionError && navigator.onLine) reportFirebaseError(error);
-          // Re-throw so callers get the original failure
-          throw error;
-        });
-    } catch (error) {
-      // Handle synchronous errors thrown by fetch (e.g., invalid URL schemes)
-      console.log(
-        "🔴 Firebase request threw synchronously:",
-        (error as any)?.message || String(error),
-      );
-      const stack = String((error && (error.stack || "")) || "");
-      const message = String(
-        (error as any)?.message || error || "",
-      ).toLowerCase();
-      const isExtensionError =
-        stack.includes("chrome-extension://") ||
-        stack.includes("extension://") ||
-        message.includes("extension") ||
-        message.includes("failed to fetch");
-
-      // If extension is blocking requests, switch to permanent offline mode
-      if (isExtensionError && message.includes("failed to fetch")) {
-        console.log(
-          "🔴 Extension blocking Firebase requests - permanent offline mode",
-        );
-        extensionBlockingDetected = true;
-        setFirebaseOffline(true);
-      }
-
-      if (!isExtensionError && navigator.onLine) reportFirebaseError(error);
-      return Promise.reject(error);
-    }
+        if (!isExtensionError && navigator.onLine) {
+          reportFirebaseError(error);
+        }
+        // Re-throw so callers get the original failure
+        throw error;
+      });
   };
   (patchedFetch as any).__firebasePatched = true;
   window.fetch = patchedFetch as any;
