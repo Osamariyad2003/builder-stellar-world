@@ -347,6 +347,14 @@ export default function Books() {
           >
             🔄 Refresh Cache
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSeedData}
+            title="Add sample books to test the collection"
+          >
+            📚 Add Sample Data
+          </Button>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
