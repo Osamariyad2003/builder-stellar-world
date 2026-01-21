@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import News from "./pages/admin/News";
 import Years from "./pages/admin/Years";
 import YearPage from "./pages/admin/YearPage";
+import Books from "./pages/admin/Books";
 import Resources from "./pages/admin/Resources";
 import Professors from "./pages/admin/Professors";
 import Users from "./pages/admin/Users";
