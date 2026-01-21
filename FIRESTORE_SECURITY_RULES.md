@@ -36,6 +36,10 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    match /books/{bookId} {
+      allow read, write: if request.auth != null;
+    }
+
     match /professors/{professorId} {
       allow read, write: if request.auth != null;
     }
