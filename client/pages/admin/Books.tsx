@@ -200,6 +200,117 @@ export default function Books() {
     }
   };
 
+  const sampleBooks = [
+    {
+      title: "Human Anatomy and Physiology",
+      author: "Elaine N. Marieb",
+      description: "A comprehensive guide to human anatomy and physiological systems with detailed illustrations and clinical correlations.",
+      isbn: "978-0134580999",
+      publishedDate: "2019-01-15",
+      publisher: "Pearson",
+      category: "Medical",
+      imageUrl: "https://images-na.ssl-images-amazon.com/images/P/0134580990.01.L.jpg",
+      pdfUrl: "https://example.com/anatomy.pdf",
+    },
+    {
+      title: "Pharmacology: From Principles to Practice",
+      author: "Harold Kalant",
+      description: "Essential pharmacology textbook covering drug mechanisms, interactions, and clinical applications.",
+      isbn: "978-0702031519",
+      publishedDate: "2018-06-20",
+      publisher: "Elsevier",
+      category: "Medical",
+      imageUrl: "https://images-na.ssl-images-amazon.com/images/P/070203151X.01.L.jpg",
+      pdfUrl: "https://example.com/pharmacology.pdf",
+    },
+    {
+      title: "Pathology: The Big Picture",
+      author: "Jonathan S. Schneider",
+      description: "A concise overview of pathological processes, disease mechanisms, and clinical manifestations.",
+      isbn: "978-0071798310",
+      publishedDate: "2017-03-10",
+      publisher: "McGraw-Hill",
+      category: "Medical",
+      imageUrl: "https://images-na.ssl-images-amazon.com/images/P/0071798315.01.L.jpg",
+      pdfUrl: "https://example.com/pathology.pdf",
+    },
+    {
+      title: "Clinical Biochemistry",
+      author: "Peter Baynes",
+      description: "Biochemical principles and their clinical applications in diagnosis and treatment.",
+      isbn: "978-0323529570",
+      publishedDate: "2019-08-14",
+      publisher: "Elsevier",
+      category: "Medical",
+      imageUrl: "https://images-na.ssl-images-amazon.com/images/P/0323529577.01.L.jpg",
+      pdfUrl: "https://example.com/biochemistry.pdf",
+    },
+    {
+      title: "Internal Medicine Essentials",
+      author: "Lawrence M. Tierney Jr.",
+      description: "Core concepts and practical approaches to common internal medicine conditions.",
+      isbn: "978-0071839600",
+      publishedDate: "2016-09-22",
+      publisher: "McGraw-Hill",
+      category: "Medical",
+      imageUrl: "https://images-na.ssl-images-amazon.com/images/P/0071839607.01.L.jpg",
+      pdfUrl: "https://example.com/internal_medicine.pdf",
+    },
+    {
+      title: "Surgery: Basic Science and Clinical Evidence",
+      author: "Jorge I. New",
+      description: "Fundamental surgical principles, evidence-based practices, and clinical decision-making.",
+      isbn: "978-0393712605",
+      publishedDate: "2020-01-16",
+      publisher: "W.W. Norton",
+      category: "Medical",
+      imageUrl: "https://images-na.ssl-images-amazon.com/images/P/0393712605.01.L.jpg",
+      pdfUrl: "https://example.com/surgery.pdf",
+    },
+    {
+      title: "Pediatrics: A Comprehensive Guide",
+      author: "Karen J. Marcdante",
+      description: "Complete pediatric reference covering development, diseases, and management of children's health.",
+      isbn: "978-0323567558",
+      publishedDate: "2019-07-11",
+      publisher: "Elsevier",
+      category: "Medical",
+      imageUrl: "https://images-na.ssl-images-amazon.com/images/P/0323567556.01.L.jpg",
+      pdfUrl: "https://example.com/pediatrics.pdf",
+    },
+    {
+      title: "Obstetrics and Gynecology",
+      author: "Beckmann Charles R.",
+      description: "Comprehensive obstetric and gynecological care principles and clinical management.",
+      isbn: "978-0323479929",
+      publishedDate: "2018-04-20",
+      publisher: "Elsevier",
+      category: "Medical",
+      imageUrl: "https://images-na.ssl-images-amazon.com/images/P/0323479928.01.L.jpg",
+      pdfUrl: "https://example.com/obstetrics.pdf",
+    },
+  ];
+
+  const handleSeedData = async () => {
+    if (!confirm("This will add 8 sample books to your collection. Continue?"))
+      return;
+
+    let successCount = 0;
+    let failureCount = 0;
+
+    for (const book of sampleBooks) {
+      try {
+        await createBook(book);
+        successCount++;
+      } catch (err) {
+        console.error("Failed to add book:", book.title, err);
+        failureCount++;
+      }
+    }
+
+    alert(`Sample data added! Success: ${successCount}, Failed: ${failureCount}`);
+  };
+
   const filteredBooks = books.filter(
     (book) =>
       book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
