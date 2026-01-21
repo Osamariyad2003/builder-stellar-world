@@ -53,10 +53,28 @@ export function useBooks() {
   };
 
   useEffect(() => {
+    // Listen for offline mode changes triggered by firebaseMonitor
+    const unsubscribe = addOfflineModeListener(() => {
+      if (isFirebaseInOfflineMode() || isExtensionBlocking()) {
+        console.log("📡 Offline mode triggered - updating books hook");
+        activateOfflineMode();
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       // Check if extension is already blocking
       if (isExtensionBlocking()) {
         console.log("🔴 Extension blocking detected - activating offline mode");
+        activateOfflineMode();
+        return;
+      }
+
+      if (isFirebaseInOfflineMode()) {
+        console.log("🔴 Firebase offline mode detected - activating offline mode");
         activateOfflineMode();
         return;
       }
@@ -128,6 +146,13 @@ export function useBooks() {
         console.log("✅ Books loaded from Firebase:", booksData.length);
       } catch (error: any) {
         console.log("❌ Firebase connection failed for books");
+
+        // Check if this is an extension blocking error
+        if (isExtensionBlocking()) {
+          console.log("Extension detected - activating offline mode");
+          activateOfflineMode();
+          return;
+        }
 
         if (!cacheManager.isCacheValid("books")) {
           console.log("No cache available - activating offline mode");
