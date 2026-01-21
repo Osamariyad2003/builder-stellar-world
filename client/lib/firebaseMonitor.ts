@@ -239,6 +239,7 @@ console.error = (...args) => {
 
   const suppressPatterns = [
     "Firebase offline mode - request blocked",
+    "firebase offline (extension blocking requests)",
     "FirebaseError: [code=unavailable]",
     "Could not reach Cloud Firestore backend",
     "Connection failed",
@@ -249,15 +250,25 @@ console.error = (...args) => {
     "@firebase/firestore: Firestore",
     "fullstory.com",
     "TypeError: Failed to fetch",
+    "Failed to fetch",
+    "extension",
+    "chrome-extension",
   ];
 
   // Suppress if patterns match or if an extension stack is present
   if (
-    suppressPatterns.some((pattern) => errorMessage.includes(pattern)) ||
+    suppressPatterns.some((pattern) => errorMessage.toLowerCase().includes(pattern.toLowerCase())) ||
     hasErrorStack ||
     errorMessage.includes("chrome-extension://") ||
     errorMessage.includes("extension://")
   ) {
+    // Only log if extension blocking was just detected for debugging
+    if (
+      extensionBlockingDetected &&
+      errorMessage.toLowerCase().includes("failed to fetch")
+    ) {
+      console.log("🔇 Suppressed extension blocking error");
+    }
     return; // Suppress noisy errors from extensions or Firebase offline
   }
 
