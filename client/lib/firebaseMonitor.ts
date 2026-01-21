@@ -178,34 +178,42 @@ console.log("🔄 Starting Firebase monitoring in ONLINE mode");
 window.addEventListener("unhandledrejection", (event) => {
   const msg = String(event?.reason?.message || event?.reason || "");
   const stack = String((event?.reason && (event.reason.stack || "")) || "");
-  const isExtensionOrError =
-    stack.includes("chrome-extension://") ||
-    stack.includes("extension://") ||
-    msg.toLowerCase().includes("failed to fetch") ||
-    msg.toLowerCase().includes("extension");
+  const msgLower = msg.toLowerCase();
 
-  // If the rejection originates from an extension or analytics script, swallow it
+  // Patterns that indicate extension interference
+  const extensionPatterns = [
+    "chrome-extension://",
+    "extension://",
+    "fullstory.com",
+    "firebase offline (extension blocking requests)",
+  ];
+
+  const hasExtensionPattern = extensionPatterns.some((pattern) =>
+    stack.includes(pattern) || msg.includes(pattern)
+  );
+
+  // Suppress "Failed to fetch" errors that come from extensions
   if (
-    isExtensionOrError &&
-    (stack.includes("chrome-extension://") ||
-      stack.includes("extension://") ||
-      stack.includes("fullstory.com"))
+    (msgLower.includes("failed to fetch") ||
+     msgLower.includes("extension blocked") ||
+     msgLower.includes("extension")) &&
+    (hasExtensionPattern ||
+     stack.includes("chrome-extension://") ||
+     stack.includes("extension://"))
   ) {
+    console.log("🔇 Suppressed extension-related fetch error");
+    event.preventDefault();
+    return;
+  }
+
+  // If extension is blocking, suppress any related errors
+  if (extensionBlockingDetected && msgLower.includes("failed to fetch")) {
     event.preventDefault();
     return;
   }
 
   // Also ignore noisy XHR/fetch failures that include extension origins in stack
   if (stack.includes("chrome-extension://") || stack.includes("extension://")) {
-    event.preventDefault();
-    return;
-  }
-
-  // Suppress "Failed to fetch" errors from extensions even without stack trace
-  if (
-    msg.toLowerCase().includes("failed to fetch") &&
-    stack.includes("chrome-extension")
-  ) {
     event.preventDefault();
     return;
   }
