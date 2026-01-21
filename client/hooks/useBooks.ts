@@ -78,9 +78,18 @@ export function useBooks() {
         const q = query(booksCollection, orderBy("createdAt", "desc"));
         const snapshot = await getDocs(q);
 
-        const booksData: BookData[] = snapshot.docs.map((doc) => {
+        const seenIds = new Set<string>();
+        const booksData: BookData[] = [];
+
+        snapshot.docs.forEach((doc) => {
           const data = doc.data();
-          return {
+          if (seenIds.has(doc.id)) {
+            console.warn("⚠️ Duplicate book ID detected:", doc.id);
+            return;
+          }
+          seenIds.add(doc.id);
+
+          booksData.push({
             id: doc.id,
             title: data.title || "",
             author: data.author || "",
@@ -93,7 +102,7 @@ export function useBooks() {
             pdfUrl: data.pdfUrl || "",
             createdAt: data.createdAt?.toDate() || new Date(),
             updatedAt: data.updatedAt?.toDate() || new Date(),
-          };
+          });
         });
 
         setBooks(booksData);
