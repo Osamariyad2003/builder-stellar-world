@@ -54,6 +54,13 @@ export function useBooks() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Check if extension is already blocking
+      if (isExtensionBlocking()) {
+        console.log("🔴 Extension blocking detected - activating offline mode");
+        activateOfflineMode();
+        return;
+      }
+
       if (!navigator.onLine) {
         console.log("🚫 No internet connection - activating offline mode");
         activateOfflineMode();
