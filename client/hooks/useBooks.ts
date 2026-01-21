@@ -142,7 +142,11 @@ export function useBooks() {
         createdAt: new Date(),
       };
 
-      setBooks((prev) => [newBook, ...prev]);
+      setBooks((prev) => {
+        // Check if book already exists to prevent duplicates
+        const bookExists = prev.some((b) => b.id === newBook.id);
+        return bookExists ? prev : [newBook, ...prev];
+      });
       console.log("✅ Added book to offline mode:", newBook.title);
       return;
     }
@@ -163,14 +167,8 @@ export function useBooks() {
         updatedAt: new Date(),
       });
 
-      const newBook: BookData = {
-        id: docRef.id,
-        ...bookData,
-        createdAt: new Date(),
-      };
-
-      setBooks((prev) => [newBook, ...prev]);
       console.log("✅ Book created in Firebase:", docRef.id);
+      // Trigger re-fetch to get the complete and consistent list from Firebase
       setRetryCount((prev) => prev + 1);
     } catch (error) {
       console.error("Error creating book:", error);
