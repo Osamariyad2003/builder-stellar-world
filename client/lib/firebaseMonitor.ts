@@ -224,6 +224,18 @@ const originalConsoleError = console.error;
 const originalConsoleWarn = console.warn;
 const originalConsoleLog = console.log;
 
+// Create a wrapper to safely call console functions without throwing
+const safeConsoleCall = (
+  originalFn: (...args: any[]) => void,
+  ...args: any[]
+) => {
+  try {
+    originalFn.apply(console, args);
+  } catch (e) {
+    // Prevent console errors from causing cascading failures
+  }
+};
+
 console.error = (...args) => {
   // Build a joined message and also inspect any Error objects for stacks
   const errorMessage = args
