@@ -298,10 +298,15 @@ export default function Books() {
     let successCount = 0;
     let failureCount = 0;
 
-    for (const book of sampleBooks) {
+    for (let i = 0; i < sampleBooks.length; i++) {
+      const book = sampleBooks[i];
       try {
         await createBook(book);
         successCount++;
+        // Small delay between creates to avoid too many concurrent operations
+        if (i < sampleBooks.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 300));
+        }
       } catch (err) {
         console.error("Failed to add book:", book.title, err);
         failureCount++;
