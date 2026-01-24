@@ -168,10 +168,15 @@ export default function Research() {
           <h1 className="text-3xl font-bold">Research</h1>
           <p className="text-muted-foreground">Manage research projects and student/faculty submissions</p>
         </div>
-        <Button onClick={handleCreate} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Create Research
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={handleSeedData} variant="outline" className="flex items-center gap-2">
+            📊 Seed Data
+          </Button>
+          <Button onClick={handleCreate} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Create Research
+          </Button>
+        </div>
       </div>
 
       <Card>
