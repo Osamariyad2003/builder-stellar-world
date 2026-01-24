@@ -107,6 +107,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /research/{researchId} {
+      allow read: if true; // Public read
+      allow write: if isAdmin();
+    }
+
     match /professors/{professorId} {
       allow read: if true; // Public read
       allow write: if isAdmin();
