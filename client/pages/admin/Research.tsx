@@ -31,6 +31,110 @@ export default function Research() {
     }
   };
 
+  const handleSeedData = async () => {
+    if (!window.confirm("This will add 8 sample research projects. Continue?")) {
+      return;
+    }
+
+    const sampleResearch = [
+      {
+        projectTitle: "Antibiotic Resistance Patterns in Local Hospitals",
+        abstract: "A comprehensive study examining the prevalence and mechanisms of antibiotic resistance in bacterial pathogens isolated from three major hospitals in the region over a 12-month period.",
+        fieldOfResearch: ["Microbiology", "Infectious Diseases", "Public Health"],
+        contactPerson: ["Dr. Emily Rodriguez"],
+        authorshipPosition: ["Lead Researcher"],
+        projectDuration: "12 months",
+        requiredSkills: ["Bacterial isolation and identification", "Antibiotic susceptibility testing", "Data analysis"],
+        supervisor: "Prof. James Mitchell"
+      },
+      {
+        projectTitle: "Impact of Sleep Deprivation on Cognitive Performance in Medical Students",
+        abstract: "An observational study investigating the correlation between sleep patterns and academic performance, focusing on memory retention and clinical reasoning abilities.",
+        fieldOfResearch: ["Medical Education", "Sleep Medicine", "Neuroscience"],
+        contactPerson: ["Dr. Sarah Johnson", "Dr. Michael Chen"],
+        authorshipPosition: ["Co-lead", "Data Manager"],
+        projectDuration: "8 months",
+        requiredSkills: ["Statistical analysis", "Sleep assessment tools", "Psychological testing"],
+        supervisor: "Prof. Linda Patterson"
+      },
+      {
+        projectTitle: "Effectiveness of Virtual Reality in Surgical Training",
+        abstract: "A randomized controlled trial comparing traditional surgical training methods with VR-based simulation techniques in teaching laparoscopic procedures.",
+        fieldOfResearch: ["Surgery", "Medical Education", "Technology"],
+        contactPerson: ["Dr. Robert Williams"],
+        authorshipPosition: ["Principal Investigator"],
+        projectDuration: "18 months",
+        requiredSkills: ["Surgical expertise", "VR technology", "Educational assessment"],
+        supervisor: "Prof. David Thompson"
+      },
+      {
+        projectTitle: "Cardiovascular Biomarkers in Early Diabetes Detection",
+        abstract: "Investigation of novel biomarkers that can predict cardiovascular complications in newly diagnosed Type 2 diabetes patients with high sensitivity and specificity.",
+        fieldOfResearch: ["Cardiology", "Endocrinology", "Biomarker Research"],
+        contactPerson: ["Dr. Priya Sharma"],
+        authorshipPosition: ["Lead Researcher"],
+        projectDuration: "14 months",
+        requiredSkills: ["Molecular biology", "Biostatistics", "Laboratory techniques"],
+        supervisor: "Prof. Rajesh Kumar"
+      },
+      {
+        projectTitle: "Mental Health Outcomes in Cancer Patients: A Longitudinal Study",
+        abstract: "A long-term prospective study examining psychological adjustment, quality of life, and mental health disorders in patients undergoing cancer treatment.",
+        fieldOfResearch: ["Oncology", "Psychiatry", "Clinical Psychology"],
+        contactPerson: ["Dr. Margaret Stewart"],
+        authorshipPosition: ["Principal Investigator"],
+        projectDuration: "24 months",
+        requiredSkills: ["Psychological assessment", "Patient counseling", "Longitudinal data analysis"],
+        supervisor: "Prof. Helen Martinez"
+      },
+      {
+        projectTitle: "Pharmacogenomics and Drug Response Variability in Hypertension Management",
+        abstract: "Exploring genetic variations that influence antihypertensive drug efficacy and adverse effects to enable personalized medication selection for better patient outcomes.",
+        fieldOfResearch: ["Pharmacology", "Genetics", "Cardiovascular Medicine"],
+        contactPerson: ["Dr. Aditya Patel"],
+        authorshipPosition: ["Lead Researcher"],
+        projectDuration: "10 months",
+        requiredSkills: ["Genetic sequencing", "Pharmacokinetics", "Clinical trial management"],
+        supervisor: "Prof. Sunita Desai"
+      },
+      {
+        projectTitle: "Environmental Factors and Asthma Exacerbation Rates",
+        abstract: "An epidemiological investigation of air quality, allergen levels, and climatic factors as predictors of asthma hospitalizations in urban populations.",
+        fieldOfResearch: ["Pulmonology", "Environmental Health", "Epidemiology"],
+        contactPerson: ["Dr. Thomas Anderson"],
+        authorshipPosition: ["Co-lead"],
+        projectDuration: "12 months",
+        requiredSkills: ["Environmental sampling", "Epidemiological modeling", "Respiratory assessment"],
+        supervisor: "Prof. Jennifer Garcia"
+      },
+      {
+        projectTitle: "Telehealth Efficacy in Rural Community Care: A Multicenter Trial",
+        abstract: "Evaluating the effectiveness of telemedicine interventions in providing specialized medical care to underserved rural areas and measuring patient satisfaction and health outcomes.",
+        fieldOfResearch: ["Healthcare Technology", "Public Health", "Rural Medicine"],
+        contactPerson: ["Dr. Christopher Lee"],
+        authorshipPosition: ["Principal Investigator"],
+        projectDuration: "15 months",
+        requiredSkills: ["Telehealth platform management", "Outcome measurement", "Community health assessment"],
+        supervisor: "Prof. Victoria Wong"
+      }
+    ];
+
+    try {
+      for (let i = 0; i < sampleResearch.length; i++) {
+        await createResearch({
+          ...sampleResearch[i],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+      alert("✅ Successfully added 8 sample research projects!");
+    } catch (err) {
+      console.error("Error seeding research data:", err);
+      alert("Failed to seed data. Please try again.");
+    }
+  };
+
   if (isFormOpen) {
     return (
       <ResearchForm
