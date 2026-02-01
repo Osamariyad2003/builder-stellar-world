@@ -20,6 +20,7 @@ import { useNews } from "@/hooks/useNews";
 import { useProducts } from "@/hooks/useProducts";
 import { useProfessors } from "@/hooks/useProfessors";
 import { useYears } from "@/hooks/useYears";
+import { PushNotificationSetup } from "@/components/PushNotificationSetup";
 
 const recentActivity = [
   {
@@ -165,6 +166,9 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Push Notifications Setup */}
+        <PushNotificationSetup />
 
         {/* Quick Actions */}
         <Card>

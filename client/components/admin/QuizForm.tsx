@@ -27,6 +27,7 @@ interface QuizQuestion {
   question: string;
   options: string[];
   correctAnswer: number;
+  explanation?: string;
   imageUrl?: string;
 }
 
@@ -54,12 +55,14 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
     timeLimit: 30,
     passingScore: 70,
     questions: [] as QuizQuestion[],
+    type: "multiple_choice" as "flashcard" | "multiple_choice",
   });
 
   const [currentQuestion, setCurrentQuestion] = useState({
     question: "",
     options: ["", "", "", ""],
     correctAnswer: 0,
+    explanation: "",
     imageUrl: "",
     weight: 1,
   });
@@ -130,6 +133,7 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
           question: "",
           options: [""],
           correctAnswer: 0,
+          explanation: "",
           imageUrl: "",
           weight: 1,
         });
@@ -154,6 +158,7 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
         question: "",
         options: ["", "", "", ""],
         correctAnswer: 0,
+        explanation: "",
         imageUrl: "",
         weight: 1,
       });
@@ -441,6 +446,26 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
               )}
             </div>
 
+            {/* Explanation Field */}
+            <div className="space-y-2">
+              <Label htmlFor="explanation">Explanation (Optional)</Label>
+              <Textarea
+                id="explanation"
+                placeholder="Explain why this is the correct answer..."
+                value={currentQuestion.explanation || ""}
+                onChange={(e) =>
+                  setCurrentQuestion((prev) => ({
+                    ...prev,
+                    explanation: e.target.value,
+                  }))
+                }
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                This explanation will be shown to students after they answer the question
+              </p>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="imageUrl">Image URL (Optional)</Label>
               <Input
@@ -543,6 +568,13 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                             </div>
                           ))}
                         </div>
+                        {question.explanation && (
+                          <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <p className="text-sm text-blue-800 dark:text-blue-200">
+                              <span className="font-semibold">Explanation:</span> {question.explanation}
+                            </p>
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <Button

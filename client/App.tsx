@@ -1,5 +1,6 @@
 import "./global.css";
-import "./lib/firebaseMonitor"; // Initialize Firebase monitoring early
+// Defer Firebase monitor so it doesn't block or break initial render
+import("./lib/firebaseMonitor").catch(() => {});
 
 import { Toaster } from "@/components/ui/toaster";
 import { createRoot } from "react-dom/client";
@@ -7,7 +8,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { useAuth } from "./hooks/useAuth";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AdminLayout } from "./components/admin/Layout";
 import Login from "./pages/Login";
@@ -28,9 +30,19 @@ import FlashcardsPage from "./pages/admin/Flashcards";
 import Settings from "./pages/admin/Settings";
 import Maps from "./pages/admin/Maps";
 import Research from "./pages/admin/Research";
+import Notifications from "./pages/admin/Notifications";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for 5 minutes
+      gcTime: 30 * 60 * 1000, // 30 minutes - cache persists for 30 minutes (formerly cacheTime)
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
@@ -81,6 +93,7 @@ const App = () => (
                 <Route path="flashcards" element={<FlashcardsPage />} />
                 <Route path="research" element={<Research />} />
                 <Route path="maps" element={<Maps />} />
+                <Route path="notifications" element={<Notifications />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
               <Route path="/" element={<Navigate to="/admin" />} />
@@ -93,11 +106,24 @@ const App = () => (
   </ErrorBoundary>
 );
 
-const container = document.getElementById("root")! as any;
-if ((window as any).__appRoot) {
-  (window as any).__appRoot.render(<App />);
+const container = document.getElementById("root");
+if (!container) {
+  document.body.innerHTML = "<div style='padding:20px;font-family:system-ui;'>Error: root element not found.</div>";
 } else {
-  const root = createRoot(container);
-  (window as any).__appRoot = root;
-  root.render(<App />);
+  try {
+    if ((window as any).__appRoot) {
+      (window as any).__appRoot.render(<App />);
+    } else {
+      const root = createRoot(container);
+      (window as any).__appRoot = root;
+      root.render(<App />);
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    container.innerHTML =
+      "<div style='padding:20px;font-family:system-ui;max-width:600px;'><h2>App failed to load</h2><p style='color:#666'>" +
+      msg.replace(/</g, "&lt;") +
+      "</p><p style='margin-top:12px'><button onclick='location.reload()'>Reload</button></p></div>";
+    console.error("App bootstrap error:", err);
+  }
 }

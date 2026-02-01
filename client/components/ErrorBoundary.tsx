@@ -78,7 +78,7 @@ export class ErrorBoundary extends React.Component<
                   : "Something went wrong. Please try refreshing the page."}
               </p>
 
-              {process.env.NODE_ENV === "development" && (
+              {import.meta.env.DEV && (
                 <details className="text-xs">
                   <summary className="cursor-pointer text-muted-foreground">
                     Error Details (Development)

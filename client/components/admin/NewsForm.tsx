@@ -24,7 +24,7 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import { useYears } from "@/hooks/useYears";
-import { collection, getDocs, collectionGroup } from "firebase/firestore";
+import { getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 interface NewsFormProps {
@@ -34,8 +34,8 @@ interface NewsFormProps {
 }
 
 export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
-  const { years } = useYears();
-  const [localYears, setLocalYears] = useState<any[] | null>(null);
+  const { batches } = useYears();
+  const [localBatches, setLocalBatches] = useState<any[] | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -44,15 +44,15 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
     tags: [] as string[],
     isPinned: false,
     attachments: [] as string[],
-    yearId: "",
-    subjectId: "",
+    batchId: "",
   });
   const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (news) {
-      setFormData({
+      setFormData((prev) => ({
+        ...prev,
         title: news.title || "",
         content: news.content || "",
         imageUrl: news.imageUrl || "",
@@ -60,38 +60,28 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
         tags: news.tags || [],
         isPinned: news.isPinned || false,
         attachments: news.attachments || [],
-        yearId: news.yearId || "",
-        subjectId: (news as any).subjectId || "",
-      });
+        batchId: (news as any).batchId || "",
+      }));
     }
   }, [news]);
 
-  // Fallback: if useYears returns empty (e.g., offline), try fetching years directly once
+  // Fallback: if useYears returns empty (e.g., offline), try fetching batches directly once
   useEffect(() => {
     let mounted = true;
-    const fetchYearsDirect = async () => {
+    const fetchDirect = async () => {
       try {
-        if ((years && years.length > 0) || localYears) return;
-        // Search across batches/years
-        const snaps = await getDocs(collectionGroup(db, "years"));
-        const fetched: any[] = [];
-        snaps.forEach((d) => {
-          const data = d.data() as any;
-          let yearNumber = data.order || 1;
-          if (data.name) {
-            const match = String(data.name).match(/\d+/);
-            if (match) yearNumber = parseInt(match[0]);
-          }
-          fetched.push({ id: d.id, yearNumber, type: yearNumber <= 3 ? "basic" : "clinical", subjects: data.subjects || [] });
-        });
-        if (mounted && fetched.length > 0) setLocalYears(fetched);
+        if ((batches && batches.length > 0) || localBatches) return;
+        const { collection } = await import("firebase/firestore");
+        const batchesSnap = await getDocs(collection(db, "batches"));
+        const batchList = batchesSnap.docs.map((d) => ({ id: d.id, batchName: (d.data() as any).batch_name || (d.data() as any).batchName || d.id }));
+        if (mounted && batchList.length > 0) setLocalBatches(batchList);
       } catch (e) {
         // ignore
       }
     };
-    fetchYearsDirect();
+    fetchDirect();
     return () => { mounted = false; };
-  }, [years, localYears]);
+  }, [batches, localBatches]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,16 +101,6 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
               viewsCount: 0,
             }),
       };
-
-      // if yearId selected, also include yearNumber for convenience
-      if (formData.yearId) {
-        const selectedYear = years.find((y) => y.id === formData.yearId);
-        if (selectedYear) newsData.yearNumber = selectedYear.yearNumber;
-      }
-
-      if (formData.subjectId) {
-        (newsData as any).subjectId = formData.subjectId;
-      }
 
       onSave(newsData);
     } catch (error) {
@@ -323,52 +303,23 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="yearId">Related Year</Label>
+                  <Label htmlFor="batchId">Related Batch</Label>
                   <select
-                    id="yearId"
-                    value={formData.yearId}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, yearId: e.target.value, subjectId: "" }))}
+                    id="batchId"
+                    value={formData.batchId}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, batchId: e.target.value }))
+                    }
                     className="w-full border rounded px-3 py-2"
                   >
-                    <option value="">-- Not related to a specific year --</option>
-                    {(localYears && localYears.length > 0 ? localYears : years) && (localYears && localYears.length > 0 ? localYears : years).length > 0 ? (
-                      (localYears && localYears.length > 0 ? localYears : years).map((y: any) => (
-                        <option key={y.id} value={y.id}>
-                          {`Year ${y.yearNumber}`}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">No years available</option>
-                    )}
+                    <option value="">-- Not related to a specific batch --</option>
+                    {((localBatches && localBatches.length > 0 ? localBatches : batches) || []).map((batch: any) => (
+                      <option key={batch.id} value={batch.id}>
+                        {batch.batchName || batch.id}
+                      </option>
+                    ))}
                   </select>
                 </div>
-
-                {formData.yearId && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="subjectId">Related Subject</Label>
-                      <div className="text-xs text-muted-foreground">Selected year: {((localYears && localYears.length > 0 ? localYears : years).find((y:any)=>y.id===formData.yearId)?.yearNumber) ? `Year ${((localYears && localYears.length > 0 ? localYears : years).find((y:any)=>y.id===formData.yearId)?.yearNumber)}` : ""}</div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <select
-                        id="subjectId"
-                        value={formData.subjectId}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, subjectId: e.target.value }))}
-                        className="flex-1 border rounded px-3 py-2"
-                      >
-                        <option value="">-- Not related to a specific subject --</option>
-                        {((localYears && localYears.length > 0 ? localYears : years).find((y: any) => y.id === formData.yearId)?.subjects || []).map((s: any) => (
-                          <option key={s.id} value={s.id}>{s.name}</option>
-                        ))}
-                      </select>
-
-                      <Button type="button" variant="outline" size="sm" onClick={() => { navigator.clipboard?.writeText(formData.yearId || '') ; alert('Year id copied'); }}>
-                        Copy ID
-                      </Button>
-                    </div>
-                  </div>
-                )}
 
                 {formData.imageUrl && (
                   <div className="space-y-2">
@@ -405,7 +356,8 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
                   className="w-full"
                   onClick={onClose}
                 >
-                  Cancel
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Go back
                 </Button>
               </CardContent>
             </Card>

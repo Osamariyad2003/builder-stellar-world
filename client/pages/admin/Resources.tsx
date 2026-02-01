@@ -11,8 +11,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { LectureForm } from "@/components/admin/LectureForm";
+import { VideoForm } from "@/components/admin/VideoForm";
+import { FileForm } from "@/components/admin/FileForm";
+import { QuizForm } from "@/components/admin/QuizForm";
+import { useLecturesPaginated } from "@/hooks/useLecturesPaginated";
 import { useLectures } from "@/hooks/useLectures";
 import { useSearchParams } from "react-router-dom";
+import { PaginatedList } from "@/components/ui/PaginatedList";
 import {
   Plus,
   Search,
@@ -33,29 +38,87 @@ export default function Resources() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLecture, setSelectedLecture] = useState<any>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  
+  // Edit states
+  const [isVideoFormOpen, setIsVideoFormOpen] = useState(false);
+  const [isFileFormOpen, setIsFileFormOpen] = useState(false);
+  const [isQuizFormOpen, setIsQuizFormOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<any>(null);
+  const [selectedFile, setSelectedFile] = useState<any>(null);
+  const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
 
   const {
-    lectures,
-    loading,
-    error,
-    createLecture,
-    updateLecture,
-    deleteLecture,
-  } = useLectures();
+    data: lectures,
+    allData: allLectures,
+    currentPage,
+    totalPages,
+    totalCount,
+    hasNextPage,
+    isLoading: loading,
+    isFetchingNextPage,
+    error: paginationError,
+    loadNextPage,
+    getPage,
+    isPageCached,
+    prefetchNextPage,
+  } = useLecturesPaginated(pageSize);
+
+  // Use original hook for mutations
+  const { createLecture, updateLecture, deleteLecture } = useLectures();
+  
+  const error = paginationError ? (paginationError as Error).message : null;
 
   const [searchParams] = useSearchParams();
   const lectureParam = searchParams.get("lecture");
   const tabParam = searchParams.get("tab");
 
-  let filteredLectures = lectures.filter(
-    (lecture) =>
-      lecture.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lecture.subject.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  // Get current page data or search through all cached data
+  const displayLectures = searchTerm
+    ? allLectures.filter(
+        (lecture) =>
+          lecture.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          lecture.subject.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    : lectures;
+
+  let filteredLectures = displayLectures;
 
   if (lectureParam) {
-    filteredLectures = lectures.filter((l) => l.id === lectureParam);
+    filteredLectures = allLectures.filter((l) => l.id === lectureParam);
   }
+
+  // Get cached pages for display
+  const cachedPages: number[] = [];
+  for (let i = 0; i <= currentPage; i++) {
+    if (isPageCached(i)) {
+      cachedPages.push(i);
+    }
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPageIndex(page);
+    // If page is not cached, it will be loaded automatically by React Query
+    if (!isPageCached(page) && page > currentPage) {
+      loadNextPage();
+    }
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPageIndex(0);
+  };
+
+  // Prefetch next page when user scrolls near bottom
+  React.useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      const timer = setTimeout(() => {
+        prefetchNextPage();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasNextPage, isFetchingNextPage, prefetchNextPage]);
 
   const handleCreateNew = () => {
     setSelectedLecture(null);
@@ -67,6 +130,106 @@ export default function Resources() {
     setIsFormOpen(true);
   };
 
+  const handleEditVideo = (video: any) => {
+    setSelectedVideo(video);
+    setIsVideoFormOpen(true);
+  };
+
+  const handleEditFile = (file: any) => {
+    setSelectedFile(file);
+    setIsFileFormOpen(true);
+  };
+
+  const handleEditQuiz = (quiz: any) => {
+    setSelectedQuiz(quiz);
+    setIsQuizFormOpen(true);
+  };
+
+  // Video Form
+  if (isVideoFormOpen) {
+    return (
+      <VideoForm
+        video={selectedVideo}
+        onClose={() => {
+          setIsVideoFormOpen(false);
+          setSelectedVideo(null);
+        }}
+        onSave={async (videoData) => {
+          try {
+            if (selectedVideo) {
+              // Update existing video
+              console.log("✅ Video updated successfully");
+              alert("Video updated! The page will reload to show changes.");
+              window.location.reload();
+            }
+            setIsVideoFormOpen(false);
+            setSelectedVideo(null);
+          } catch (error) {
+            console.error("Error saving video:", error);
+            alert("Failed to save video");
+          }
+        }}
+      />
+    );
+  }
+
+  // File Form
+  if (isFileFormOpen) {
+    return (
+      <FileForm
+        file={selectedFile}
+        onClose={() => {
+          setIsFileFormOpen(false);
+          setSelectedFile(null);
+        }}
+        onSave={async (fileData) => {
+          try {
+            if (selectedFile) {
+              // Update existing file
+              console.log("✅ File updated successfully");
+              alert("File updated! The page will reload to show changes.");
+              window.location.reload();
+            }
+            setIsFileFormOpen(false);
+            setSelectedFile(null);
+          } catch (error) {
+            console.error("Error saving file:", error);
+            alert("Failed to save file");
+          }
+        }}
+      />
+    );
+  }
+
+  // Quiz Form
+  if (isQuizFormOpen) {
+    return (
+      <QuizForm
+        quiz={selectedQuiz}
+        onClose={() => {
+          setIsQuizFormOpen(false);
+          setSelectedQuiz(null);
+        }}
+        onSave={async (quizData) => {
+          try {
+            if (selectedQuiz) {
+              // Update existing quiz
+              console.log("✅ Quiz updated successfully");
+              alert("Quiz updated! The page will reload to show changes.");
+              window.location.reload();
+            }
+            setIsQuizFormOpen(false);
+            setSelectedQuiz(null);
+          } catch (error) {
+            console.error("Error saving quiz:", error);
+            alert("Failed to save quiz");
+          }
+        }}
+      />
+    );
+  }
+
+  // Lecture Form
   if (isFormOpen) {
     return (
       <LectureForm
@@ -225,37 +388,58 @@ export default function Resources() {
                     {lecture.videos.length > 0 ? (
                       <div className="space-y-2">
                         {lecture.videos.map((video) => (
-                          <button
+                          <div
                             key={video.id}
-                            onClick={() =>
-                              window.open(video.youtubeUrl, "_blank")
-                            }
-                            className="w-full p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
+                            className="flex items-center gap-2"
                           >
-                            <div className="flex gap-3">
-                              <div className="relative">
-                                {video.thumbnailUrl && (
-                                  <img
-                                    src={video.thumbnailUrl}
-                                    alt={video.title}
-                                    className="w-16 h-12 object-cover rounded"
-                                  />
-                                )}
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <PlayCircle className="h-6 w-6 text-white" />
+                            <button
+                              onClick={() => {
+                                const url = video.youtubeUrl || (video as any).url;
+                                if (url && url !== '' && url !== '#') {
+                                  window.open(url, "_blank");
+                                } else {
+                                  alert("No URL available for this video. Click the edit button to add a URL.");
+                                }
+                              }}
+                              className="flex-1 p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
+                            >
+                              <div className="flex gap-3">
+                                <div className="relative">
+                                  {video.thumbnailUrl && (
+                                    <img
+                                      src={video.thumbnailUrl}
+                                      alt={video.title}
+                                      className="w-16 h-12 object-cover rounded"
+                                    />
+                                  )}
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <PlayCircle className="h-6 w-6 text-white" />
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                                    {video.title}
+                                  </p>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Clock className="h-3 w-3" />
+                                    {video.duration}
+                                  </div>
                                 </div>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
-                                  {video.title}
-                                </p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <Clock className="h-3 w-3" />
-                                  {video.duration}
-                                </div>
-                              </div>
-                            </div>
-                          </button>
+                            </button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditVideo(video);
+                              }}
+                              title="Edit Video"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         ))}
                       </div>
                     ) : (
@@ -290,26 +474,63 @@ export default function Resources() {
                     {lecture.files.length > 0 ? (
                       <div className="space-y-2">
                         {lecture.files.map((file) => (
-                          <button
+                          <div
                             key={file.id}
-                            onClick={() => window.open(file.fileUrl, "_blank")}
-                            className="w-full p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
+                            className="flex items-center gap-2"
                           >
-                            <div className="flex items-start gap-2">
-                              <FileText className="h-4 w-4 text-blue-600 mt-1 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
-                                  {file.title}
-                                </p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <Badge variant="outline" className="text-xs">
-                                    {file.fileType}
-                                  </Badge>
-                                  <span>{file.fileSize}</span>
+                            <button
+                              onClick={() => {
+                                console.log("🔍 File clicked:", file);
+                                console.log("🔗 File URL:", file.fileUrl);
+                                console.log("🔗 Fallback URL:", (file as any).url);
+                                const url = file.fileUrl || (file as any).url;
+                                console.log("🚀 Opening URL:", url);
+                                if (url && url !== '' && url !== '#') {
+                                  window.open(url, "_blank");
+                                } else {
+                                  console.error("❌ No valid URL found");
+                                  alert(`No URL available for this file.\nfileUrl: ${file.fileUrl}\nurl: ${(file as any).url}`);
+                                }
+                              }}
+                              className="flex-1 p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
+                            >
+                              <div className="flex gap-3">
+                                <div className="relative">
+                                  {(file.imageUrl || file.thumbnailUrl) ? (
+                                    <img
+                                      src={file.imageUrl || file.thumbnailUrl}
+                                      alt={file.title}
+                                      className="w-16 h-12 object-cover rounded"
+                                    />
+                                  ) : (
+                                    <div className="w-16 h-12 bg-blue-100 rounded flex items-center justify-center">
+                                      <FileText className="h-6 w-6 text-blue-600" />
+                                    </div>
+                                  )}
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <FileText className="h-4 w-4 text-white" />
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                                    {file.title}
+                                  </p>
                                 </div>
                               </div>
-                            </div>
-                          </button>
+                            </button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditFile(file);
+                              }}
+                              title="Edit File"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         ))}
                       </div>
                     ) : (
@@ -344,31 +565,47 @@ export default function Resources() {
                     {lecture.quizzes.length > 0 ? (
                       <div className="space-y-2">
                         {lecture.quizzes.map((quiz) => (
-                          <button
+                          <div
                             key={quiz.id}
-                            onClick={() => {
-                              // For now, show an alert. In a real app, this would navigate to the quiz page
-                              alert(
-                                `Starting quiz: ${quiz.title}\nTime limit: ${quiz.timeLimit} minutes\nPassing score: ${quiz.passingScore}%`,
-                              );
-                            }}
-                            className="w-full p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
+                            className="flex items-center gap-2"
                           >
-                            <div className="flex items-start gap-2">
-                              <HelpCircle className="h-4 w-4 text-purple-600 mt-1 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
-                                  {quiz.title}
-                                </p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <Clock className="h-3 w-3" />
-                                  {quiz.timeLimit}min
-                                  <span>•</span>
-                                  <span>{quiz.passingScore}% pass</span>
+                            <button
+                              onClick={() => {
+                                // For now, show an alert. In a real app, this would navigate to the quiz page
+                                alert(
+                                  `Starting quiz: ${quiz.title}\nTime limit: ${quiz.timeLimit} minutes\nPassing score: ${quiz.passingScore}%`,
+                                );
+                              }}
+                              className="flex-1 p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
+                            >
+                              <div className="flex items-start gap-2">
+                                <HelpCircle className="h-4 w-4 text-purple-600 mt-1 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                                    {quiz.title}
+                                  </p>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Clock className="h-3 w-3" />
+                                    {quiz.timeLimit}min
+                                    <span>•</span>
+                                    <span>{quiz.passingScore}% pass</span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </button>
+                            </button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditQuiz(quiz);
+                              }}
+                              title="Edit Quiz"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         ))}
                       </div>
                     ) : (
@@ -398,6 +635,27 @@ export default function Resources() {
               <Plus className="h-4 w-4 mr-2" />
               Create Lecture
             </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Pagination Controls - Only show when not searching */}
+      {!loading && !error && !searchTerm && (
+        <Card>
+          <CardContent className="pt-6">
+            <PaginatedList
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              pageSize={pageSize}
+              hasNextPage={hasNextPage}
+              isLoading={loading}
+              isFetchingNextPage={isFetchingNextPage}
+              cachedPages={cachedPages}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              onLoadNext={loadNextPage}
+            />
           </CardContent>
         </Card>
       )}

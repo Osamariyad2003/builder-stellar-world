@@ -29,7 +29,6 @@ export default function YearPage() {
     loading,
     error,
     isOfflineMode,
-    connectionStatus,
     retryConnection,
     updateYear,
     createSubject,
@@ -164,7 +163,6 @@ export default function YearPage() {
 
                         await updateYear?.(year.id, {
                           imageUrl,
-                          image_url: imageUrl,
                         });
                         // Force refresh
                         (window as any).__yearEditing = false;
@@ -218,7 +216,6 @@ export default function YearPage() {
                             }
                             await updateYear?.(year.id, {
                               imageUrl: imageUrl2,
-                              image_url: imageUrl2,
                             });
                           } catch (e2: any) {
                             console.error(e2);
@@ -264,7 +261,6 @@ export default function YearPage() {
                               }
                               await updateYear?.(year.id, {
                                 imageUrl: imageUrl2,
-                                image_url: imageUrl2,
                               });
                               (window as any).__yearEditing = false;
                               return;

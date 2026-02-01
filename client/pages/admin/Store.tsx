@@ -273,8 +273,8 @@ export default function Store() {
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               e.currentTarget.style.display = "none";
-                              e.currentTarget.nextElementSibling!.style.display =
-                                "flex";
+                              const nextEl = e.currentTarget.nextElementSibling as HTMLElement;
+                              if (nextEl) nextEl.style.display = "flex";
                             }}
                           />
                         ) : null}
@@ -292,9 +292,16 @@ export default function Store() {
                       </div>
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
-                          <CardTitle className="text-lg line-clamp-1">
-                            {product.name}
-                          </CardTitle>
+                          <div className="flex-1">
+                            <CardTitle className="text-lg line-clamp-1">
+                              {product.name}
+                            </CardTitle>
+                            {(product.types && product.types.length > 1) && (
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {product.types.length} options available
+                              </div>
+                            )}
+                          </div>
                           <div className="mt-2">
                             {(product.types && product.types.length>0) ? (
                               <div className="flex gap-2 flex-wrap">
@@ -512,25 +519,67 @@ export default function Store() {
                               <Trash2 className="h-3 w-3" />
                             </Button>
                             <Button
-                              variant="outline"
+                              variant="default"
                               size="sm"
+                              className="bg-green-600 hover:bg-green-700"
                               onClick={async () => {
                                 try {
+                                  // Step 1: Select product type/variant if available
+                                  let selectedType: string | undefined;
+                                  let unitPrice: number;
+
+                                  if (product.types && product.types.length > 0) {
+                                    if (product.types.length === 1) {
+                                      // Only one type, auto-select it
+                                      selectedType = product.types[0].name;
+                                      unitPrice = product.types[0].price;
+                                    } else {
+                                      // Multiple types, let user choose
+                                      const typeOptions = product.types
+                                        .map((t: any, i: number) => 
+                                          `${i + 1}. ${t.name} - $${t.price.toFixed(2)}`
+                                        )
+                                        .join("\n");
+                                      
+                                      const typeChoice = window.prompt(
+                                        `Select a type for "${product.name}":\n\n${typeOptions}\n\nEnter the number (1-${product.types.length}):`,
+                                        "1"
+                                      );
+                                      
+                                      if (!typeChoice) return; // User cancelled
+                                      
+                                      const typeIndex = parseInt(typeChoice) - 1;
+                                      if (typeIndex < 0 || typeIndex >= product.types.length) {
+                                        alert("Invalid selection. Please try again.");
+                                        return;
+                                      }
+                                      
+                                      selectedType = product.types[typeIndex].name;
+                                      unitPrice = product.types[typeIndex].price;
+                                    }
+                                  } else {
+                                    // No types defined, use base price
+                                    unitPrice = product.price || 0;
+                                  }
+
+                                  // Step 2: Get customer information
                                   const name = window.prompt("Your full name:");
                                   if (!name) return;
+                                  
                                   const email = window.prompt("Your email:");
                                   if (!email) return;
-                                  const qtyStr =
-                                    window.prompt("Quantity:", "1") || "1";
+                                  
+                                  const qtyStr = window.prompt("Quantity:", "1") || "1";
                                   const qty = parseInt(qtyStr) || 1;
-                                  const phone =
-                                    window.prompt("Phone (optional):", "") ||
-                                    "";
-                                  const address =
-                                    window.prompt("Address (optional):", "") ||
-                                    "";
+                                  
+                                  const phone = window.prompt("Phone (optional):", "") || "";
+                                  const address = window.prompt("Address (optional):", "") || "";
 
-                                  const unitPrice = (product.types && product.types.length>0) ? product.types[0].price : (product.price||0);
+                                  // Step 3: Create the order
+                                  const productDisplayName = selectedType 
+                                    ? `${product.name} (${selectedType})`
+                                    : product.name;
+
                                   await createOrder({
                                     username: name,
                                     userName: name,
@@ -540,9 +589,10 @@ export default function Store() {
                                     items: [
                                       {
                                         productId: product.id!,
-                                        name: product.name,
+                                        name: productDisplayName,
                                         quantity: qty,
                                         price: unitPrice,
+                                        selectedType: selectedType,
                                       },
                                     ],
                                     total: unitPrice * qty,
@@ -550,14 +600,19 @@ export default function Store() {
                                     createdAt: new Date(),
                                   });
 
-                                  alert("Order placed successfully");
+                                  alert(
+                                    `Order placed successfully!\n\n` +
+                                    `Product: ${productDisplayName}\n` +
+                                    `Quantity: ${qty}\n` +
+                                    `Total: $${(unitPrice * qty).toFixed(2)}`
+                                  );
                                 } catch (e) {
                                   console.error(e);
                                   alert("Failed to place order");
                                 }
                               }}
                             >
-                              Buy
+                              {(product.types && product.types.length > 1) ? "Select & Buy" : "Buy Now"}
                             </Button>
                           </div>
                         </div>

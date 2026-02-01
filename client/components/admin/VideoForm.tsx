@@ -21,19 +21,20 @@ import {
 } from "lucide-react";
 
 interface VideoFormProps {
+  video?: any;
   lectureId?: string | null;
   onClose: () => void;
   onSave: (video: any) => void;
 }
 
-export function VideoForm({ lectureId, onClose, onSave }: VideoFormProps) {
+export function VideoForm({ video, lectureId, onClose, onSave }: VideoFormProps) {
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    url: "",
-    duration: "",
-    thumbnailUrl: "",
-    platform: "YouTube",
+    title: video?.title || "",
+    description: video?.description || "",
+    url: video?.url || video?.youtubeUrl || "",
+    duration: video?.duration || "",
+    thumbnailUrl: video?.thumbnailUrl || "",
+    platform: video?.platform || "YouTube",
   });
 
   const [loading, setLoading] = useState(false);

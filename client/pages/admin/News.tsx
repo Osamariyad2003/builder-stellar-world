@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,9 +9,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NewsForm } from "@/components/admin/NewsForm";
 import { useNews } from "@/hooks/useNews";
+import { useNotifications } from "@/hooks/useNotifications";
+import { useUsers } from "@/hooks/useUsers";
 import {
   Plus,
   Search,
@@ -24,6 +33,9 @@ import {
   Tag,
   Loader2,
   Newspaper,
+  Bell,
+  BellRing,
+  Check,
 } from "lucide-react";
 
 export default function News() {
@@ -31,9 +43,12 @@ export default function News() {
   const [selectedNews, setSelectedNews] = useState<any>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
+  const [selectedNewsForNotifications, setSelectedNewsForNotifications] = useState<string | null>(null);
 
   const { news, loading, error, createNews, updateNews, deleteNews } =
     useNews();
+  const { notifications } = useNotifications();
+  const { users } = useUsers();
 
   const filteredNews = news.filter(
     (news) =>
@@ -42,6 +57,30 @@ export default function News() {
         tag.toLowerCase().includes(searchTerm.toLowerCase()),
       ),
   );
+
+  // Get notifications for a specific news article
+  const getNotificationsForNews = (newsId: string | undefined) => {
+    if (!newsId) return [];
+    return notifications.filter((n) => n.relatedId === newsId);
+  };
+
+  // Get notification count for each news article
+  const newsWithNotificationCount = useMemo(() => {
+    return filteredNews.map((article) => ({
+      ...article,
+      notificationCount: getNotificationsForNews(article.id).length,
+      notifications: getNotificationsForNews(article.id),
+    }));
+  }, [filteredNews, notifications]);
+
+  const getUserName = (userId: string) => {
+    const user = users.find((u) => u.id === userId);
+    return user?.displayName || user?.email || userId;
+  };
+
+  const handleViewNotifications = (newsId: string) => {
+    setSelectedNewsForNotifications(newsId);
+  };
 
   const handleEdit = (news: any) => {
     setSelectedNews(news);
@@ -145,7 +184,7 @@ export default function News() {
       {/* News List */}
       {!loading && !error && (
         <div className="space-y-4">
-          {filteredNews.map((news) => (
+          {newsWithNotificationCount.map((news) => (
             <Card key={news.id} className="hover:shadow-md transition-shadow">
               <CardContent className="pt-6">
                 <div className="flex gap-4">
@@ -195,9 +234,35 @@ export default function News() {
                             <Eye className="h-3 w-3" />
                             {news.viewsCount} views
                           </div>
+                          {news.notificationCount > 0 && (
+                            <button
+                              onClick={() => handleViewNotifications(news.id!)}
+                              className="flex items-center gap-1 hover:text-primary transition-colors cursor-pointer"
+                            >
+                              <Bell className="h-3 w-3" />
+                              {news.notificationCount} notification{news.notificationCount > 1 ? 's' : ''}
+                            </button>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2 ml-4">
+                        {news.notificationCount > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleViewNotifications(news.id!)}
+                            className="relative"
+                            title={`View ${news.notificationCount} notification${news.notificationCount > 1 ? 's' : ''}`}
+                          >
+                            <BellRing className="h-4 w-4" />
+                            <Badge
+                              variant="default"
+                              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                            >
+                              {news.notificationCount}
+                            </Badge>
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -240,6 +305,79 @@ export default function News() {
           </CardContent>
         </Card>
       )}
+
+      {/* Notifications Dialog */}
+      <Dialog
+        open={selectedNewsForNotifications !== null}
+        onOpenChange={(open) => !open && setSelectedNewsForNotifications(null)}
+      >
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Notifications for News Article
+            </DialogTitle>
+            <DialogDescription>
+              {selectedNewsForNotifications &&
+                news.find((n) => n.id === selectedNewsForNotifications)?.title}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedNewsForNotifications && (
+            <div className="space-y-3 mt-4">
+              {getNotificationsForNews(selectedNewsForNotifications).length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No notifications found for this article</p>
+                </div>
+              ) : (
+                getNotificationsForNews(selectedNewsForNotifications).map((notification) => (
+                  <Card
+                    key={notification.id}
+                    className={notification.read ? "opacity-75" : "border-primary/50"}
+                  >
+                    <CardContent className="pt-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-2">
+                            {!notification.read && (
+                              <Badge variant="default" className="h-2 w-2 p-0 rounded-full" />
+                            )}
+                            <h3 className="font-semibold">{notification.title}</h3>
+                            <Badge variant="outline">{notification.type}</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {notification.message}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              {getUserName(notification.userId)}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {notification.createdAt.toLocaleDateString()}
+                            </div>
+                            {notification.batchId && (
+                              <Badge variant="secondary" className="text-xs">
+                                Batch: {notification.batchId.slice(0, 8)}...
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        {!notification.read && (
+                          <Badge variant="default" className="text-xs">
+                            Unread
+                          </Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

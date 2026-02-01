@@ -46,6 +46,7 @@ import {
   FileText,
   HelpCircle,
   Trash2,
+  Edit2,
   GraduationCap,
   Stethoscope,
   Upload,
@@ -79,10 +80,16 @@ export default function Years() {
   const [editingBatchValue, setEditingBatchValue] = useState<string>("");
   const [editingBatchCR, setEditingBatchCR] = useState<string>("");
   const [editingBatchImage, setEditingBatchImage] = useState<string>("");
+  const [editingBatchGroupLink, setEditingBatchGroupLink] = useState<string>("");
+  const [editingBatchGraduateDate, setEditingBatchGraduateDate] = useState<string>("");
+  const [editingBatchSupervisor, setEditingBatchSupervisor] = useState<string>("");
 
   // Add Batch dialog state
   const [batchName, setBatchName] = useState<string>("");
   const [batchCR, setBatchCR] = useState<string>("");
+  const [batchGroupLink, setBatchGroupLink] = useState<string>("");
+  const [batchGraduateDate, setBatchGraduateDate] = useState<string>("");
+  const [batchSupervisor, setBatchSupervisor] = useState<string>("");
 
   // Selected batch for viewing years (sync with ?batch= query param)
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
@@ -117,12 +124,12 @@ export default function Years() {
     loading,
     error,
     isOfflineMode,
-    connectionStatus,
     retryConnection,
     updateYear,
     updateBatch,
     createSubject,
     createLecture,
+    updateLecture,
     createYear,
     createBatch,
     deleteBatch,
@@ -238,20 +245,34 @@ export default function Years() {
   }
 
   if (isLectureFormOpen) {
+    // Find the lecture object if editing
+    const lectureToEdit = selectedLecture 
+      ? selectedSubject?.lectures?.find((l: any) => l.id === selectedLecture)
+      : null;
+
     return (
       <LectureForm
+        lecture={lectureToEdit}
         subjectId={selectedSubject?.id}
         subjectName={selectedSubject?.name}
         yearType={yearType}
         onClose={() => {
           setIsLectureFormOpen(false);
           setSelectedSubject(null);
+          setSelectedLecture(null);
         }}
         onSave={async (lectureData) => {
           try {
-            await createLecture(lectureData);
+            if (lectureToEdit) {
+              // Update existing lecture
+              await updateLecture(lectureToEdit.id, lectureData);
+            } else {
+              // Create new lecture
+              await createLecture(lectureData);
+            }
             setIsLectureFormOpen(false);
             setSelectedSubject(null);
+            setSelectedLecture(null);
           } catch (error) {
             console.error("Error saving lecture:", error);
             alert("Failed to save lecture. Please try again.");
@@ -611,6 +632,22 @@ export default function Years() {
                                       Quizzes ({lecture.quizzes?.length || 0})
                                     </Button>
 
+                                    {/* Edit Lecture Button */}
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6"
+                                      onClick={() => {
+                                        setSelectedLecture(lecture.id);
+                                        setSelectedSubject(subject);
+                                        setIsLectureFormOpen(true);
+                                      }}
+                                      title="Edit Lecture"
+                                    >
+                                      <Edit2 className="h-3 w-3" />
+                                    </Button>
+
+                                    {/* Delete Lecture Button */}
                                     <Button
                                       variant="ghost"
                                       size="icon"
@@ -725,10 +762,16 @@ export default function Years() {
                                               >
                                                 <FileText className="h-3 w-3 text-green-600" />
                                                 <a
-                                                  href={file.url}
+                                                  href={file.fileUrl || file.url || "#"}
                                                   target="_blank"
                                                   rel="noopener noreferrer"
                                                   className="text-xs text-green-600 hover:underline truncate"
+                                                  onClick={(e) => {
+                                                    if (!file.fileUrl && !file.url) {
+                                                      e.preventDefault();
+                                                      alert("No file URL available");
+                                                    }
+                                                  }}
                                                 >
                                                   {file.title ||
                                                     file.name ||
@@ -836,24 +879,6 @@ export default function Years() {
             <p className="text-muted-foreground">
               Manage curriculum by academic years, subjects, and lectures
             </p>
-            {connectionStatus === "connecting" && (
-              <span className="flex items-center gap-1 text-blue-600 font-medium text-sm">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Connecting...
-              </span>
-            )}
-            {connectionStatus === "connected" && (
-              <span className="flex items-center gap-1 text-green-600 font-medium text-sm">
-                <div className="h-2 w-2 bg-green-600 rounded-full" />
-                Connected
-              </span>
-            )}
-            {connectionStatus === "offline" && (
-              <span className="flex items-center gap-1 text-orange-600 font-medium text-sm">
-                <div className="h-2 w-2 bg-orange-600 rounded-full" />
-                Offline Mode
-              </span>
-            )}
           </div>
         </div>
 
@@ -893,6 +918,37 @@ export default function Years() {
                     placeholder="Class representative"
                   />
                 </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">
+                    Group Link (optional)
+                  </label>
+                  <Input
+                    value={batchGroupLink}
+                    onChange={(e) => setBatchGroupLink(e.target.value)}
+                    placeholder="WhatsApp/Telegram group link"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">
+                    Graduate Date (optional)
+                  </label>
+                  <Input
+                    value={batchGraduateDate}
+                    onChange={(e) => setBatchGraduateDate(e.target.value)}
+                    placeholder="e.g., 2025-06-15"
+                    type="date"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">
+                    Academic Supervisor (optional)
+                  </label>
+                  <Input
+                    value={batchSupervisor}
+                    onChange={(e) => setBatchSupervisor(e.target.value)}
+                    placeholder="e.g., Dr. Ahmed Hassan"
+                  />
+                </div>
               </div>
 
               <DialogFooter className="mt-4">
@@ -906,9 +962,18 @@ export default function Years() {
                       await createBatch?.({
                         batchName: batchName.trim(),
                         cr: batchCR?.trim(),
+                        groupLink: batchGroupLink?.trim(),
+                        group_link: batchGroupLink?.trim(),
+                        graduateDate: batchGraduateDate?.trim(),
+                        graduate_date: batchGraduateDate?.trim(),
+                        academicSupervisor: batchSupervisor?.trim(),
+                        academic_supervisor: batchSupervisor?.trim(),
                       });
                       setBatchName("");
                       setBatchCR("");
+                      setBatchGroupLink("");
+                      setBatchGraduateDate("");
+                      setBatchSupervisor("");
                       // close dialog
                       const closeBtn = document.querySelector(
                         "[data-dialog-close]",
@@ -1159,33 +1224,37 @@ export default function Years() {
                 {(batches || []).map((b: any) => (
                   <Card
                     key={b.id}
-                    className="cursor-pointer h-64 flex flex-col overflow-hidden"
+                    className="cursor-pointer flex flex-col overflow-hidden"
                     onClick={() => {
                       navigate(`/admin/years?batch=${b.id}`);
                       setSelectedBatchId(b.id);
                     }}
                   >
-                    <CardHeader className="flex-1">
-                      <div className="flex items-center gap-4">
+                    <CardHeader 
+                      className="flex-1"
+                      onClick={(e) => editingBatchId === b.id && e.stopPropagation()}
+                    >
+                      <div className="flex items-start gap-4">
                         {b.imageUrl ? (
                           <img
                             src={b.imageUrl}
                             alt={b.batchName}
-                            className="w-40 h-40 object-cover rounded-md flex-shrink-0"
+                            className="w-56 h-56 object-cover rounded-md flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-40 h-40 rounded-md flex-shrink-0 bg-muted" />
+                          <div className="w-56 h-56 rounded-md flex-shrink-0 bg-muted" />
                         )}
-                        <div>
+                        <div className="flex-1 min-w-0">
                           {editingBatchId === b.id ? (
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col gap-2 w-full" onClick={(e) => e.stopPropagation()}>
                               <Input
                                 value={editingBatchValue}
                                 onChange={(e) =>
                                   setEditingBatchValue(e.target.value)
                                 }
                                 placeholder="Batch name"
-                                className="w-48"
+                                className="w-full"
+                                onClick={(e) => e.stopPropagation()}
                               />
                               <Input
                                 value={editingBatchCR || ""}
@@ -1193,7 +1262,8 @@ export default function Years() {
                                   setEditingBatchCR(e.target.value)
                                 }
                                 placeholder="CR"
-                                className="w-32"
+                                className="w-full"
+                                onClick={(e) => e.stopPropagation()}
                               />
                               <Input
                                 value={editingBatchImage}
@@ -1201,7 +1271,36 @@ export default function Years() {
                                   setEditingBatchImage(e.target.value)
                                 }
                                 placeholder="Image URL (or upload)"
-                                className="w-64"
+                                className="w-full"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <Input
+                                value={editingBatchGroupLink || ""}
+                                onChange={(e) =>
+                                  setEditingBatchGroupLink(e.target.value)
+                                }
+                                placeholder="Group Link"
+                                className="w-full"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <Input
+                                value={editingBatchGraduateDate || ""}
+                                onChange={(e) =>
+                                  setEditingBatchGraduateDate(e.target.value)
+                                }
+                                placeholder="Graduate Date (e.g., 2025-06-15)"
+                                type="date"
+                                className="w-full"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <Input
+                                value={editingBatchSupervisor || ""}
+                                onChange={(e) =>
+                                  setEditingBatchSupervisor(e.target.value)
+                                }
+                                placeholder="Academic Supervisor"
+                                className="w-full"
+                                onClick={(e) => e.stopPropagation()}
                               />
                               <div className="flex items-center gap-2">
                                 <Button
@@ -1264,11 +1363,20 @@ export default function Years() {
                                         cr: editingBatchCR,
                                         image_url: editingBatchImage,
                                         imageUrl: editingBatchImage,
+                                        group_link: editingBatchGroupLink,
+                                        groupLink: editingBatchGroupLink,
+                                        graduate_date: editingBatchGraduateDate,
+                                        graduateDate: editingBatchGraduateDate,
+                                        academic_supervisor: editingBatchSupervisor,
+                                        academicSupervisor: editingBatchSupervisor,
                                       });
                                       setEditingBatchId(null);
                                       setEditingBatchValue("");
                                       setEditingBatchCR("");
                                       setEditingBatchImage("");
+                                      setEditingBatchGroupLink("");
+                                      setEditingBatchGraduateDate("");
+                                      setEditingBatchSupervisor("");
                                       alert("Saved");
                                     } catch (err) {
                                       console.error(err);
@@ -1287,6 +1395,9 @@ export default function Years() {
                                     setEditingBatchValue("");
                                     setEditingBatchCR("");
                                     setEditingBatchImage("");
+                                    setEditingBatchGroupLink("");
+                                    setEditingBatchGraduateDate("");
+                                    setEditingBatchSupervisor("");
                                   }}
                                 >
                                   Cancel
@@ -1298,15 +1409,35 @@ export default function Years() {
                               <CardTitle className="text-lg">
                                 {b.batchName || "Batch"}
                               </CardTitle>
-                              <CardDescription className="text-sm text-muted-foreground">
-                                {b.cr ? `CR: ${b.cr}` : ""}
+                              <CardDescription className="text-sm text-muted-foreground space-y-1">
+                                {b.cr && <div>CR: {b.cr}</div>}
+                                {(b.academicSupervisor || b.academic_supervisor) && (
+                                  <div>Supervisor: {b.academicSupervisor || b.academic_supervisor}</div>
+                                )}
+                                {b.graduateDate && (
+                                  <div>Graduate: {b.graduateDate}</div>
+                                )}
+                                {b.groupLink && (
+                                  <a
+                                    href={b.groupLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-500 hover:underline flex items-center gap-1"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    📱 Group Link
+                                  </a>
+                                )}
                               </CardDescription>
                             </>
                           )}
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="mt-auto">
+                    <CardContent 
+                      className="mt-auto"
+                      onClick={(e) => editingBatchId === b.id && e.stopPropagation()}
+                    >
                       <div className="flex items-center justify-between">
                         <div className="text-sm text-muted-foreground">
                           Years:{" "}
@@ -1337,6 +1468,9 @@ export default function Years() {
                               setEditingBatchValue(b.batchName || "");
                               setEditingBatchCR(b.cr || "");
                               setEditingBatchImage(b.imageUrl || "");
+                              setEditingBatchGroupLink(b.groupLink || b.group_link || "");
+                              setEditingBatchGraduateDate(b.graduateDate || b.graduate_date || "");
+                              setEditingBatchSupervisor(b.academicSupervisor || b.academic_supervisor || "");
                             }}
                           >
                             Edit

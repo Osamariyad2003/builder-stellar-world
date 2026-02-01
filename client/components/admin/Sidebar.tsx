@@ -12,15 +12,24 @@ import {
   HelpCircle,
   BookOpen,
   MapPin,
+  Bell,
 } from "lucide-react";
 
 interface SidebarProps {
   isOpen: boolean;
 }
 
-const navItems = [
+interface NavItem {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  path: string;
+  children?: NavItem[];
+}
+
+const navItems: NavItem[] = [
   { icon: Home, label: "Dashboard", path: "/admin" },
   { icon: Newspaper, label: "News", path: "/admin/news" },
+  { icon: Bell, label: "Notifications", path: "/admin/notifications" },
   { icon: BookOpen, label: "Years", path: "/admin/years" },
   { icon: Users, label: "Users", path: "/admin/users" },
   { icon: Users, label: "Professors", path: "/admin/professors" },

@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => ({
   base: mode === "production" ? "/builder-stellar-world/" : "/",
   server: {
     host: "::",
-    port: 3000,
+    port: 5000,
   },
   build: {
     outDir: "dist/spa",

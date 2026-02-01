@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import {
   User,
   signInWithEmailAndPassword,
@@ -7,7 +7,7 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
-interface AuthContextType {
+export interface AuthContextType {
   currentUser: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -15,15 +15,7 @@ interface AuthContextType {
   authError: string | null;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-}
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -154,7 +146,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {loading ? (
+        <div className="min-h-screen flex items-center justify-center bg-muted/30">
+          <div className="flex flex-col items-center gap-4 rounded-lg border bg-card px-8 py-6 shadow-sm">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" role="status" aria-label="Loading" />
+            <p className="text-sm font-medium text-foreground">Loading…</p>
+          </div>
+        </div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 }

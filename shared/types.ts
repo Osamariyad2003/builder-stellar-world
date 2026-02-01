@@ -12,8 +12,9 @@ export interface NewsItem {
   viewsCount: number;
   attachments: string[];
   videoUrl?: string;
-  yearId?: string; // Reference to the academic year document id
+  yearId?: string; // Reference to the academic year document id (legacy)
   yearNumber?: number; // Optional year number for convenience
+  batchId?: string; // Reference to the batch document id
 }
 
 export interface Lecture {
@@ -45,11 +46,11 @@ export interface FileResource {
   id?: string;
   title: string;
   fileUrl: string;
-  fileType: string;
-  fileSize?: string;
   description?: string;
   uploadedAt: Date;
   uploadedBy: string;
+  imageUrl?: string;
+  thumbnailUrl?: string;
 }
 
 export interface Quiz {
@@ -68,6 +69,7 @@ export interface QuizQuestion {
   question: string;
   options: string[];
   correctAnswer: number;
+  explanation?: string; // explanation for the correct answer
   imageUrl?: string;
   weight?: number; // weight of this question in the quiz
 }
@@ -135,6 +137,7 @@ export interface OrderItem {
   name: string;
   quantity: number;
   price: number;
+  selectedType?: string; // The selected variant/type name (e.g., "Small", "Large")
 }
 
 export interface Order {
@@ -161,4 +164,16 @@ export interface User {
   createdAt?: Date;
   yearId?: string;
   yearLabel?: string;
+}
+
+export interface Notification {
+  id?: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: "news" | "announcement" | "system";
+  relatedId?: string; // e.g., news article ID
+  read: boolean;
+  createdAt: Date;
+  batchId?: string; // The batch this notification is for
 }

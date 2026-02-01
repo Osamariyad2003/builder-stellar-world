@@ -38,16 +38,16 @@ export function useLectures() {
           const files: FileResource[] = [];
           filesSnapshot.forEach((fileDoc) => {
             const fileData = fileDoc.data();
-            files.push({
-              id: fileDoc.id,
-              title: fileData.title || "",
-              fileUrl: fileData.fileUrl || "",
-              fileType: fileData.fileType || "",
-              fileSize: fileData.fileSize || "",
-              description: fileData.description || "",
-              uploadedAt: fileData.uploadedAt?.toDate() || new Date(),
-              uploadedBy: fileData.uploadedBy || "",
-            });
+          files.push({
+            id: fileDoc.id,
+            title: fileData.title || "",
+            fileUrl: fileData.url || fileData.fileUrl || "",
+            description: fileData.description || "",
+            uploadedAt: fileData.uploadedAt?.toDate() || new Date(),
+            uploadedBy: fileData.uploadedBy || "",
+            imageUrl: fileData.imageUrl || fileData.thumbnailUrl || "",
+            thumbnailUrl: fileData.thumbnailUrl || fileData.imageUrl || "",
+          });
           });
 
           // Get quizzes subcollection

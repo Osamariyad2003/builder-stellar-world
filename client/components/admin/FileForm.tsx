@@ -27,34 +27,21 @@ import {
 } from "lucide-react";
 
 interface FileFormProps {
+  file?: any;
   lectureId?: string | null;
   onClose: () => void;
   onSave: (file: any) => void;
 }
 
-export function FileForm({ lectureId, onClose, onSave }: FileFormProps) {
+export function FileForm({ file, lectureId, onClose, onSave }: FileFormProps) {
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    fileUrl: "",
-    fileType: "",
-    fileSize: "",
+    title: file?.title || "",
+    description: file?.description || "",
+    fileUrl: file?.fileUrl || file?.url || "",
+    imageUrl: file?.imageUrl || file?.thumbnailUrl || "",
   });
 
   const [loading, setLoading] = useState(false);
-
-  const fileTypes = [
-    "PDF",
-    "DOCX",
-    "PPTX",
-    "XLSX",
-    "TXT",
-    "ZIP",
-    "MP3",
-    "MP4",
-    "JPG",
-    "PNG",
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,43 +125,6 @@ export function FileForm({ lectureId, onClose, onSave }: FileFormProps) {
               />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="fileType">File Type *</Label>
-                <Select
-                  value={formData.fileType}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, fileType: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select file type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {fileTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="fileSize">File Size</Label>
-                <Input
-                  id="fileSize"
-                  placeholder="e.g., 2.5 MB"
-                  value={formData.fileSize}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      fileSize: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="fileUrl">File URL *</Label>
               <Input
@@ -193,6 +143,24 @@ export function FileForm({ lectureId, onClose, onSave }: FileFormProps) {
                 You can upload to Firebase Storage or use external links
               </p>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="imageUrl">Preview Image URL</Label>
+              <Input
+                id="imageUrl"
+                placeholder="https://example.com/preview.jpg"
+                value={formData.imageUrl}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    imageUrl: e.target.value,
+                  }))
+                }
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional: Add a preview/thumbnail image for the file
+              </p>
+            </div>
           </CardContent>
         </Card>
 
@@ -208,7 +176,17 @@ export function FileForm({ lectureId, onClose, onSave }: FileFormProps) {
             <CardContent>
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center gap-3">
-                  <FileText className="h-8 w-8 text-blue-600" />
+                  {formData.imageUrl ? (
+                    <img
+                      src={formData.imageUrl}
+                      alt={formData.title}
+                      className="w-16 h-12 object-cover rounded"
+                    />
+                  ) : (
+                    <div className="w-16 h-12 bg-blue-100 rounded flex items-center justify-center">
+                      <FileText className="h-8 w-8 text-blue-600" />
+                    </div>
+                  )}
                   <div className="flex-1">
                     <h4 className="font-medium">{formData.title}</h4>
                     {formData.description && (
@@ -216,14 +194,6 @@ export function FileForm({ lectureId, onClose, onSave }: FileFormProps) {
                         {formData.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-2 mt-2">
-                      {formData.fileType && (
-                        <Badge variant="secondary">{formData.fileType}</Badge>
-                      )}
-                      {formData.fileSize && (
-                        <Badge variant="outline">{formData.fileSize}</Badge>
-                      )}
-                    </div>
                   </div>
                 </div>
               </div>

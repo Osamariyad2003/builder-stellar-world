@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { initializeFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
 
 // MedJust Firebase configuration
 const firebaseConfig = {
@@ -21,4 +22,15 @@ export const db = initializeFirestore(app, {
   useFetchStreams: false,
 });
 export const storage = getStorage(app);
+
+// Initialize Firebase Cloud Messaging (only in browser)
+export let messaging: Messaging | null = null;
+if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+  try {
+    messaging = getMessaging(app);
+  } catch (error) {
+    console.warn("Firebase Messaging initialization failed:", error);
+  }
+}
+
 export default app;

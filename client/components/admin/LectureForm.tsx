@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 interface LectureFormProps {
+  lecture?: any;
   subjectId?: string | null;
   subjectName?: string;
   yearType?: "basic" | "clinical";
@@ -27,6 +28,7 @@ interface LectureFormProps {
 }
 
 export function LectureForm({
+  lecture,
   subjectId,
   subjectName,
   yearType,
@@ -34,10 +36,10 @@ export function LectureForm({
   onSave,
 }: LectureFormProps) {
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    order: 1,
-    imageUrl: "",
+    name: lecture?.name || "",
+    description: lecture?.description || "",
+    order: lecture?.order || 1,
+    imageUrl: lecture?.imageUrl || "",
   });
 
   const [loading, setLoading] = useState(false);
