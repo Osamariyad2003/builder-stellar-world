@@ -112,7 +112,41 @@ export function useNews() {
 
   const createNews = async (newsData: Omit<NewsItem, "id">) => {
     try {
-      await addDoc(collection(db, "news"), newsData);
+      const docRef = await addDoc(collection(db, "news"), {
+        ...newsData,
+        sendNotification: (newsData as any).sendNotification || false,
+        batchId: (newsData as any).batchId || null,
+      });
+
+      // If notifications should be sent, trigger the backend function
+      if ((newsData as any).sendNotification && (newsData as any).batchId) {
+        try {
+          const title = typeof newsData.title === "object"
+            ? newsData.title.en
+            : newsData.title;
+          const body = typeof newsData.content === "object"
+            ? newsData.content.en.substring(0, 150) + "..."
+            : newsData.content.substring(0, 150) + "...";
+
+          await fetch("/api/send-batch-notification", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              batchId: (newsData as any).batchId,
+              notification: {
+                title,
+                body,
+              },
+              data: {
+                newsId: docRef.id,
+                title,
+              },
+            }),
+          });
+        } catch (notificationError) {
+          console.error("Error sending notification:", notificationError);
+        }
+      }
     } catch (error) {
       console.error("Error creating news:", error);
       // Simulate success with mock data for development

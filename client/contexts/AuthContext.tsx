@@ -7,6 +7,7 @@ import {
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { isExtensionBlocking } from "@/lib/firebaseMonitor";
+import { registerServiceWorker, getFCMToken, saveFCMTokenToUser, initializeMessaging, setupMessageListener } from "@/lib/fcmService";
 
 interface AuthContextType {
   currentUser: User | null;
@@ -152,11 +153,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const unsubscribe = onAuthStateChanged(
       auth,
-      (user) => {
+      async (user) => {
         clearTimeout(authTimeout);
         setCurrentUser(user);
         setLoading(false);
         setAuthError(null);
+
+        // Initialize FCM for authenticated users
+        if (user) {
+          try {
+            await registerServiceWorker();
+            initializeMessaging();
+            const token = await getFCMToken();
+            if (token) {
+              await saveFCMTokenToUser(user.uid, token);
+            }
+            setupMessageListener((payload) => {
+              console.log("Message received:", payload);
+            });
+          } catch (error) {
+            console.error("Error initializing FCM:", error);
+            // Don't block authentication if FCM fails
+          }
+        }
       },
       (error) => {
         clearTimeout(authTimeout);

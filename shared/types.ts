@@ -17,6 +17,8 @@ export interface NewsItem {
   videoUrl?: string;
   yearId?: string; // Reference to the academic year document id
   yearNumber?: number; // Optional year number for convenience
+  batchId?: string; // Reference to batch for push notifications
+  sendNotification?: boolean; // Whether to send push notifications
 }
 
 export interface Lecture {

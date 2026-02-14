@@ -22,7 +22,9 @@ import {
   Pin,
   Tag,
   Link as LinkIcon,
+  Bell,
 } from "lucide-react";
+import { sendNotificationToBatch } from "@/lib/fcmService";
 import { useYears } from "@/hooks/useYears";
 import { collection, getDocs, collectionGroup } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -47,6 +49,8 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
     attachments: [] as string[],
     yearId: "",
     subjectId: "",
+    batchId: "",
+    sendNotification: false,
   });
   const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -63,6 +67,8 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
         attachments: news.attachments || [],
         yearId: news.yearId || "",
         subjectId: (news as any).subjectId || "",
+        batchId: (news as any).batchId || "",
+        sendNotification: (news as any).sendNotification || false,
       });
     }
   }, [news]);
@@ -123,9 +129,44 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
         (newsData as any).subjectId = formData.subjectId;
       }
 
+      // Store batch and notification settings
+      if (formData.batchId) {
+        (newsData as any).batchId = formData.batchId;
+      }
+      if (formData.sendNotification) {
+        (newsData as any).sendNotification = true;
+      }
+
       onSave(newsData);
+
+      // Send push notification if requested
+      if (formData.sendNotification && formData.batchId) {
+        const title = typeof formData.title === "object"
+          ? formData.title.en
+          : formData.title;
+        const body = typeof formData.content === "object"
+          ? formData.content.en.substring(0, 150) + "..."
+          : formData.content.substring(0, 150) + "...";
+
+        const notificationSent = await sendNotificationToBatch(
+          formData.batchId,
+          title,
+          body,
+          {
+            newsId: news?.id || "new",
+            title,
+          }
+        );
+
+        if (notificationSent) {
+          alert("✅ Push notification sent to batch!");
+        } else {
+          alert("⚠️ Failed to send push notification, but article was saved.");
+        }
+      }
     } catch (error) {
       console.error("Error saving news:", error);
+      alert("Failed to save article. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -413,6 +454,62 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
                     />
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Notifications</CardTitle>
+                <CardDescription>
+                  Send push notifications to related batch
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="batchId">Send to Batch</Label>
+                  <select
+                    id="batchId"
+                    value={formData.batchId}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        batchId: e.target.value,
+                      }))
+                    }
+                    className="w-full border rounded px-3 py-2"
+                  >
+                    <option value="">-- No batch (no notification) --</option>
+                    {(localYears && localYears.length > 0 ? localYears : years) && (localYears && localYears.length > 0 ? localYears : years).length > 0 ? (
+                      (localYears && localYears.length > 0 ? localYears : years).map((y: any) => (
+                        <option key={y.id} value={y.id}>
+                          {`Year ${y.yearNumber}`}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">No batches available</option>
+                    )}
+                  </select>
+                  <p className="text-xs text-muted-foreground">
+                    Select a batch to automatically send a push notification to all users in that batch
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="sendNotification">
+                    Send Notification Now
+                  </Label>
+                  <Switch
+                    id="sendNotification"
+                    checked={formData.sendNotification && !!formData.batchId}
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        sendNotification: checked && !!prev.batchId,
+                      }))
+                    }
+                    disabled={!formData.batchId}
+                  />
+                </div>
               </CardContent>
             </Card>
 
