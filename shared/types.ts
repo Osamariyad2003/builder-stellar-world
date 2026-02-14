@@ -1,13 +1,16 @@
 export interface NewsItem {
   id?: string;
-  title: string;
-  content: string;
+  title: BilingualText;
+  content: BilingualText;
   imageUrl?: string;
   createdAt: Date;
   updatedAt: Date;
   authorName: string;
   authorId: string;
-  tags: string[];
+  tags: {
+    en: string[];
+    ar: string[];
+  };
   isPinned: boolean;
   viewsCount: number;
   attachments: string[];

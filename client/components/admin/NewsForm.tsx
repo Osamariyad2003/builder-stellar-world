@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { NewsItem } from "@shared/types";
+import { NewsItem, BilingualText } from "@shared/types";
 import {
   ArrowLeft,
   Save,
@@ -36,12 +36,13 @@ interface NewsFormProps {
 export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
   const { years } = useYears();
   const [localYears, setLocalYears] = useState<any[] | null>(null);
+  const [language, setLanguage] = useState<"en" | "ar">("en");
   const [formData, setFormData] = useState({
-    title: "",
-    content: "",
+    title: { en: "", ar: "" } as BilingualText,
+    content: { en: "", ar: "" } as BilingualText,
     imageUrl: "",
     videoUrl: "",
-    tags: [] as string[],
+    tags: { en: [] as string[], ar: [] as string[] },
     isPinned: false,
     attachments: [] as string[],
     yearId: "",
@@ -53,11 +54,11 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
   useEffect(() => {
     if (news) {
       setFormData({
-        title: news.title || "",
-        content: news.content || "",
+        title: news.title || { en: "", ar: "" },
+        content: news.content || { en: "", ar: "" },
         imageUrl: news.imageUrl || "",
         videoUrl: news.videoUrl || "",
-        tags: news.tags || [],
+        tags: news.tags || { en: [], ar: [] },
         isPinned: news.isPinned || false,
         attachments: news.attachments || [],
         yearId: news.yearId || "",
@@ -131,19 +132,25 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
   };
 
   const addTag = () => {
-    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+    if (tagInput.trim() && !formData.tags[language].includes(tagInput.trim())) {
       setFormData((prev) => ({
         ...prev,
-        tags: [...prev.tags, tagInput.trim()],
+        tags: {
+          ...prev.tags,
+          [language]: [...prev.tags[language], tagInput.trim()],
+        },
       }));
       setTagInput("");
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
+  const removeTag = (tagToRemove: string, lang: "en" | "ar") => {
     setFormData((prev) => ({
       ...prev,
-      tags: prev.tags.filter((tag) => tag !== tagToRemove),
+      tags: {
+        ...prev.tags,
+        [lang]: prev.tags[lang].filter((tag) => tag !== tagToRemove),
+      },
     }));
   };
 
@@ -172,6 +179,22 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
                 : "Create a new news article for medical students"}
             </p>
           </div>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant={language === "en" ? "default" : "outline"}
+            onClick={() => setLanguage("en")}
+            className="w-20"
+          >
+            English
+          </Button>
+          <Button
+            variant={language === "ar" ? "default" : "outline"}
+            onClick={() => setLanguage("ar")}
+            className="w-20"
+          >
+            العربية
+          </Button>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center space-x-2">
@@ -203,34 +226,40 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Title *</Label>
+                  <Label htmlFor="title">
+                    Title {language === "en" ? "(English)" : "(العربية)"} *
+                  </Label>
                   <Input
                     id="title"
-                    placeholder="Enter article title..."
-                    value={formData.title}
+                    placeholder={language === "en" ? "Enter article title..." : "أدخل عنوان المقالة..."}
+                    value={formData.title[language]}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        title: e.target.value,
+                        title: { ...prev.title, [language]: e.target.value },
                       }))
                     }
+                    dir={language === "ar" ? "rtl" : "ltr"}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="content">Content *</Label>
+                  <Label htmlFor="content">
+                    Content {language === "en" ? "(English)" : "(العربية)"} *
+                  </Label>
                   <Textarea
                     id="content"
-                    placeholder="Write your article content here..."
-                    value={formData.content}
+                    placeholder={language === "en" ? "Write your article content here..." : "اكتب محتوى مقالتك هنا..."}
+                    value={formData.content[language]}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        content: e.target.value,
+                        content: { ...prev.content, [language]: e.target.value },
                       }))
                     }
                     rows={12}
+                    dir={language === "ar" ? "rtl" : "ltr"}
                     required
                   />
                 </div>
@@ -241,26 +270,27 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
               <CardHeader>
                 <CardTitle>Tags</CardTitle>
                 <CardDescription>
-                  Add relevant tags to help categorize this article
+                  Add relevant tags to help categorize this article {language === "en" ? "(English)" : "(العربية)"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Add a tag..."
+                    placeholder={language === "en" ? "Add a tag..." : "إضافة علامة..."}
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyPress={handleKeyPress}
+                    dir={language === "ar" ? "rtl" : "ltr"}
                   />
                   <Button type="button" onClick={addTag} variant="outline">
                     <Tag className="h-4 w-4 mr-2" />
-                    Add
+                    {language === "en" ? "Add" : "إضافة"}
                   </Button>
                 </div>
 
-                {formData.tags.length > 0 && (
+                {formData.tags[language].length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {formData.tags.map((tag) => (
+                    {formData.tags[language].map((tag) => (
                       <Badge
                         key={tag}
                         variant="secondary"
@@ -269,7 +299,7 @@ export function NewsForm({ news, onClose, onSave }: NewsFormProps) {
                         {tag}
                         <button
                           type="button"
-                          onClick={() => removeTag(tag)}
+                          onClick={() => removeTag(tag, language)}
                           className="ml-1 hover:text-destructive"
                         >
                           <X className="h-3 w-3" />

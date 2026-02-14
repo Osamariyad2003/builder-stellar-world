@@ -31,17 +31,26 @@ export default function News() {
   const [selectedNews, setSelectedNews] = useState<any>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
+  const [displayLanguage, setDisplayLanguage] = useState<"en" | "ar">("en");
 
   const { news, loading, error, createNews, updateNews, deleteNews } =
     useNews();
 
-  const filteredNews = news.filter(
-    (news) =>
-      news.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      news.tags.some((tag) =>
+  const filteredNews = news.filter((newsItem) => {
+    const title = typeof newsItem.title === "string"
+      ? newsItem.title
+      : newsItem.title[displayLanguage] || newsItem.title.en;
+    const tags = typeof newsItem.tags === "object" && !Array.isArray(newsItem.tags)
+      ? newsItem.tags[displayLanguage] || newsItem.tags.en
+      : newsItem.tags || [];
+
+    return (
+      title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tags.some((tag) =>
         tag.toLowerCase().includes(searchTerm.toLowerCase()),
-      ),
-  );
+      )
+    );
+  });
 
   const handleEdit = (news: any) => {
     setSelectedNews(news);
@@ -99,10 +108,28 @@ export default function News() {
             Create and manage news articles for medical students
           </p>
         </div>
-        <Button onClick={handleCreateNew} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Create Article
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex gap-2 border rounded-lg p-1">
+            <Button
+              variant={displayLanguage === "en" ? "default" : "ghost"}
+              onClick={() => setDisplayLanguage("en")}
+              className="h-8 w-16 text-sm"
+            >
+              English
+            </Button>
+            <Button
+              variant={displayLanguage === "ar" ? "default" : "ghost"}
+              onClick={() => setDisplayLanguage("ar")}
+              className="h-8 w-16 text-sm"
+            >
+              العربية
+            </Button>
+          </div>
+          <Button onClick={handleCreateNew} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Create Article
+          </Button>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -110,12 +137,13 @@ export default function News() {
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className={`absolute top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground ${displayLanguage === "ar" ? "right-3" : "left-3"}`} />
               <Input
-                placeholder="Search articles by title or tags..."
+                placeholder={displayLanguage === "en" ? "Search articles by title or tags..." : "البحث في المقالات حسب العنوان أو الكلمات الرئيسية..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className={displayLanguage === "ar" ? "pr-10" : "pl-10"}
+                dir={displayLanguage === "ar" ? "rtl" : "ltr"}
               />
             </div>
           </div>
@@ -145,81 +173,93 @@ export default function News() {
       {/* News List */}
       {!loading && !error && (
         <div className="space-y-4">
-          {filteredNews.map((news) => (
-            <Card key={news.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="pt-6">
-                <div className="flex gap-4">
-                  {news.imageUrl && (
-                    <img
-                      src={news.imageUrl}
-                      alt={news.title}
-                      className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold line-clamp-1">
-                            {news.title}
-                          </h3>
-                          {news.isPinned && (
-                            <Pin className="h-4 w-4 text-yellow-500" />
-                          )}
-                        </div>
-                        <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
-                          {news.content}
-                        </p>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {news.tags.map((tag) => (
-                            <Badge
-                              key={tag}
-                              variant="secondary"
-                              className="text-xs"
-                            >
-                              <Tag className="h-3 w-3 mr-1" />
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            {news.authorName}
+          {filteredNews.map((newsItem) => {
+            const title = typeof newsItem.title === "string"
+              ? newsItem.title
+              : newsItem.title[displayLanguage] || newsItem.title.en;
+            const content = typeof newsItem.content === "string"
+              ? newsItem.content
+              : newsItem.content[displayLanguage] || newsItem.content.en;
+            const tags = typeof newsItem.tags === "object" && !Array.isArray(newsItem.tags)
+              ? newsItem.tags[displayLanguage] || newsItem.tags.en
+              : newsItem.tags || [];
+
+            return (
+              <Card key={newsItem.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex gap-4" dir={displayLanguage === "ar" ? "rtl" : "ltr"}>
+                    {newsItem.imageUrl && (
+                      <img
+                        src={newsItem.imageUrl}
+                        alt={title}
+                        className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="text-lg font-semibold line-clamp-1">
+                              {title}
+                            </h3>
+                            {newsItem.isPinned && (
+                              <Pin className="h-4 w-4 text-yellow-500" />
+                            )}
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {news.createdAt.toLocaleDateString()}
+                          <p className="text-muted-foreground text-sm line-clamp-2 mb-3">
+                            {content}
+                          </p>
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {tags.map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="text-xs"
+                              >
+                                <Tag className="h-3 w-3 mr-1" />
+                                {tag}
+                              </Badge>
+                            ))}
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Eye className="h-3 w-3" />
-                            {news.viewsCount} views
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              {newsItem.authorName}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {newsItem.createdAt.toLocaleDateString()}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Eye className="h-3 w-3" />
+                              {newsItem.viewsCount} views
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2 ml-4">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(news)}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(news.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className={`flex items-center gap-2 ${displayLanguage === "ar" ? "mr-4" : "ml-4"}`}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(newsItem)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(newsItem.id)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -227,15 +267,21 @@ export default function News() {
         <Card>
           <CardContent className="text-center py-12">
             <Newspaper className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No articles found</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              {displayLanguage === "en" ? "No articles found" : "لم يتم العثور على مقالات"}
+            </h3>
             <p className="text-muted-foreground mb-4">
               {searchTerm
-                ? "No articles match your search criteria."
-                : "Start by creating your first news article."}
+                ? displayLanguage === "en"
+                  ? "No articles match your search criteria."
+                  : "لا توجد مقالات تطابق معايير البحث الخاصة بك."
+                : displayLanguage === "en"
+                ? "Start by creating your first news article."
+                : "ابدأ بإنشاء مقالتك الإخبارية الأولى."}
             </p>
             <Button onClick={handleCreateNew}>
               <Plus className="h-4 w-4 mr-2" />
-              Create Article
+              {displayLanguage === "en" ? "Create Article" : "إنشاء مقالة"}
             </Button>
           </CardContent>
         </Card>
