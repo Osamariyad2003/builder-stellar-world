@@ -91,16 +91,30 @@ export interface Professor {
   imageUrl?: string;
 }
 
+export interface BilingualText {
+  en: string;
+  ar: string;
+}
+
 export interface Research {
   id?: string;
-  projectTitle: string;
-  abstract?: string;
-  fieldOfResearch?: string[];
+  projectTitle: BilingualText;
+  abstract?: BilingualText;
+  fieldOfResearch?: {
+    en: string[];
+    ar: string[];
+  };
   contactPerson?: string[];
-  authorshipPosition?: string[];
-  projectDuration?: string;
-  requiredSkills?: string[];
-  supervisor?: string;
+  authorshipPosition?: {
+    en: string[];
+    ar: string[];
+  };
+  projectDuration?: BilingualText;
+  requiredSkills?: {
+    en: string[];
+    ar: string[];
+  };
+  supervisor?: BilingualText;
   createdAt: Date;
   updatedAt?: Date;
 }

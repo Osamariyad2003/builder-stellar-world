@@ -17,15 +17,29 @@ import { db } from "@/lib/firebase";
 const mockResearch: Research[] = [
   {
     id: "r1",
-    projectTitle: "Impact of Early Clinical Exposure on Medical Students",
-    abstract:
-      "A study investigating how early clinical exposure affects students' clinical reasoning and confidence.",
-    fieldOfResearch: ["Medical Education", "Clinical Skills"],
+    projectTitle: {
+      en: "Impact of Early Clinical Exposure on Medical Students",
+      ar: "تأثير التعرض السريري المبكر على طلاب الطب"
+    },
+    abstract: {
+      en: "A study investigating how early clinical exposure affects students' clinical reasoning and confidence.",
+      ar: "دراسة تبحث في كيفية تأثير التعرض السريري المبكر على التفكير السريري للطلاب وثقتهم."
+    },
+    fieldOfResearch: {
+      en: ["Medical Education", "Clinical Skills"],
+      ar: ["التعليم الطبي", "المهارات السريرية"]
+    },
     contactPerson: ["Dr. Sarah Johnson"],
-    authorshipPosition: ["Lead", "Co-author"],
-    projectDuration: "6 months",
-    requiredSkills: ["Clinical observation", "Data analysis"],
-    supervisor: "Prof. Michael Chen",
+    authorshipPosition: {
+      en: ["Lead", "Co-author"],
+      ar: ["قيادة", "مؤلف مشارك"]
+    },
+    projectDuration: { en: "6 months", ar: "6 أشهر" },
+    requiredSkills: {
+      en: ["Clinical observation", "Data analysis"],
+      ar: ["الملاحظة السريرية", "تحليل البيانات"]
+    },
+    supervisor: { en: "Prof. Michael Chen", ar: "أ.د. مايكل شين" },
     createdAt: new Date(),
     updatedAt: new Date(),
   },
