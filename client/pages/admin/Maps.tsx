@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMaps } from "@/hooks/useMaps";
-import { MapPin, Plus, Trash2 } from "lucide-react";
+import { MapPin, Plus, Trash2, Edit2 } from "lucide-react";
+import { MapVideoCard } from "@/components/student/MapVideoCard";
 
 export default function Maps() {
   const { maps, loading, error, createMap, updateMap, deleteMap } = useMaps();
@@ -154,85 +155,84 @@ export default function Maps() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All Maps ({maps.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div>Loading...</div>
-          ) : error ? (
-            <div className="text-destructive">{error}</div>
-          ) : maps.length === 0 ? (
-            <div className="text-muted-foreground">No maps yet.</div>
-          ) : (
-            <div className="grid gap-3">
-              {maps.map((m) => (
-                <div
-                  key={m.id}
-                  className="p-3 border rounded flex items-center justify-between"
-                >
-                  <div className="min-w-0">
-                    <div className="font-medium truncate">{m.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {m.location}
-                    </div>
-                    {m.type && (
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Type: <span className="font-medium">{m.type}</span>
-                      </div>
-                    )}
-                    {m.description && (
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {m.description}
-                      </div>
-                    )}
-                    {m.video_url && (
-                      <a
-                        className="text-xs text-blue-600 hover:underline"
-                        href={m.video_url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {m.video_url}
-                      </a>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setEditingId(m.id);
-                        setForm({
-                          name: m.name || "",
-                          location: m.location || "",
-                          description: m.description || "",
-                          video_url: m.video_url || "",
-                          type: m.type || "",
-                        });
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}
-                      className=""
-                    >
-                      Edit
-                    </Button>
+      {/* Video Gallery Section */}
+      <div>
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-2">Video Gallery</h2>
+          <p className="text-muted-foreground">View all location videos in gallery format</p>
+        </div>
 
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteMap(m.id)}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+        {loading ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <div>Loading videos...</div>
+            </CardContent>
+          </Card>
+        ) : error ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <div className="text-destructive">{error}</div>
+            </CardContent>
+          </Card>
+        ) : maps.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <div className="text-muted-foreground">No maps yet. Add one above to get started!</div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {maps.map((m) => (
+              <div key={m.id} className="relative group">
+                <MapVideoCard
+                  id={m.id}
+                  name={m.name}
+                  description={m.description}
+                  location={m.location}
+                  type={m.type}
+                  video_url={m.video_url}
+                  thumbnailUrl={m.thumbnailUrl}
+                />
+                {/* Admin Controls Overlay */}
+                <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setEditingId(m.id);
+                      setForm({
+                        name: m.name || "",
+                        location: m.location || "",
+                        description: m.description || "",
+                        video_url: m.video_url || "",
+                        type: m.type || "",
+                      });
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="shadow-lg"
+                  >
+                    <Edit2 className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      if (confirm(`Delete "${m.name}"?`)) {
+                        deleteMap(m.id);
+                      }
+                    }}
+                    className="shadow-lg"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

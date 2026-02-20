@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Plus, Search, Trash2, Edit2 } from "lucide-react";
+import { Loader2, Plus, Search, Trash2, Edit2, X } from "lucide-react";
 import { ResearchForm } from "@/components/admin/ResearchForm";
 import { useResearch } from "@/hooks/useResearch";
+import { ResearchContactMethods } from "@/components/student/ResearchContactMethods";
 
 export default function Research() {
   const [searchTerm, setSearchTerm] = useState("");

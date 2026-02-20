@@ -27,6 +27,8 @@ export function ResearchForm({ research, onClose, onSave }: ResearchFormProps) {
     abstract: { en: "", ar: "" } as BilingualText,
     fieldOfResearch: { en: [] as string[], ar: [] as string[] },
     contactPerson: [] as string[],
+    contactEmail: "",
+    contactPhone: "",
     authorshipPosition: { en: [] as string[], ar: [] as string[] },
     projectDuration: { en: "", ar: "" } as BilingualText,
     requiredSkills: { en: [] as string[], ar: [] as string[] },
@@ -42,6 +44,8 @@ export function ResearchForm({ research, onClose, onSave }: ResearchFormProps) {
         abstract: research.abstract || { en: "", ar: "" },
         fieldOfResearch: research.fieldOfResearch || { en: [], ar: [] },
         contactPerson: research.contactPerson || [],
+        contactEmail: research.contactEmail || "",
+        contactPhone: research.contactPhone || "",
         authorshipPosition: research.authorshipPosition || { en: [], ar: [] },
         projectDuration: research.projectDuration || { en: "", ar: "" },
         requiredSkills: research.requiredSkills || { en: [], ar: [] },
@@ -105,6 +109,8 @@ export function ResearchForm({ research, onClose, onSave }: ResearchFormProps) {
       abstract: formData.abstract,
       fieldOfResearch: formData.fieldOfResearch,
       contactPerson: formData.contactPerson,
+      contactEmail: formData.contactEmail,
+      contactPhone: formData.contactPhone,
       authorshipPosition: formData.authorshipPosition,
       projectDuration: formData.projectDuration,
       requiredSkills: formData.requiredSkills,
@@ -283,6 +289,36 @@ export function ResearchForm({ research, onClose, onSave }: ResearchFormProps) {
                       setFormData((prev) => ({
                         ...prev,
                         contactPerson: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Contact Email</Label>
+                  <Input
+                    type="email"
+                    placeholder="researcher@example.com"
+                    value={formData.contactEmail}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        contactEmail: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Contact Phone</Label>
+                  <Input
+                    type="tel"
+                    placeholder="+1 (555) 123-4567"
+                    value={formData.contactPhone}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        contactPhone: e.target.value,
                       }))
                     }
                   />

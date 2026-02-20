@@ -110,6 +110,8 @@ export interface Research {
     ar: string[];
   };
   contactPerson?: string[];
+  contactEmail?: string;
+  contactPhone?: string;
   authorshipPosition?: {
     en: string[];
     ar: string[];
