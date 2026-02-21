@@ -29,6 +29,7 @@ import FlashcardsPage from "./pages/admin/Flashcards";
 import Settings from "./pages/admin/Settings";
 import Maps from "./pages/admin/Maps";
 import Research from "./pages/admin/Research";
+import MCQ from "./pages/admin/MCQ";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -83,6 +84,7 @@ const App = () => (
                 <Route path="flashcards" element={<FlashcardsPage />} />
                 <Route path="research" element={<Research />} />
                 <Route path="maps" element={<Maps />} />
+                <Route path="mcq" element={<MCQ />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
               <Route path="/" element={<Navigate to="/admin" />} />

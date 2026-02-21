@@ -187,3 +187,25 @@ export interface User {
   yearId?: string;
   yearLabel?: string;
 }
+
+export interface MCQQuestion {
+  id?: string;
+  question: string;
+  options: string[]; // A, B, C, D options
+  correctAnswer: number; // 0-3 for A-D
+  explanation?: string;
+  imageUrl?: string;
+}
+
+export interface MCQ {
+  id?: string;
+  title: string;
+  description?: string;
+  category?: string;
+  difficulty?: "easy" | "medium" | "hard";
+  timeLimit?: number; // in minutes
+  questions: MCQQuestion[];
+  createdAt: Date;
+  updatedAt?: Date;
+  createdBy?: string;
+}

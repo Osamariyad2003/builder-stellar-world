@@ -29,6 +29,7 @@ const navItems = [
   { icon: Store, label: "Store", path: "/admin/store" },
   { icon: FileText, label: "Orders", path: "/admin/orders" },
   { icon: HelpCircle, label: "Research", path: "/admin/research" },
+  { icon: HelpCircle, label: "MCQ", path: "/admin/mcq" },
   { icon: MapPin, label: "Maps", path: "/admin/maps" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },
 ];
