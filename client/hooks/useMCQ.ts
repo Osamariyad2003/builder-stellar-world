@@ -51,7 +51,7 @@ export function useMCQ() {
   const fetchMCQs = async () => {
     if (isFirebaseInOfflineMode() || isExtensionBlocking()) {
       activateOfflineMode();
-      const cached = cacheManager.get("mcqs");
+      const cached = cacheManager.getCache<MCQ[]>("mcqs");
       if (cached) setMcqs(cached);
       return;
     }
@@ -80,7 +80,7 @@ export function useMCQ() {
       });
 
       setMcqs(mcqsData);
-      cacheManager.set("mcqs", mcqsData);
+      cacheManager.setCache("mcqs", mcqsData);
       setConnectionStatus("connected");
     } catch (err: any) {
       const errMsg = err?.message || "Failed to fetch MCQs";
@@ -116,7 +116,7 @@ export function useMCQ() {
 
       const updated = [newItem, ...mcqs];
       setMcqs(updated);
-      cacheManager.set("mcqs", updated);
+      cacheManager.setCache("mcqs", updated);
 
       return docRef.id;
     } catch (err) {
@@ -145,7 +145,7 @@ export function useMCQ() {
         m.id === id ? { ...m, ...updates, updatedAt: new Date() } : m
       );
       setMcqs(updated);
-      cacheManager.set("mcqs", updated);
+      cacheManager.setCache("mcqs", updated);
     } catch (err) {
       console.error("Error updating MCQ:", err);
       throw err;
@@ -164,7 +164,7 @@ export function useMCQ() {
 
       const updated = mcqs.filter((m) => m.id !== id);
       setMcqs(updated);
-      cacheManager.set("mcqs", updated);
+      cacheManager.setCache("mcqs", updated);
     } catch (err) {
       console.error("Error deleting MCQ:", err);
       throw err;
@@ -172,7 +172,7 @@ export function useMCQ() {
   };
 
   const clearCache = () => {
-    cacheManager.remove("mcqs");
+    cacheManager.clearCache("mcqs");
     fetchMCQs();
   };
 
