@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMaps } from "@/hooks/useMaps";
 import { MapPin, Plus, Trash2, Edit2 } from "lucide-react";
-import { MapVideoCard } from "@/components/student/MapVideoCard";
+import { MapVideoWithThumbnail } from "@/components/student/MapVideoWithThumbnail";
 
 export default function Maps() {
   const { maps, loading, error, createMap, updateMap, deleteMap } = useMaps();
