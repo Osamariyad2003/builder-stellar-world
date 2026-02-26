@@ -4,6 +4,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { isExtensionBlocking } from "@/lib/firebaseMonitor";
@@ -12,6 +14,7 @@ import { registerServiceWorker, getFCMToken, saveFCMTokenToUser, initializeMessa
 interface AuthContextType {
   currentUser: User | null;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, displayName?: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
   authError: string | null;
@@ -127,6 +130,110 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     throw lastError;
   };
 
+  const register = async (email: string, password: string, displayName?: string) => {
+    // Check if extension is blocking
+    if (isExtensionBlocking()) {
+      const err = new Error("Extension is blocking network requests");
+      setAuthError(
+        "Network blocked by browser extension. Try disabling ad blockers, VPNs, or security extensions and refresh the page.",
+      );
+      throw err;
+    }
+
+    // Check network connection
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      const err = new Error("No network connection (navigator offline)");
+      console.error("Register pre-check failed:", err);
+      setAuthError("No network connection - please connect to the internet");
+      throw err;
+    }
+
+    const maxAttempts = 3;
+    let attempt = 0;
+    let lastError: any = null;
+
+    while (attempt < maxAttempts) {
+      attempt += 1;
+      try {
+        // Create user account
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+        // Update profile with display name if provided
+        if (displayName) {
+          await updateProfile(userCredential.user, {
+            displayName: displayName,
+          });
+        }
+
+        setAuthError(null);
+        return;
+      } catch (error: any) {
+        lastError = error;
+        console.error(`Register attempt ${attempt} failed:`, error);
+
+        // Check for specific error codes
+        if (error?.code === "auth/email-already-in-use") {
+          setAuthError("Email address is already in use");
+          throw error;
+        } else if (error?.code === "auth/weak-password") {
+          setAuthError("Password is too weak. Use at least 6 characters");
+          throw error;
+        } else if (error?.code === "auth/invalid-email") {
+          setAuthError("Invalid email address");
+          throw error;
+        }
+
+        // Check for network errors
+        const isNetworkError =
+          error?.code === "auth/network-request-failed" ||
+          (error?.message &&
+            (error.message.toLowerCase().includes("fetch") ||
+              error.message.toLowerCase().includes("network") ||
+              error.message.toLowerCase().includes("offline")));
+
+        // Check if extension started blocking
+        if (isExtensionBlocking()) {
+          setAuthError(
+            "Network blocked by browser extension. Try disabling ad blockers, VPNs, or security extensions and refresh the page.",
+          );
+          throw error;
+        }
+
+        if (!isNetworkError) {
+          setAuthError("Registration error - see console for details");
+          throw error;
+        }
+
+        // For network errors, retry with exponential backoff
+        setAuthError(
+          `Network error (attempt ${attempt} of ${maxAttempts}) - checking connection...`,
+        );
+
+        if (attempt < maxAttempts) {
+          const backoff = 500 * Math.pow(2, attempt - 1);
+          console.log(`Retrying register in ${backoff}ms...`);
+          // eslint-disable-next-line no-await-in-loop
+          await sleep(backoff);
+          continue;
+        }
+      }
+    }
+
+    // After retries failed
+    console.error("Register failed after retries:", lastError);
+
+    if (isExtensionBlocking()) {
+      setAuthError(
+        "Network blocked by browser extension. Try disabling ad blockers, VPNs, or security extensions and refresh the page.",
+      );
+    } else {
+      setAuthError(
+        "Network error - unable to reach Firebase. Check your internet connection or ensure your site domain is added to Firebase Authentication -> Authorized domains.",
+      );
+    }
+    throw lastError;
+  };
+
   const logout = async () => {
     try {
       await signOut(auth);
@@ -195,6 +302,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = {
     currentUser,
     login,
+    register,
     logout,
     loading,
     authError,
