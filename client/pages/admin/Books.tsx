@@ -51,6 +51,7 @@ export default function Books() {
     category: "",
     imageUrl: "",
     pdfUrl: "",
+    googleDriveUrl: "",
   });
 
   const {
@@ -77,6 +78,7 @@ export default function Books() {
       category: "",
       imageUrl: "",
       pdfUrl: "",
+      googleDriveUrl: "",
     });
   };
 
@@ -97,6 +99,7 @@ export default function Books() {
         category: formData.category.trim(),
         imageUrl: formData.imageUrl,
         pdfUrl: formData.pdfUrl,
+        googleDriveUrl: formData.googleDriveUrl,
       });
 
       resetForm();
@@ -127,6 +130,7 @@ export default function Books() {
         category: formData.category.trim(),
         imageUrl: formData.imageUrl,
         pdfUrl: formData.pdfUrl,
+        googleDriveUrl: formData.googleDriveUrl,
       });
 
       resetForm();
@@ -164,6 +168,7 @@ export default function Books() {
       category: book.category || "",
       imageUrl: book.imageUrl || "",
       pdfUrl: book.pdfUrl || "",
+      googleDriveUrl: book.googleDriveUrl || "",
     });
     setIsEditDialogOpen(true);
   };
@@ -517,6 +522,19 @@ export default function Books() {
                     placeholder="Link to PDF file"
                   />
                 </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1 block">
+                    Google Drive URL
+                  </label>
+                  <Input
+                    value={formData.googleDriveUrl}
+                    onChange={(e) =>
+                      setFormData({ ...formData, googleDriveUrl: e.target.value })
+                    }
+                    placeholder="https://drive.google.com/file/d/..."
+                  />
+                </div>
               </div>
 
               <DialogFooter className="mt-6">
@@ -817,6 +835,19 @@ export default function Books() {
                   setFormData({ ...formData, pdfUrl: e.target.value })
                 }
                 placeholder="Link to PDF file"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1 block">
+                Google Drive URL
+              </label>
+              <Input
+                value={formData.googleDriveUrl}
+                onChange={(e) =>
+                  setFormData({ ...formData, googleDriveUrl: e.target.value })
+                }
+                placeholder="https://drive.google.com/file/d/..."
               />
             </div>
           </div>

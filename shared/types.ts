@@ -1,20 +1,24 @@
 export interface NewsItem {
   id?: string;
-  title: string;
-  content: string;
+  title: BilingualText;
+  content: BilingualText;
   imageUrl?: string;
   createdAt: Date;
   updatedAt: Date;
   authorName: string;
   authorId: string;
-  tags: string[];
+  tags: {
+    en: string[];
+    ar: string[];
+  };
   isPinned: boolean;
   viewsCount: number;
   attachments: string[];
   videoUrl?: string;
   yearId?: string; // Reference to the academic year document id (legacy)
   yearNumber?: number; // Optional year number for convenience
-  batchId?: string; // Reference to the batch document id
+  batchId?: string; // Reference to the batch document id / push notifications
+  sendNotification?: boolean; // Whether to send push notifications
 }
 
 export interface Lecture {
@@ -69,10 +73,9 @@ export interface QuizQuestion {
   question: string;
   options: string[];
   correctAnswer: number;
-  explanation?: string; // explanation for the correct answer
   imageUrl?: string;
   weight?: number; // weight of this question in the quiz
-  explanation?: {
+  explanation?: string | {
     text: string;
     imageUrl?: string;
   };
@@ -93,16 +96,32 @@ export interface Professor {
   imageUrl?: string;
 }
 
+export interface BilingualText {
+  en: string;
+  ar: string;
+}
+
 export interface Research {
   id?: string;
-  projectTitle: string;
-  abstract?: string;
-  fieldOfResearch?: string[];
+  projectTitle: BilingualText;
+  abstract?: BilingualText;
+  fieldOfResearch?: {
+    en: string[];
+    ar: string[];
+  };
   contactPerson?: string[];
-  authorshipPosition?: string[];
-  projectDuration?: string;
-  requiredSkills?: string[];
-  supervisor?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  authorshipPosition?: {
+    en: string[];
+    ar: string[];
+  };
+  projectDuration?: BilingualText;
+  requiredSkills?: {
+    en: string[];
+    ar: string[];
+  };
+  supervisor?: BilingualText;
   createdAt: Date;
   updatedAt?: Date;
 }
@@ -180,4 +199,26 @@ export interface Notification {
   read: boolean;
   createdAt: Date;
   batchId?: string; // The batch this notification is for
+}
+
+export interface MCQQuestion {
+  id?: string;
+  question: string;
+  options: string[]; // A, B, C, D options
+  correctAnswer: number; // 0-3 for A-D
+  explanation?: string;
+  imageUrl?: string;
+}
+
+export interface MCQ {
+  id?: string;
+  title: string;
+  description?: string;
+  category?: string;
+  difficulty?: "easy" | "medium" | "hard";
+  timeLimit?: number; // in minutes
+  questions: MCQQuestion[];
+  createdAt: Date;
+  updatedAt?: Date;
+  createdBy?: string;
 }

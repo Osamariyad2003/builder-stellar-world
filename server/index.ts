@@ -6,6 +6,7 @@ import { handleConfig } from "./routes/cloudinaryConfig";
 import { handleUpload } from "./routes/cloudinaryUpload";
 import { handleImageKitUpload } from "./routes/imagekitUpload";
 import { handleImageKitAuth } from "./routes/imagekitAuth";
+import { handleSaveFCMToken, handleSendBatchNotification, handleSendUserNotification } from "./routes/notifications";
 
 export function createServer() {
   const app = express();
@@ -35,6 +36,11 @@ export function createServer() {
 
   // Provide Cloudinary config (runtime) to clients when VITE_* not available
   app.get("/cloudinary/config", handleConfig);
+
+  // FCM notification endpoints
+  app.post("/save-fcm-token", handleSaveFCMToken);
+  app.post("/send-batch-notification", handleSendBatchNotification);
+  app.post("/send-user-notification", handleSendUserNotification);
 
   // Log registered API routes for debugging
   try {

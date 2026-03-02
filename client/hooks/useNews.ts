@@ -25,14 +25,13 @@ import { useYears } from "@/hooks/useYears";
 const mockNews: NewsItem[] = [
   {
     id: "1",
-    title: "Revolutionary Gene Therapy Shows Promise in Cancer Treatment",
-    content:
-      "Recent studies demonstrate significant progress in targeted gene therapy for various cancer types. This breakthrough research could change how we approach oncological treatments in the future.",
+    title: { en: "Revolutionary Gene Therapy Shows Promise in Cancer Treatment", ar: "العلاج الجيني الثوري يوضح الأمل في علاج السرطان" },
+    content: { en: "Recent studies demonstrate significant progress in targeted gene therapy for various cancer types. This breakthrough research could change how we approach oncological treatments in the future.", ar: "تُظهر الدراسات الحديثة تقدماً كبيراً في العلاج الجيني الموجه لأنواع السرطان المختلفة. قد يغير هذا البحث الرائد طريقة تعاملنا مع العلاجات الورمية في المستقبل." },
     authorName: "Dr. Sarah Johnson",
     authorId: "user1",
     createdAt: new Date("2024-01-15"),
     updatedAt: new Date("2024-01-15"),
-    tags: ["oncology", "gene-therapy", "research"],
+    tags: { en: ["oncology", "gene-therapy", "research"], ar: ["علم الأورام", "العلاج الجيني", "البحث"] },
     isPinned: true,
     viewsCount: 1247,
     attachments: [],
@@ -41,14 +40,13 @@ const mockNews: NewsItem[] = [
   },
   {
     id: "2",
-    title: "Medical Education Technology Trends for 2024",
-    content:
-      "Exploring the latest innovations in medical education platforms, including VR simulations, AI-powered learning, and interactive case studies that are transforming how medical students learn.",
+    title: { en: "Medical Education Technology Trends for 2024", ar: "اتجاهات تكنولوجيا التعليم الطبي لعام 2024" },
+    content: { en: "Exploring the latest innovations in medical education platforms, including VR simulations, AI-powered learning, and interactive case studies that are transforming how medical students learn.", ar: "استكشاف أحدث الابتكارات في منصات التعليم الطبي، بما في ذلك محاكاة الواقع الافتراضي والتعلم المدعوم بالذكاء الاصطناعي والدراسات الحالة التفاعلية التي تحول طريقة تعلم طلاب الطب." },
     authorName: "Prof. Michael Chen",
     authorId: "user2",
     createdAt: new Date("2024-01-14"),
     updatedAt: new Date("2024-01-14"),
-    tags: ["education", "technology", "trends"],
+    tags: { en: ["education", "technology", "trends"], ar: ["التعليم", "التكنولوجيا", "الاتجاهات"] },
     isPinned: false,
     viewsCount: 892,
     attachments: [],
@@ -57,14 +55,13 @@ const mockNews: NewsItem[] = [
   },
   {
     id: "3",
-    title: "New Guidelines for Emergency Medicine Protocols",
-    content:
-      "Updated protocols for emergency medical procedures and best practices have been released. These guidelines incorporate the latest research and improve patient care outcomes.",
+    title: { en: "New Guidelines for Emergency Medicine Protocols", ar: "إرشادات جديدة لبروتوكولات الطب الطارئ" },
+    content: { en: "Updated protocols for emergency medical procedures and best practices have been released. These guidelines incorporate the latest research and improve patient care outcomes.", ar: "تم إصدار بروتوكولات محدثة لإجراءات الطب الطارئ وأفضل الممارسات. تتضمن هذه الإرشادات أحدث الأبحاث وتحسن نتائج رعاية المرضى." },
     authorName: "Dr. Emily Rodriguez",
     authorId: "user3",
     createdAt: new Date("2024-01-13"),
     updatedAt: new Date("2024-01-13"),
-    tags: ["emergency", "protocols", "guidelines"],
+    tags: { en: ["emergency", "protocols", "guidelines"], ar: ["الطوارئ", "البروتوكولات", "الإرشادات"] },
     isPinned: false,
     viewsCount: 654,
     attachments: ["protocol-guide.pdf"],
@@ -327,15 +324,15 @@ export function useNews() {
           const data = doc.data();
           newsData.push({
             id: doc.id,
-            title: data.title || "",
-            content: data.content || "",
+            title: data.title || { en: "", ar: "" },
+            content: data.content || { en: "", ar: "" },
             imageUrl: data.imageUrl || "",
             videoUrl: data.videoUrl || "",
             createdAt: data.createdAt?.toDate() || new Date(),
             updatedAt: data.updatedAt?.toDate() || new Date(),
             authorName: data.authorName || "",
             authorId: data.newsId || doc.id,
-            tags: data.tags || [],
+            tags: data.tags || { en: [], ar: [] },
             isPinned: data.isPinned || false,
             viewsCount: data.viewsCount || 0,
             attachments: data.attachments || [],
@@ -364,7 +361,6 @@ export function useNews() {
   const createNews = async (newsData: Omit<NewsItem, "id">) => {
     try {
       console.log("📝 Creating news article:", newsData.title);
-      // Convert Date objects to Firestore Timestamps
       const firestoreData: any = {
         ...newsData,
         createdAt: newsData.createdAt instanceof Date 
@@ -374,26 +370,39 @@ export function useNews() {
           ? Timestamp.fromDate(newsData.updatedAt) 
           : serverTimestamp(),
       };
-      
-      // Remove undefined fields (Firebase doesn't accept undefined values)
       Object.keys(firestoreData).forEach(key => {
         if (firestoreData[key] === undefined) {
           delete firestoreData[key];
         }
       });
-      
       const docRef = await addDoc(collection(db, "news"), firestoreData);
       console.log("✅ News article created successfully with ID:", docRef.id);
-      
-      // Send notifications to users in the same batch
+      const titleStr = typeof newsData.title === "string" ? newsData.title : (newsData.title as any)?.en ?? "";
       if (newsData.batchId) {
-        sendNotificationsForBatchByBatchId(docRef.id, newsData.title, newsData.batchId).catch((err) => {
+        sendNotificationsForBatchByBatchId(docRef.id, titleStr, newsData.batchId).catch((err) => {
           console.error("Failed to send notifications (non-critical):", err);
         });
       } else if (newsData.yearId) {
-        sendNotificationsForBatch(docRef.id, newsData.title, newsData.yearId).catch((err) => {
+        sendNotificationsForBatch(docRef.id, titleStr, newsData.yearId).catch((err) => {
           console.error("Failed to send notifications (non-critical):", err);
         });
+      }
+      if ((newsData as any).sendNotification && (newsData as any).batchId) {
+        try {
+          const title = typeof newsData.title === "object" ? newsData.title.en : (newsData.title as string);
+          const content = typeof newsData.content === "object" ? newsData.content.en : (newsData.content as string);
+          await fetch("/api/send-batch-notification", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              batchId: (newsData as any).batchId,
+              notification: { title, body: content.substring(0, 150) + "..." },
+              data: { newsId: docRef.id, title },
+            }),
+          });
+        } catch (notificationError) {
+          console.error("Error sending batch notification API:", notificationError);
+        }
       }
     } catch (error: any) {
       console.error("❌ Error creating news:", error);

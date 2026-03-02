@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMaps } from "@/hooks/useMaps";
 import { MapVideoWithThumbnail } from "@/components/MapVideoWithThumbnail";
-import { MapPin, Plus, Trash2 } from "lucide-react";
+import { MapPin, Plus, Trash2, Edit2 } from "lucide-react";
 
 export default function Maps() {
   const { maps, loading, error, createMap, updateMap, deleteMap } = useMaps();
@@ -222,16 +222,17 @@ export default function Maps() {
                         });
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
-                      className=""
                     >
+                      <Edit2 className="h-4 w-4 mr-1" />
                       Edit
                     </Button>
-
                     <Button
                       variant="ghost"
-                      size="icon"
-                      onClick={() => deleteMap(m.id)}
-                      className="text-destructive"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => {
+                        if (confirm(`Delete "${m.name}"?`)) deleteMap(m.id);
+                      }}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

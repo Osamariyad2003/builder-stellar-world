@@ -14,6 +14,7 @@ import {
   MapPin,
   Bell,
   Book,
+  Archive,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -33,11 +34,13 @@ const navItems: NavItem[] = [
   { icon: Bell, label: "Notifications", path: "/admin/notifications" },
   { icon: BookOpen, label: "Years", path: "/admin/years" },
   { icon: Book, label: "Books", path: "/admin/books" },
+  { icon: Archive, label: "Resources", path: "/admin/resources" },
   { icon: Users, label: "Users", path: "/admin/users" },
   { icon: Users, label: "Professors", path: "/admin/professors" },
   { icon: Store, label: "Store", path: "/admin/store" },
   { icon: FileText, label: "Orders", path: "/admin/orders" },
   { icon: HelpCircle, label: "Research", path: "/admin/research" },
+  { icon: HelpCircle, label: "MCQ", path: "/admin/mcq" },
   { icon: MapPin, label: "Maps", path: "/admin/maps" },
   { icon: Settings, label: "Settings", path: "/admin/settings" },
 ];

@@ -29,6 +29,7 @@ export interface BookData {
   category?: string;
   imageUrl?: string;
   pdfUrl?: string;
+  googleDriveUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
