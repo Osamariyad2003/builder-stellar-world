@@ -323,7 +323,7 @@ export default function News() {
                 </CardContent>
               </Card>
             );
-          });
+          })}
         </div>
       )}
 
