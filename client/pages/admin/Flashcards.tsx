@@ -4,6 +4,8 @@ import { useLectureQuizzes } from "@/hooks/useLectureResources";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle, HelpCircle } from "lucide-react";
 
 export default function FlashcardsPage() {
   const [searchParams] = useSearchParams();
@@ -130,7 +132,7 @@ export default function FlashcardsPage() {
     });
 
     const allCorrect = results.every(Boolean);
-    setFeedback(allCorrect ? "Correct" : "Incorrect");
+    setFeedback(allCorrect ? "correct" : "incorrect");
 
     // If correct, auto-mark full weight; else leave mark as 0 so admin can grade
     if (allCorrect) setMarkForIndex(index, currentWeight);
@@ -245,7 +247,14 @@ export default function FlashcardsPage() {
                     >
                       Cancel
                     </Button>
-                    {feedback && <div className="ml-2 text-sm">{feedback}</div>}
+                    {feedback && (
+                      <div className={`ml-2 text-sm font-medium flex items-center gap-2 ${
+                        feedback === "correct" ? "text-green-600" : "text-red-600"
+                      }`}>
+                        {feedback === "correct" && <CheckCircle className="h-4 w-4" />}
+                        {feedback === "correct" ? "Correct!" : "Incorrect"}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -256,6 +265,33 @@ export default function FlashcardsPage() {
                 alt="question"
                 className="w-full max-w-md object-contain"
               />
+            )}
+
+            {feedback === "correct" && current.explanation && (
+              <Alert className="border-green-200 bg-green-50 dark:bg-green-950">
+                <HelpCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <AlertDescription className="mt-2">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-green-900 dark:text-green-100">
+                        Explanation
+                      </span>
+                    </div>
+                    {current.explanation.text && (
+                      <p className="text-sm text-green-800 dark:text-green-200">
+                        {current.explanation.text}
+                      </p>
+                    )}
+                    {current.explanation.imageUrl && (
+                      <img
+                        src={current.explanation.imageUrl}
+                        alt="Explanation"
+                        className="max-w-sm rounded border border-green-200"
+                      />
+                    )}
+                  </div>
+                </AlertDescription>
+              </Alert>
             )}
 
             <div className="space-y-2">

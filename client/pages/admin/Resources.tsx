@@ -16,6 +16,7 @@ import { FileForm } from "@/components/admin/FileForm";
 import { QuizForm } from "@/components/admin/QuizForm";
 import { useLecturesPaginated } from "@/hooks/useLecturesPaginated";
 import { useLectures } from "@/hooks/useLectures";
+import { useYears } from "@/hooks/useYears";
 import { useSearchParams } from "react-router-dom";
 import { PaginatedList } from "@/components/ui/PaginatedList";
 import {
@@ -69,6 +70,8 @@ export default function Resources() {
   const { createLecture, updateLecture, deleteLecture } = useLectures();
   
   const error = paginationError ? (paginationError as Error).message : null;
+
+  const { addVideo, addFile, addQuiz } = useYears();
 
   const [searchParams] = useSearchParams();
   const lectureParam = searchParams.get("lecture");
@@ -143,6 +146,18 @@ export default function Resources() {
   const handleEditQuiz = (quiz: any) => {
     setSelectedQuiz(quiz);
     setIsQuizFormOpen(true);
+  };
+
+  const handleDeleteLecture = async (lecture: any) => {
+    if (window.confirm(`Delete lecture "${lecture.name || lecture.title}" and all its resources?`)) {
+      try {
+        await deleteLecture(lecture.id);
+        alert("Lecture deleted successfully");
+      } catch (error) {
+        console.error("Error deleting lecture:", error);
+        alert("Failed to delete lecture");
+      }
+    }
   };
 
   // Video Form
@@ -355,6 +370,7 @@ export default function Resources() {
                       variant="ghost"
                       size="icon"
                       className="text-destructive hover:text-destructive"
+                      onClick={() => handleDeleteLecture(lecture as any)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

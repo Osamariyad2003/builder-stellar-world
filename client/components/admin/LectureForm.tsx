@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,22 @@ import {
   BookOpen,
   GraduationCap,
   Stethoscope,
+  Upload,
+  Loader2,
 } from "lucide-react";
+import {
+  uploadImageToCloudinary,
+  setLocalCloudinaryConfig,
+} from "@/lib/cloudinary";
+import { uploadToImageKitServer } from "@/lib/imagekit";
+
+interface Lecture {
+  id?: string;
+  name: string;
+  description?: string;
+  order?: number;
+  imageUrl?: string;
+}
 
 interface LectureFormProps {
   lecture?: any;
@@ -35,6 +50,7 @@ export function LectureForm({
   onClose,
   onSave,
 }: LectureFormProps) {
+  const isEditing = !!lecture?.id;
   const [formData, setFormData] = useState({
     name: lecture?.name || "",
     description: lecture?.description || "",
@@ -43,6 +59,62 @@ export function LectureForm({
   });
 
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  useEffect(() => {
+    if (lecture) {
+      setFormData({
+        name: lecture.name || "",
+        description: lecture.description || "",
+        order: lecture.order || 1,
+        imageUrl: lecture.imageUrl || "",
+      });
+    }
+  }, [lecture]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      let imageUrl: string | null = null;
+
+      // Try Cloudinary first
+      try {
+        imageUrl = await uploadImageToCloudinary(file);
+      } catch (cloudErr: any) {
+        console.warn(
+          "Cloudinary upload failed, trying ImageKit",
+          cloudErr?.message || cloudErr,
+        );
+
+        // Fallback to ImageKit
+        imageUrl = await uploadToImageKitServer(file, file.name);
+      }
+
+      if (!imageUrl) {
+        alert("Failed to upload image");
+        return;
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        imageUrl,
+      }));
+
+      alert("Image uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setUploadingImage(false);
+      // Reset file input
+      if (e.target) {
+        e.target.value = "";
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,8 +124,9 @@ export function LectureForm({
       const lectureData = {
         ...formData,
         subjectId: subjectId,
-        createdAt: new Date(),
-        uploadedBy: "Current User",
+        ...(isEditing && lecture
+          ? { id: lecture.id }
+          : { createdAt: new Date(), uploadedBy: "Current User" }),
       };
 
       onSave(lectureData);
@@ -73,9 +146,13 @@ export function LectureForm({
             Back
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Add Lecture</h1>
+            <h1 className="text-2xl font-bold">
+              {isEditing ? "Edit Lecture" : "Add Lecture"}
+            </h1>
             <p className="text-muted-foreground">
-              Add a new lecture to {subjectName}
+              {isEditing
+                ? `Editing "${lecture?.name}" in ${subjectName}`
+                : `Add a new lecture to ${subjectName}`}
             </p>
           </div>
         </div>
@@ -129,24 +206,128 @@ export function LectureForm({
               />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="order">Order</Label>
-                <Input
-                  id="order"
-                  type="number"
-                  min="1"
-                  value={formData.order}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      order: parseInt(e.target.value) || 1,
-                    }))
-                  }
-                />
+            <div className="space-y-2">
+              <Label htmlFor="order">Order</Label>
+              <Input
+                id="order"
+                type="number"
+                min="1"
+                value={formData.order}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    order: parseInt(e.target.value) || 1,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="space-y-4">
+              <Label>Lecture Image (Optional)</Label>
+              <div className="border-2 border-dashed rounded-lg p-6 space-y-3">
+                {formData.imageUrl ? (
+                  <div className="space-y-3">
+                    <div className="relative w-40 h-32 rounded-md overflow-hidden">
+                      <img
+                        src={formData.imageUrl}
+                        alt="Lecture preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.createElement("input");
+                          input.type = "file";
+                          input.accept = "image/*";
+                          input.onchange = (e) =>
+                            handleImageUpload(
+                              e as React.ChangeEvent<HTMLInputElement>,
+                            );
+                          input.click();
+                        }}
+                        disabled={uploadingImage}
+                      >
+                        {uploadingImage ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Change Image
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            imageUrl: "",
+                          }))
+                        }
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center space-y-3">
+                    <BookOpen className="h-12 w-12 mx-auto text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium mb-2">
+                        Upload lecture image
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Click button below to select an image
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.createElement("input");
+                          input.type = "file";
+                          input.accept = "image/*";
+                          input.onchange = (e) =>
+                            handleImageUpload(
+                              e as React.ChangeEvent<HTMLInputElement>,
+                            );
+                          input.click();
+                        }}
+                        disabled={uploadingImage}
+                      >
+                        {uploadingImage ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Upload Image
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">Image URL (Optional)</Label>
+                <Label htmlFor="imageUrl" className="text-xs">
+                  Or paste image URL directly
+                </Label>
                 <Input
                   id="imageUrl"
                   placeholder="https://example.com/image.jpg"
@@ -212,7 +393,13 @@ export function LectureForm({
           </Button>
           <Button type="submit" disabled={loading}>
             <Save className="h-4 w-4 mr-2" />
-            {loading ? "Adding..." : "Add Lecture"}
+            {loading
+              ? isEditing
+                ? "Saving..."
+                : "Adding..."
+              : isEditing
+                ? "Save Changes"
+                : "Add Lecture"}
           </Button>
         </div>
       </form>

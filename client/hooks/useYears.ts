@@ -144,13 +144,15 @@ export function useYears() {
   }, [queryClient]);
 
   const retryConnection = () => {
-    console.log("��� Retrying Firebase connection...");
     setIsOfflineMode(false);
     queryClient.invalidateQueries({ queryKey: ["years-data"] });
   };
 
   const updateYear = async (yearId: string, patch: Partial<YearData>) => {
     if (!yearId) return;
+
+    // Clear cache to prepare for fresh data
+    clearCache();
 
     if (isOfflineMode || !navigator.onLine) {
       setYears((prev) =>
@@ -186,6 +188,10 @@ export function useYears() {
   // Update batch document by id
   const updateBatch = async (batchId: string, patch: Partial<any>) => {
     if (!batchId) return;
+
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     if (isOfflineMode || !navigator.onLine) {
       setBatches((prev) =>
         prev.map((b) => (b.id === batchId ? { ...b, ...patch } : b)),
@@ -223,6 +229,9 @@ export function useYears() {
   const createSubject = async (
     subjectData: Omit<SubjectData, "id" | "lectures">,
   ) => {
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     if (isOfflineMode || !navigator.onLine) {
       const newSubject: SubjectData = {
         id: `subject_${Date.now()}`,
@@ -359,6 +368,9 @@ export function useYears() {
   };
 
   const createLecture = async (lectureData: Omit<LectureData, "id">) => {
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     if (isOfflineMode) {
       const newLecture: LectureData = {
         id: `lecture_${Date.now()}`,
@@ -436,7 +448,6 @@ export function useYears() {
 
   const updateLecture = async (lectureId: string, lectureData: Partial<LectureData>) => {
     if (isOfflineMode) {
-      // Update in local state for offline mode
       setYears((prev) =>
         prev.map((year) => ({
           ...year,
@@ -455,13 +466,9 @@ export function useYears() {
     }
 
     try {
-      console.log("🔄 Updating lecture:", lectureId, lectureData);
-
       await retryOperation(async () => {
-        // Find the lecture using collectionGroup query
         const lecturesQuery = query(collectionGroup(db, "lectures"));
         const querySnapshot = await getDocs(lecturesQuery);
-
         let lectureRef = null;
         for (const docSnapshot of querySnapshot.docs) {
           if (docSnapshot.id === lectureId) {
@@ -469,55 +476,51 @@ export function useYears() {
             break;
           }
         }
-
         if (!lectureRef) {
           throw new Error(`Lecture ${lectureId} not found`);
         }
-
-        // Prepare update data - remove undefined fields and convert dates
         const updateData: any = { ...lectureData };
-        
-        // Map 'name' to 'title' if present (Firebase uses 'title')
         if (updateData.name) {
           updateData.title = updateData.name;
           delete updateData.name;
         }
-
-        // Remove undefined fields
         Object.keys(updateData).forEach((key) => {
           if (updateData[key] === undefined) {
             delete updateData[key];
           }
         });
-
-        // Convert Date objects to Firestore Timestamps
         if (updateData.createdAt instanceof Date) {
           updateData.createdAt = Timestamp.fromDate(updateData.createdAt);
         }
         if (updateData.updatedAt instanceof Date) {
           updateData.updatedAt = Timestamp.fromDate(updateData.updatedAt);
         }
-
-        // Add updatedAt if not present
         if (!updateData.updatedAt) {
           updateData.updatedAt = Timestamp.fromDate(new Date());
         }
-
         await updateDoc(lectureRef, updateData);
-
-        console.log("✅ Updated lecture successfully:", lectureId);
-
-        // Refresh data
         queryClient.invalidateQueries({ queryKey: ["years-data"] });
       });
     } catch (error: any) {
-      console.error("❌ Error updating lecture:", error);
-      console.error("Error details:", error.code, error.message);
-      throw new Error(`Failed to update lecture: ${error.message || 'Check Firebase permissions'}`);
+      console.error("Error updating lecture:", error);
+      setYears((prev) =>
+        prev.map((year) => ({
+          ...year,
+          subjects: year.subjects.map((subject) => ({
+            ...subject,
+            lectures: subject.lectures.map((lecture) =>
+              lecture.id === lectureId ? { ...lecture, ...lectureData } : lecture
+            ),
+          })),
+        }))
+      );
     }
   };
 
   const deleteLecture = async (subjectId: string, lectureId: string) => {
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     if (isOfflineMode) {
       setSubjects((prev) =>
         prev.map((subject) =>
@@ -564,6 +567,9 @@ export function useYears() {
 
   const deleteSubject = async (subjectId: string) => {
     if (!subjectId) return;
+
+    // Clear cache to prepare for fresh data
+    clearCache();
 
     if (isOfflineMode) {
       setSubjects((prev) => prev.filter((s) => s.id !== subjectId));
@@ -801,6 +807,9 @@ export function useYears() {
       type?: "basic" | "clinical";
     } = {},
   ) => {
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     const yearNumber = data.yearNumber || 1;
     const name = data.name || `Year ${yearNumber}`;
     const type = data.type || (yearNumber <= 3 ? "basic" : "clinical");
@@ -884,6 +893,9 @@ export function useYears() {
     const imageUrl = data.imageUrl || "";
     const cr = data.cr || "";
 
+    // Clear cache to prepare for fresh data
+    clearCache();
+
     // Optimistic temporary batch to update UI immediately
     const tempId = `batch_temp_${Date.now()}`;
     const tempBatch = { id: tempId, batchName: name, imageUrl, cr };
@@ -948,6 +960,9 @@ export function useYears() {
     options: { deleteYears?: boolean } = { deleteYears: true },
   ) => {
     if (!batchId) return;
+
+    // Clear cache to prepare for fresh data
+    clearCache();
 
     // Optimistic removal
     const prevBatches = batches;
@@ -1015,6 +1030,116 @@ export function useYears() {
     }
   };
 
+  // Lazy-load videos, files, and quizzes for a specific lecture
+  const loadLectureResources = async (
+    subjectId: string,
+    lectureId: string,
+  ): Promise<{
+    videos?: VideoData[];
+    files?: FileData[];
+    quizzes?: QuizData[];
+  }> => {
+    if (isOfflineMode || !navigator.onLine) {
+      return { videos: [], files: [], quizzes: [] };
+    }
+
+    try {
+      const resources: {
+        videos?: VideoData[];
+        files?: FileData[];
+        quizzes?: QuizData[];
+      } = {};
+
+      const lectureRef = doc(db, "Subjects", subjectId, "lectures", lectureId);
+
+      // Fetch videos
+      try {
+        const videosSnapshot = await getDocs(collection(lectureRef, "videos"));
+        resources.videos = videosSnapshot.docs.map((videoDoc) => {
+          const videoData = videoDoc.data();
+          return {
+            id: videoDoc.id,
+            title: videoData.title || videoData.name || "",
+            url: videoData.url || "",
+            thumbnailUrl: videoData.thumbnailUrl || "",
+            description: videoData.description || "",
+            uploadedAt: videoData.uploadedAt?.toDate() || new Date(),
+          };
+        });
+      } catch (e) {
+        console.warn("Failed to fetch videos:", e);
+        resources.videos = [];
+      }
+
+      // Fetch files
+      try {
+        const filesSnapshot = await getDocs(collection(lectureRef, "files"));
+        resources.files = filesSnapshot.docs.map((fileDoc) => {
+          const fileData = fileDoc.data();
+          return {
+            id: fileDoc.id,
+            title: fileData.title || fileData.name || "",
+            url: fileData.url || "",
+            description: fileData.description || "",
+            uploadedAt: fileData.uploadedAt?.toDate() || new Date(),
+          };
+        });
+      } catch (e) {
+        console.warn("Failed to fetch files:", e);
+        resources.files = [];
+      }
+
+      // Fetch quizzes
+      try {
+        const quizzesSnapshot = await getDocs(
+          collection(lectureRef, "quizzes"),
+        );
+        resources.quizzes = quizzesSnapshot.docs.map((quizDoc) => {
+          const quizData = quizDoc.data();
+          return {
+            id: quizDoc.id,
+            title: quizData.title || quizData.name || "",
+            description: quizData.description || "",
+            duration: quizData.duration || 30,
+            passRate: quizData.passRate || 70,
+            questions: quizData.questions || [],
+          };
+        });
+      } catch (e) {
+        console.warn("Failed to fetch quizzes:", e);
+        resources.quizzes = [];
+      }
+
+      // Update the years state with the loaded resources
+      setYears((prevYears) =>
+        prevYears.map((year) => ({
+          ...year,
+          subjects: year.subjects.map((subject) =>
+            subject.id === subjectId
+              ? {
+                  ...subject,
+                  lectures: subject.lectures.map((lecture) =>
+                    lecture.id === lectureId
+                      ? { ...lecture, ...resources }
+                      : lecture,
+                  ),
+                }
+              : subject,
+          ),
+        })),
+      );
+
+      return resources;
+    } catch (error) {
+      console.error("Error loading lecture resources:", error);
+      return { videos: [], files: [], quizzes: [] };
+    }
+  };
+
+  const clearCache = () => {
+    queryClient.invalidateQueries({ queryKey: ["years-data"] });
+  };
+
   return {
     years,
     batches,
@@ -1023,6 +1148,7 @@ export function useYears() {
     error,
     isOfflineMode,
     retryConnection,
+    clearCache,
     updateYear,
     updateBatch,
     createSubject,
@@ -1036,5 +1162,6 @@ export function useYears() {
     addVideo,
     addFile,
     addQuiz,
+    loadLectureResources,
   };
 }

@@ -36,8 +36,25 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    match /books/{bookId} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /research/{researchId} {
+      allow read, write: if request.auth != null;
+    }
+
     match /professors/{professorId} {
       allow read, write: if request.auth != null;
+    }
+
+    match /batches/{batchId} {
+      allow read, write, delete: if request.auth != null;
+
+      // Allow nested years collection
+      match /years/{yearId} {
+        allow read, write, delete: if request.auth != null;
+      }
     }
 
     match /Subjects/{subjectId} {
@@ -85,9 +102,30 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /books/{bookId} {
+      allow read: if true; // Public read
+      allow write: if isAdmin();
+    }
+
+    match /research/{researchId} {
+      allow read: if true; // Public read
+      allow write: if isAdmin();
+    }
+
     match /professors/{professorId} {
       allow read: if true; // Public read
       allow write: if isAdmin();
+    }
+
+    match /batches/{batchId} {
+      allow read: if true; // Public read
+      allow write, delete: if isAdmin();
+
+      // Allow nested years collection
+      match /years/{yearId} {
+        allow read: if true;
+        allow write, delete: if isAdmin();
+      }
     }
 
     match /Subjects/{subjectId} {

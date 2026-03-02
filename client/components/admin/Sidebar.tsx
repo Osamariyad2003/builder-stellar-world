@@ -13,6 +13,7 @@ import {
   BookOpen,
   MapPin,
   Bell,
+  Book,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -31,6 +32,7 @@ const navItems: NavItem[] = [
   { icon: Newspaper, label: "News", path: "/admin/news" },
   { icon: Bell, label: "Notifications", path: "/admin/notifications" },
   { icon: BookOpen, label: "Years", path: "/admin/years" },
+  { icon: Book, label: "Books", path: "/admin/books" },
   { icon: Users, label: "Users", path: "/admin/users" },
   { icon: Users, label: "Professors", path: "/admin/professors" },
   { icon: Store, label: "Store", path: "/admin/store" },

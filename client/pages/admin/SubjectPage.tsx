@@ -1,6 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useYears } from "@/hooks/useYears";
+import { db } from "@/lib/firebase";
+import {
+  doc,
+  getDoc,
+  collection,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import {
   Card,
   CardContent,
@@ -9,7 +18,22 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlayCircle, FileText, HelpCircle, Plus, Trash2 } from "lucide-react";
+import {
+  PlayCircle,
+  FileText,
+  HelpCircle,
+  Plus,
+  Trash2,
+  Edit2,
+  ImagePlus,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import {
+  uploadImageToCloudinary,
+  setLocalCloudinaryConfig,
+} from "@/lib/cloudinary";
+import { uploadToImageKitServer } from "@/lib/imagekit";
 import { VideoForm } from "@/components/admin/VideoForm";
 import { FileForm } from "@/components/admin/FileForm";
 import { QuizForm } from "@/components/admin/QuizForm";
@@ -48,8 +72,9 @@ export default function SubjectPage() {
   const {
     years,
     subjects,
-    loading,
+    loading: globalLoading,
     createLecture,
+    updateLecture,
     deleteLecture,
     deleteSubject,
     addVideo,
@@ -58,12 +83,90 @@ export default function SubjectPage() {
   } = useYears();
 
   const [selectedLecture, setSelectedLecture] = useState<string | null>(null);
+  const [editingLecture, setEditingLecture] = useState<any>(null);
   const [isVideoFormOpen, setIsVideoFormOpen] = useState(false);
   const [isFileFormOpen, setIsFileFormOpen] = useState(false);
   const [isQuizFormOpen, setIsQuizFormOpen] = useState(false);
   const [isLectureFormOpen, setIsLectureFormOpen] = useState(false);
+  const [loadingSubject, setLoadingSubject] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [directSubject, setDirectSubject] = useState<any>(null);
+  const [uploadingImageFor, setUploadingImageFor] = useState<string | null>(
+    null,
+  );
 
-  const subject = subjects.find((s) => s.id === id);
+  // Expandable sections state: { lectureId: { videos: boolean, files: boolean, quizzes: boolean } }
+  const [expandedSections, setExpandedSections] = useState<
+    Record<string, { videos: boolean; files: boolean; quizzes: boolean }>
+  >({});
+
+  // Edit item state
+  const [editingVideo, setEditingVideo] = useState<any>(null);
+  const [editingFile, setEditingFile] = useState<any>(null);
+  const [editingQuiz, setEditingQuiz] = useState<any>(null);
+
+  // Check global subjects first
+  let subject = subjects.find((s) => s.id === id);
+
+  // If not found globally, load directly from Firestore
+  useEffect(() => {
+    if (subject || !id) return; // Skip if already found or no ID
+
+    const loadSubject = async () => {
+      setLoadingSubject(true);
+      setError(null);
+      try {
+        // Try to find subject directly in Firestore by searching the Subjects collection
+        const subjectsRef = collection(db, "Subjects");
+        const querySnap = await getDocs(subjectsRef);
+
+        let foundSubject: any = null;
+        for (const doc of querySnap.docs) {
+          if (doc.id === id) {
+            foundSubject = doc.data();
+            foundSubject.id = doc.id;
+            break;
+          }
+        }
+
+        if (foundSubject) {
+          // Load lectures for this subject
+          const lecturesRef = collection(db, "Subjects", id, "lectures");
+          const lecturesSnap = await getDocs(lecturesRef);
+          const lectures = lecturesSnap.docs.map((lectureDoc) => ({
+            id: lectureDoc.id,
+            name: lectureDoc.data().name || lectureDoc.data().title || "",
+            description: lectureDoc.data().description || "",
+            imageUrl: lectureDoc.data().imageUrl || "",
+            videos: undefined,
+            files: undefined,
+            quizzes: undefined,
+          }));
+
+          setDirectSubject({
+            ...foundSubject,
+            lectures: lectures.sort((a, b) => (a.order || 0) - (b.order || 0)),
+          });
+        } else {
+          setError("Subject not found");
+        }
+      } catch (err) {
+        console.error("Error loading subject:", err);
+        setError("Failed to load subject");
+      } finally {
+        setLoadingSubject(false);
+      }
+    };
+
+    loadSubject();
+  }, [id, subject]);
+
+  // Use direct subject if global not found
+  if (!subject && directSubject) {
+    subject = directSubject;
+  }
+
+  const loading = globalLoading || loadingSubject;
 
   const openVideoForm = (lectureId?: string | null) => {
     setSelectedLecture(lectureId || null);
@@ -78,20 +181,198 @@ export default function SubjectPage() {
     setIsQuizFormOpen(true);
   };
 
+  const toggleSection = async (
+    lectureId: string,
+    section: "videos" | "files" | "quizzes",
+  ) => {
+    // Check if we need to load resources
+    const lecture = (subject?.lectures || []).find(
+      (l: any) => l.id === lectureId,
+    );
+    if (!lecture) return;
+
+    const currentExpanded = expandedSections[lectureId]?.[section] || false;
+
+    // If opening and resources not loaded, load them
+    if (!currentExpanded && !lecture[section]) {
+      try {
+        const lectureRef = doc(
+          db,
+          "Subjects",
+          subject.id,
+          "lectures",
+          lectureId,
+        );
+        const resourceName =
+          section === "videos"
+            ? "videos"
+            : section === "files"
+              ? "files"
+              : "quizzes";
+        const resourcesRef = collection(lectureRef, resourceName);
+        const resourcesSnap = await getDocs(resourcesRef);
+
+        const resources = resourcesSnap.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // Update local state with loaded resources
+        setDirectSubject((prev: any) => ({
+          ...prev,
+          lectures: prev.lectures.map((l: any) =>
+            l.id === lectureId ? { ...l, [section]: resources } : l,
+          ),
+        }));
+      } catch (err) {
+        console.error(`Error loading ${section}:`, err);
+      }
+    }
+
+    setExpandedSections((prev) => ({
+      ...prev,
+      [lectureId]: {
+        videos: prev[lectureId]?.videos || false,
+        files: prev[lectureId]?.files || false,
+        quizzes: prev[lectureId]?.quizzes || false,
+        [section]: !currentExpanded,
+      },
+    }));
+  };
+
+  const handleUploadLectureImage = async (lectureId: string) => {
+    try {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.onchange = async () => {
+        const file = input.files?.[0];
+        if (!file) return;
+
+        setUploadingImageFor(lectureId);
+        try {
+          let imageUrl: string | null = null;
+
+          // Try Cloudinary first
+          try {
+            imageUrl = await uploadImageToCloudinary(file);
+          } catch (cloudErr: any) {
+            console.warn(
+              "Cloudinary upload failed, trying ImageKit",
+              cloudErr?.message || cloudErr,
+            );
+
+            // Fallback to ImageKit
+            imageUrl = await uploadToImageKitServer(file, file.name);
+          }
+
+          if (!imageUrl) {
+            alert("Failed to upload image");
+            return;
+          }
+
+          // Update the lecture in Firebase
+          if (subject?.id) {
+            const lectureRef = doc(
+              db,
+              "Subjects",
+              subject.id,
+              "lectures",
+              lectureId,
+            );
+            await updateDoc(lectureRef, { imageUrl });
+
+            // Update local state
+            setDirectSubject((prev: any) => ({
+              ...prev,
+              lectures: prev.lectures.map((l: any) =>
+                l.id === lectureId ? { ...l, imageUrl } : l,
+              ),
+            }));
+
+            alert("Lecture image updated successfully");
+          }
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          alert("Failed to upload image. Please try again.");
+        } finally {
+          setUploadingImageFor(null);
+        }
+      };
+      input.click();
+    } catch (err) {
+      console.error(err);
+      alert("Could not open file dialog");
+    }
+  };
+
   if (isVideoFormOpen && selectedLecture) {
     return (
       <VideoForm
+        video={editingVideo}
         lectureId={selectedLecture}
+        subjectId={subject?.id}
         onClose={() => {
           setIsVideoFormOpen(false);
           setSelectedLecture(null);
+          setEditingVideo(null);
         }}
         onSave={async (videoData) => {
           if (subject?.id && selectedLecture) {
-            await addVideo(subject.id, selectedLecture, videoData);
+            if (editingVideo?.id) {
+              // Update existing video
+              const videoRef = doc(
+                db,
+                "Subjects",
+                subject.id,
+                "lectures",
+                selectedLecture,
+                "videos",
+                editingVideo.id,
+              );
+              await updateDoc(videoRef, {
+                title: videoData.title,
+                description: videoData.description,
+                url: videoData.url,
+                duration: videoData.duration,
+                thumbnailUrl: videoData.thumbnailUrl,
+                platform: videoData.platform,
+              });
+            } else {
+              // Create new video
+              await addVideo(subject.id, selectedLecture, videoData);
+            }
           }
           setIsVideoFormOpen(false);
           setSelectedLecture(null);
+          setEditingVideo(null);
+
+          // Reload subject to refresh the UI
+          if (subject?.id) {
+            const lecturesRef = collection(
+              db,
+              "Subjects",
+              subject.id,
+              "lectures",
+            );
+            const lecturesSnap = await getDocs(lecturesRef);
+            const lectures = lecturesSnap.docs.map((lectureDoc) => ({
+              id: lectureDoc.id,
+              name: lectureDoc.data().name || lectureDoc.data().title || "",
+              description: lectureDoc.data().description || "",
+              imageUrl: lectureDoc.data().imageUrl || "",
+              videos: undefined,
+              files: undefined,
+              quizzes: undefined,
+            }));
+
+            setDirectSubject({
+              ...subject,
+              lectures: lectures.sort(
+                (a, b) => (a.order || 0) - (b.order || 0),
+              ),
+            });
+          }
         }}
       />
     );
@@ -138,15 +419,24 @@ export default function SubjectPage() {
   if (isLectureFormOpen) {
     return (
       <LectureForm
+        lecture={editingLecture}
         subjectId={subject?.id || null}
         subjectName={subject?.name}
         yearType={years.find((y) => y.id === subject?.yearId)?.type}
-        onClose={() => setIsLectureFormOpen(false)}
+        onClose={() => {
+          setIsLectureFormOpen(false);
+          setEditingLecture(null);
+        }}
         onSave={async (lectureData) => {
           if (subject?.id) {
-            await createLecture(lectureData);
+            if (editingLecture) {
+              await updateLecture(subject.id, editingLecture.id, lectureData);
+            } else {
+              await createLecture(lectureData);
+            }
           }
           setIsLectureFormOpen(false);
+          setEditingLecture(null);
         }}
       />
     );
@@ -154,13 +444,13 @@ export default function SubjectPage() {
 
   if (loading) return <div>Loading...</div>;
 
-  if (!subject) {
+  if (error || !subject) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
           <h3 className="text-lg font-semibold">Subject not found</h3>
           <p className="text-muted-foreground mt-2">
-            The subject you requested does not exist.
+            {error || "The subject you requested does not exist."}
           </p>
           <div className="mt-4">
             <Link to="/admin/years">
@@ -266,6 +556,22 @@ export default function SubjectPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleUploadLectureImage(lecture.id)}
+                        disabled={uploadingImageFor === lecture.id}
+                        className="flex items-center gap-1 px-2 py-1 text-xs"
+                        title="Upload Lecture Image"
+                      >
+                        <ImagePlus className="h-3 w-3 text-orange-600" />
+                        <span>
+                          {uploadingImageFor === lecture.id
+                            ? "Uploading..."
+                            : "Image"}
+                        </span>
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => openVideoForm(lecture.id)}
                         className="flex items-center gap-1 px-2 py-1 text-xs"
                         title="Add Video"
@@ -294,6 +600,20 @@ export default function SubjectPage() {
                       >
                         <HelpCircle className="h-3 w-3 text-purple-600" />
                         <span>Add Quiz</span>
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditingLecture(lecture);
+                          setIsLectureFormOpen(true);
+                        }}
+                        className="flex items-center gap-1 px-2 py-1 text-xs"
+                        title="Edit Lecture"
+                      >
+                        <Edit2 className="h-3 w-3 text-blue-600" />
+                        <span>Edit</span>
                       </Button>
 
                       <Button

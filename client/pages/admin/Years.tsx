@@ -102,10 +102,33 @@ export default function Years() {
     setSelectedBatchId(b);
   }, [location.search]);
 
-  const toggleSection = (
+  const toggleSection = async (
     lectureId: string,
     section: "videos" | "files" | "quizzes",
+    subjectId?: string,
   ) => {
+    // Check if section is being opened (expanded to true)
+    const currentState = expanded[lectureId]?.[section] || false;
+    const isOpening = !currentState;
+
+    // If opening and we have the subject ID, load resources
+    if (isOpening && subjectId) {
+      const lecture = years
+        .flatMap((y) => y.subjects)
+        .flatMap((s) => s.lectures)
+        .find(
+          (l) =>
+            l.id === lectureId &&
+            l.name &&
+            years.flatMap((y) => y.subjects).find((s) => s.id === subjectId),
+        );
+
+      if (lecture && !lecture[section]) {
+        // Only load if resources haven't been loaded yet
+        await loadLectureResources(subjectId, lectureId);
+      }
+    }
+
     setExpanded((prev) => ({
       ...prev,
       [lectureId]: {
@@ -125,6 +148,7 @@ export default function Years() {
     error,
     isOfflineMode,
     retryConnection,
+    clearCache,
     updateYear,
     updateBatch,
     createSubject,
@@ -138,6 +162,7 @@ export default function Years() {
     addVideo,
     addFile,
     addQuiz,
+    loadLectureResources,
   } = useYears();
 
   const { news } = useNews();
@@ -602,7 +627,11 @@ export default function Years() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() =>
-                                        toggleSection(lecture.id, "videos")
+                                        toggleSection(
+                                          lecture.id,
+                                          "videos",
+                                          subject.id,
+                                        )
                                       }
                                       className={`h-6 px-2 text-xs ${expanded[lecture.id]?.videos ? "bg-accent" : ""}`}
                                     >
@@ -613,7 +642,11 @@ export default function Years() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() =>
-                                        toggleSection(lecture.id, "files")
+                                        toggleSection(
+                                          lecture.id,
+                                          "files",
+                                          subject.id,
+                                        )
                                       }
                                       className={`h-6 px-2 text-xs ${expanded[lecture.id]?.files ? "bg-accent" : ""}`}
                                     >
@@ -624,7 +657,11 @@ export default function Years() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() =>
-                                        toggleSection(lecture.id, "quizzes")
+                                        toggleSection(
+                                          lecture.id,
+                                          "quizzes",
+                                          subject.id,
+                                        )
                                       }
                                       className={`h-6 px-2 text-xs ${expanded[lecture.id]?.quizzes ? "bg-accent" : ""}`}
                                     >
@@ -883,6 +920,17 @@ export default function Years() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              clearCache();
+              alert("Cache cleared. Data will be refreshed from server.");
+            }}
+            title="Clear cached data and fetch fresh from server"
+          >
+            🔄 Refresh Cache
+          </Button>
           <Dialog>
             <DialogTrigger asChild>
               <Button>

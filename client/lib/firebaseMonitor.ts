@@ -1,6 +1,7 @@
 // Global Firebase connection monitor - start in online mode
 let isFirebaseOffline = false;
 let offlineListeners: Array<() => void> = [];
+let extensionBlockingDetected = false; // Flag to track if an extension is blocking requests
 
 // Monitor for persistent Firebase errors - be less aggressive to avoid false positives
 let errorCount = 0;
@@ -17,6 +18,8 @@ export const setFirebaseOffline = (offline: boolean) => {
 };
 
 export const isFirebaseInOfflineMode = () => isFirebaseOffline;
+
+export const isExtensionBlocking = () => extensionBlockingDetected;
 
 export const addOfflineModeListener = (listener: () => void) => {
   offlineListeners.push(listener);
@@ -60,61 +63,88 @@ if (!(window.fetch as any).__firebasePatched) {
       }
     }
 
-    // Only block Firebase requests if explicitly offline
-    if (isFirebaseOffline) {
+    // If we've already detected an extension is blocking, immediately switch to offline mode
+    if (extensionBlockingDetected || isFirebaseOffline) {
+      if (extensionBlockingDetected) {
+        setFirebaseOffline(true);
+      }
       const offlineError = new Error("Firebase offline mode - request blocked");
       (offlineError as any).isFirebaseOfflineError = true;
       return Promise.reject(offlineError);
     }
 
-    try {
-      const fetchPromise = originalFetch(...args);
-      return Promise.resolve(fetchPromise)
-        .then((response) => {
-          if (response.ok) {
-            errorCount = 0;
-            if (isFirebaseOffline) {
-              console.log("🟢 Firebase connection restored");
-              setFirebaseOffline(false);
-            }
-          }
-          return response;
-        })
-        .catch((error) => {
-          console.log(
-            "🔴 Firebase request failed:",
-            error?.message || String(error),
-          );
-          // If this error comes from a browser extension or third-party script, do not
-          // count it towards Firebase failure thresholds (these are noisy and out of our control).
-          const stack = String((error && (error.stack || "")) || "");
-          const message = String(error?.message || error || "").toLowerCase();
+    return Promise.resolve()
+      .then(() => {
+        try {
+          return originalFetch(...args);
+        } catch (syncError) {
+          // Handle synchronous errors thrown by fetch (e.g., from extensions)
+          const stack = String((syncError && (syncError.stack || "")) || "");
+          const message = String(
+            (syncError as any)?.message || syncError || "",
+          ).toLowerCase();
           const isExtensionError =
             stack.includes("chrome-extension://") ||
             stack.includes("extension://") ||
-            message.includes("extension");
+            message.includes("extension") ||
+            message.includes("failed to fetch");
 
-          if (!isExtensionError && navigator.onLine) reportFirebaseError(error);
-          // Re-throw so callers get the original failure
-          throw error;
-        });
-    } catch (error) {
-      // Handle synchronous errors thrown by fetch (e.g., invalid URL schemes)
-      console.log(
-        "🔴 Firebase request threw synchronously:",
-        (error as any)?.message || String(error),
-      );
-      const stack = String((error && (error.stack || "")) || "");
-      const message = String(
-        (error as any)?.message || error || "",
-      ).toLowerCase();
-      const isExtensionError =
-        stack.includes("chrome-extension://") ||
-        stack.includes("extension://") ||
-        message.includes("extension");
-      if (!isExtensionError && navigator.onLine) reportFirebaseError(error);
-      return Promise.reject(error);
-    }
+          if (isExtensionError && message.includes("failed to fetch")) {
+            console.log(
+              "🔴 Extension blocking Firebase requests - permanent offline mode",
+            );
+            extensionBlockingDetected = true;
+            setFirebaseOffline(true);
+            const err = new Error(
+              "Firebase offline (extension blocking requests)",
+            );
+            (err as any).isExtensionBlocked = true;
+            return Promise.reject(err);
+          }
+          throw syncError;
+        }
+      })
+      .then((response) => {
+        if (response.ok) {
+          errorCount = 0;
+          if (isFirebaseOffline) {
+            console.log("🟢 Firebase connection restored");
+            setFirebaseOffline(false);
+          }
+        }
+        return response;
+      })
+      .catch((error) => {
+        // If this error comes from a browser extension or third-party script
+        const stack = String((error && (error.stack || "")) || "");
+        const message = String(error?.message || error || "").toLowerCase();
+        const isExtensionError =
+          stack.includes("chrome-extension://") ||
+          stack.includes("extension://") ||
+          message.includes("extension") ||
+          message.includes("failed to fetch");
+
+        // If extension is blocking, switch to offline mode immediately
+        if (isExtensionError && message.includes("failed to fetch")) {
+          console.log(
+            "🔴 Extension detected blocking Firebase requests - activating permanent offline mode",
+          );
+          extensionBlockingDetected = true;
+          setFirebaseOffline(true);
+          // Return a rejected promise but don't retry
+          const err = new Error(
+            "Firebase offline (extension blocking requests)",
+          );
+          (err as any).isExtensionBlocked = true;
+          return Promise.reject(err);
+        }
+
+        if (!isExtensionError && navigator.onLine) {
+          reportFirebaseError(error);
+        }
+        // Re-throw so callers get the original failure
+        throw error;
+      });
   };
   (patchedFetch as any).__firebasePatched = true;
   window.fetch = patchedFetch as any;
@@ -148,15 +178,36 @@ console.log("🔄 Starting Firebase monitoring in ONLINE mode");
 window.addEventListener("unhandledrejection", (event) => {
   const msg = String(event?.reason?.message || event?.reason || "");
   const stack = String((event?.reason && (event.reason.stack || "")) || "");
+  const msgLower = msg.toLowerCase();
 
-  // If the rejection originates from an extension or analytics script, swallow it
+  // Patterns that indicate extension interference
+  const extensionPatterns = [
+    "chrome-extension://",
+    "extension://",
+    "fullstory.com",
+    "firebase offline (extension blocking requests)",
+  ];
+
+  const hasExtensionPattern = extensionPatterns.some((pattern) =>
+    stack.includes(pattern) || msg.includes(pattern)
+  );
+
+  // Suppress "Failed to fetch" errors that come from extensions
   if (
-    (msg.includes("Failed to fetch") ||
-      msg.toLowerCase().includes("extension")) &&
-    (stack.includes("chrome-extension://") ||
-      stack.includes("extension://") ||
-      stack.includes("fullstory.com"))
+    (msgLower.includes("failed to fetch") ||
+     msgLower.includes("extension blocked") ||
+     msgLower.includes("extension")) &&
+    (hasExtensionPattern ||
+     stack.includes("chrome-extension://") ||
+     stack.includes("extension://"))
   ) {
+    console.log("🔇 Suppressed extension-related fetch error");
+    event.preventDefault();
+    return;
+  }
+
+  // If extension is blocking, suppress any related errors
+  if (extensionBlockingDetected && msgLower.includes("failed to fetch")) {
     event.preventDefault();
     return;
   }
@@ -173,6 +224,18 @@ const originalConsoleError = console.error;
 const originalConsoleWarn = console.warn;
 const originalConsoleLog = console.log;
 
+// Create a wrapper to safely call console functions without throwing
+const safeConsoleCall = (
+  originalFn: (...args: any[]) => void,
+  ...args: any[]
+) => {
+  try {
+    originalFn.apply(console, args);
+  } catch (e) {
+    // Prevent console errors from causing cascading failures
+  }
+};
+
 console.error = (...args) => {
   // Build a joined message and also inspect any Error objects for stacks
   const errorMessage = args
@@ -188,6 +251,7 @@ console.error = (...args) => {
 
   const suppressPatterns = [
     "Firebase offline mode - request blocked",
+    "firebase offline (extension blocking requests)",
     "FirebaseError: [code=unavailable]",
     "Could not reach Cloud Firestore backend",
     "Connection failed",
@@ -198,15 +262,25 @@ console.error = (...args) => {
     "@firebase/firestore: Firestore",
     "fullstory.com",
     "TypeError: Failed to fetch",
+    "Failed to fetch",
+    "extension",
+    "chrome-extension",
   ];
 
   // Suppress if patterns match or if an extension stack is present
   if (
-    suppressPatterns.some((pattern) => errorMessage.includes(pattern)) ||
+    suppressPatterns.some((pattern) => errorMessage.toLowerCase().includes(pattern.toLowerCase())) ||
     hasErrorStack ||
     errorMessage.includes("chrome-extension://") ||
     errorMessage.includes("extension://")
   ) {
+    // Only log if extension blocking was just detected for debugging
+    if (
+      extensionBlockingDetected &&
+      errorMessage.toLowerCase().includes("failed to fetch")
+    ) {
+      console.log("🔇 Suppressed extension blocking error");
+    }
     return; // Suppress noisy errors from extensions or Firebase offline
   }
 
@@ -267,6 +341,7 @@ export const disableFirebaseWhenOffline = () => {
 export default {
   setFirebaseOffline,
   isFirebaseInOfflineMode,
+  isExtensionBlocking,
   addOfflineModeListener,
   reportFirebaseError,
   disableFirebaseWhenOffline,

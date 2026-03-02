@@ -72,6 +72,10 @@ export interface QuizQuestion {
   explanation?: string; // explanation for the correct answer
   imageUrl?: string;
   weight?: number; // weight of this question in the quiz
+  explanation?: {
+    text: string;
+    imageUrl?: string;
+  };
 }
 
 export interface Professor {

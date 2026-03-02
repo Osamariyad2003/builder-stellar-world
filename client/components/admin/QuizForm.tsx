@@ -21,7 +21,14 @@ import {
   Trash2,
   Clock,
   Target,
+  Upload,
+  Image as ImageIcon,
 } from "lucide-react";
+import {
+  uploadImageToCloudinary,
+  setLocalCloudinaryConfig,
+} from "@/lib/cloudinary";
+import { uploadToImageKitServer } from "@/lib/imagekit";
 
 interface QuizQuestion {
   question: string;
@@ -29,6 +36,10 @@ interface QuizQuestion {
   correctAnswer: number;
   explanation?: string;
   imageUrl?: string;
+  explanation?: {
+    text: string;
+    imageUrl?: string;
+  };
 }
 
 interface Quiz {
@@ -65,9 +76,16 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
     explanation: "",
     imageUrl: "",
     weight: 1,
+    explanation: {
+      text: "",
+      imageUrl: "",
+    },
   });
 
   const [loading, setLoading] = useState(false);
+  const [uploadingExplanationImage, setUploadingExplanationImage] = useState(false);
+  const [expandedExplanationIndex, setExpandedExplanationIndex] = useState<number | null>(null);
+  const [uploadingQuestionExplanationImage, setUploadingQuestionExplanationImage] = useState<number | null>(null);
 
   useEffect(() => {
     if (quiz) {
@@ -76,7 +94,10 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
         description: quiz.description || "",
         timeLimit: quiz.timeLimit || 30,
         passingScore: quiz.passingScore || 70,
-        questions: quiz.questions || [],
+        questions: (quiz.questions || []).map((q) => ({
+          ...q,
+          explanation: q.explanation || { text: "", imageUrl: "" },
+        })),
         type: (quiz as any).type || "multiple_choice",
       });
     }
@@ -136,6 +157,10 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
           explanation: "",
           imageUrl: "",
           weight: 1,
+          explanation: {
+            text: "",
+            imageUrl: "",
+          },
         });
       }
       return;
@@ -161,6 +186,10 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
         explanation: "",
         imageUrl: "",
         weight: 1,
+        explanation: {
+          text: "",
+          imageUrl: "",
+        },
       });
     }
   };
@@ -479,6 +508,115 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                   }))
                 }
               />
+            </div>
+
+            {/* Explanation Section */}
+            <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-950">
+              <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                <HelpCircle className="h-4 w-4" />
+                Explanation for Correct Answer
+              </h3>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="explanationText">Explanation Text</Label>
+                  <Textarea
+                    id="explanationText"
+                    placeholder="Explain why this answer is correct..."
+                    value={(currentQuestion.explanation as any)?.text || ""}
+                    onChange={(e) =>
+                      setCurrentQuestion((prev) => ({
+                        ...prev,
+                        explanation: {
+                          ...(prev.explanation || {}),
+                          text: e.target.value,
+                        },
+                      }))
+                    }
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="explanationImage">Explanation Image (Optional)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="explanationImage"
+                      placeholder="https://example.com/explanation.jpg"
+                      value={(currentQuestion.explanation as any)?.imageUrl || ""}
+                      onChange={(e) =>
+                        setCurrentQuestion((prev) => ({
+                          ...prev,
+                          explanation: {
+                            ...(prev.explanation || {}),
+                            imageUrl: e.target.value,
+                          },
+                        }))
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.accept = "image/*";
+                        input.onchange = async (e: any) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingExplanationImage(true);
+                          try {
+                            let imageUrl =
+                              await uploadImageToCloudinary(file);
+                            setCurrentQuestion((prev) => ({
+                              ...prev,
+                              explanation: {
+                                ...(prev.explanation || {}),
+                                imageUrl: imageUrl,
+                              },
+                            }));
+                          } catch (cloudErr: any) {
+                            console.warn(
+                              "Cloudinary upload failed, trying ImageKit",
+                              cloudErr?.message || cloudErr,
+                            );
+                            try {
+                              const imageUrl =
+                                await uploadToImageKitServer(file);
+                              setCurrentQuestion((prev) => ({
+                                ...prev,
+                                explanation: {
+                                  ...(prev.explanation || {}),
+                                  imageUrl: imageUrl,
+                                },
+                              }));
+                            } catch (err) {
+                              console.error(err);
+                              alert("Failed to upload image");
+                            }
+                          } finally {
+                            setUploadingExplanationImage(false);
+                          }
+                        };
+                        input.click();
+                      }}
+                      disabled={uploadingExplanationImage}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploadingExplanationImage ? "Uploading..." : "Upload"}
+                    </Button>
+                  </div>
+                  {(currentQuestion.explanation as any)?.imageUrl && (
+                    <div className="mt-2">
+                      <img
+                        src={(currentQuestion.explanation as any).imageUrl}
+                        alt="Explanation preview"
+                        className="max-h-32 rounded border"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">
