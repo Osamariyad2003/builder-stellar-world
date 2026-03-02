@@ -1266,8 +1266,8 @@ export default function Years() {
                 );
               })()
             ) : (
-              // list batches (two-column layout on mobile)
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+              // list batches — fewer columns so each card is wider (no truncated text)
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {(batches || []).map((b: any) => (
                   <Card
                     key={b.id}
@@ -1482,11 +1482,11 @@ export default function Years() {
                       </div>
                     </CardHeader>
                     <CardContent 
-                      className="mt-auto"
+                      className="mt-auto min-w-0"
                       onClick={(e) => editingBatchId === b.id && e.stopPropagation()}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-muted-foreground">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="text-sm text-muted-foreground shrink-0">
                           Years:{" "}
                           {
                             (years || []).filter(
@@ -1494,7 +1494,7 @@ export default function Years() {
                             ).length
                           }
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <Button
                             size="sm"
                             variant="outline"
