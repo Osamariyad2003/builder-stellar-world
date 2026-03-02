@@ -167,7 +167,11 @@ export function useYears() {
       const snaps = await getDocs(cg);
       const found = snaps.docs.find((d) => d.id === yearId);
       if (found) {
-        await updateDoc(found.ref, { ...patch, updatedAt: new Date() });
+        const firestorePatch: any = { ...patch, updatedAt: new Date() };
+        if ((patch as any).batchName && !(patch as any).batch_name) {
+          firestorePatch.batch_name = (patch as any).batchName;
+        }
+        await updateDoc(found.ref, firestorePatch);
         queryClient.invalidateQueries({ queryKey: ["years-data"] });
         return;
       }
@@ -887,18 +891,43 @@ export function useYears() {
   };
 
   const createBatch = async (
-    data: { batchName?: string; imageUrl?: string; cr?: string } = {},
+    data: {
+      batchName?: string;
+      imageUrl?: string;
+      cr?: string;
+      groupLink?: string;
+      group_link?: string;
+      graduateDate?: string;
+      graduate_date?: string;
+      academicSupervisor?: string;
+      academic_supervisor?: string;
+    } = {},
   ) => {
     const name = data.batchName || "New Batch";
     const imageUrl = data.imageUrl || "";
     const cr = data.cr || "";
+    const groupLink = data.groupLink || data.group_link || "";
+    const graduateDate = data.graduateDate || data.graduate_date || "";
+    const academicSupervisor =
+      data.academicSupervisor || data.academic_supervisor || "";
 
     // Clear cache to prepare for fresh data
     clearCache();
 
     // Optimistic temporary batch to update UI immediately
     const tempId = `batch_temp_${Date.now()}`;
-    const tempBatch = { id: tempId, batchName: name, imageUrl, cr };
+    const tempBatch = {
+      id: tempId,
+      batchName: name,
+      imageUrl,
+      cr,
+      groupLink,
+      group_link: groupLink,
+      graduateDate,
+      graduate_date: graduateDate,
+      academicSupervisor,
+      academic_supervisor: academicSupervisor,
+    };
     setBatches((prev) => [tempBatch, ...prev]);
 
     if (isOfflineMode || !navigator.onLine) {
@@ -913,6 +942,9 @@ export function useYears() {
           batch_name: name,
           image_url: imageUrl,
           cr,
+          group_link: groupLink,
+          graduate_date: graduateDate,
+          academic_supervisor: academicSupervisor,
           createdAt: new Date(),
         });
 
@@ -928,6 +960,12 @@ export function useYears() {
           batchName: name,
           imageUrl,
           cr,
+          groupLink,
+          group_link: groupLink,
+          graduateDate,
+          graduate_date: graduateDate,
+          academicSupervisor,
+          academic_supervisor: academicSupervisor,
         };
         setBatches((prev) => [
           realBatch,
@@ -949,6 +987,12 @@ export function useYears() {
         batchName: name,
         imageUrl,
         cr,
+        groupLink,
+        group_link: groupLink,
+        graduateDate,
+        graduate_date: graduateDate,
+        academicSupervisor,
+        academic_supervisor: academicSupervisor,
       };
       setBatches((prev) => [offlineBatch, ...prev]);
     }

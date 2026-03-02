@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sidebar } from "./Sidebar";
 import { Menu, LogOut, User } from "lucide-react";
+import { useCurrentUserBatch } from "@/hooks/useCurrentUserBatch";
 
 export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { currentUser, logout } = useAuth();
+  const { batch } = useCurrentUserBatch();
 
   const handleLogout = async () => {
     try {
@@ -39,15 +41,25 @@ export function AdminLayout() {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback>
-                  <User className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-medium">
-                {currentUser?.email?.split("@")[0] || "Admin"}
-              </span>
+            <div className="flex flex-col items-end space-y-0.5">
+              <div className="flex items-center space-x-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback>
+                    <User className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium">
+                  {currentUser?.email?.split("@")[0] || "Admin"}
+                </span>
+              </div>
+              {batch?.batchName && (
+                <span className="text-xs text-muted-foreground">
+                  Batch:{" "}
+                  <span className="font-medium text-foreground">
+                    {batch.batchName}
+                  </span>
+                </span>
+              )}
             </div>
             <Button
               variant="ghost"

@@ -17,6 +17,10 @@ export async function fetchBatches() {
       id: batchDoc.id,
       batchName: batchData.batch_name || batchData.batchName || "",
       imageUrl: batchData.image_url || batchData.imageUrl || "",
+      registrationNames:
+        batchData.registrationNames ||
+        batchData.registration_names ||
+        [],
       aca_supervisor:
         batchData.aca_supervisor ||
         batchData.acadmic_supervisor ||

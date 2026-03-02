@@ -1,0 +1,340 @@
+# MedAdmin / Builder Stellar World – App Models (Data Types)
+# All domain and data models used across the app (shared, hooks, cache, API).
+
+================================================================================
+SHARED TYPES (shared/types.ts)
+================================================================================
+
+NewsItem
+  id?: string
+  title: string
+  content: string
+  imageUrl?: string
+  createdAt: Date
+  updatedAt: Date
+  authorName: string
+  authorId: string
+  tags: string[]
+  isPinned: boolean
+  viewsCount: number
+  attachments: string[]
+  videoUrl?: string
+  yearId?: string
+  yearNumber?: number
+  batchId?: string
+
+Lecture
+  id?: string
+  title: string
+  description?: string
+  subject: string
+  order: number
+  createdAt: Date
+  createdBy: string
+  videos: Video[]
+  files: FileResource[]
+  quizzes: Quiz[]
+
+Video
+  id?: string
+  title: string
+  youtubeUrl: string
+  thumbnailUrl?: string
+  duration?: string
+  description?: string
+  uploadedAt: Date
+  uploadedBy: string
+  imageUrl?: string
+
+FileResource
+  id?: string
+  title: string
+  fileUrl: string
+  description?: string
+  uploadedAt: Date
+  uploadedBy: string
+  imageUrl?: string
+  thumbnailUrl?: string
+
+Quiz
+  id?: string
+  title: string
+  description?: string
+  questions: QuizQuestion[]
+  type?: "flashcard" | "multiple_choice"
+  timeLimit?: number
+  passingScore?: number
+  createdAt: Date
+  createdBy: string
+
+QuizQuestion
+  question: string
+  options: string[]
+  correctAnswer: number
+  explanation?: string
+  imageUrl?: string
+  weight?: number
+  explanation?: { text: string; imageUrl?: string }
+
+Professor
+  id?: string
+  name: string
+  title?: string
+  department: string
+  email: string
+  phone?: string
+  officeLocation: string
+  bio?: string
+  researchAreas?: string[]
+  website?: string
+  linkedin?: string
+  imageUrl?: string
+
+Research
+  id?: string
+  projectTitle: string
+  abstract?: string
+  fieldOfResearch?: string[]
+  contactPerson?: string[]
+  authorshipPosition?: string[]
+  projectDuration?: string
+  requiredSkills?: string[]
+  supervisor?: string
+  createdAt: Date
+  updatedAt?: Date
+
+StoreCategory
+  id?: string
+  name: string
+  order: number
+  imageUrl?: string
+
+Product
+  id?: string
+  productId?: string
+  name: string
+  description: string
+  price: number
+  types?: { name: string; price: number }[]
+  images: string[]
+  categoryId?: string
+  createdAt: Date
+
+Category
+  id?: string
+  categoryId?: string
+  name: string
+  description?: string
+  imageUrl?: string
+  order: number
+  createdAt: Date
+
+OrderItem
+  productId: string
+  name: string
+  quantity: number
+  price: number
+  selectedType?: string
+
+Order
+  id?: string
+  userId?: string
+  username?: string
+  userName: string
+  userEmail: string
+  userPhone?: string
+  address?: string
+  items: OrderItem[]
+  total: number
+  status: "pending" | "paid" | "shipped" | "completed" | "cancelled"
+  createdAt: Date
+  updatedAt?: Date
+
+User
+  id?: string
+  displayName?: string
+  email?: string
+  role?: string
+  photoURL?: string
+  createdAt?: Date
+  yearId?: string
+  yearLabel?: string
+
+Notification
+  id?: string
+  userId: string
+  title: string
+  message: string
+  type: "news" | "announcement" | "system"
+  relatedId?: string
+  read: boolean
+  createdAt: Date
+  batchId?: string
+
+================================================================================
+YEARS / BATCHES / CURRICULUM (client/hooks/useYears.ts)
+================================================================================
+
+YearData
+  id?: string
+  yearNumber: number
+  name?: string
+  type: "basic" | "clinical"
+  batchName?: string
+  batchId?: string
+  imageUrl?: string
+  academicSupervisor?: string
+  actor?: string
+  cr?: string
+  groupUrl?: string
+  subjects: SubjectData[]
+
+SubjectData
+  id?: string
+  name: string
+  subjectId?: string
+  yearId: string
+  imageUrl?: string
+  lectures: LectureData[]
+
+LectureData
+  id?: string
+  name: string
+  description?: string
+  subjectId: string
+  order: number
+  imageUrl?: string
+  createdAt: Date
+  uploadedBy: string
+  videos?: VideoData[]
+  files?: FileData[]
+  quizzes?: QuizData[]
+
+VideoData
+  id?: string
+  title: string
+  url: string
+  thumbnailUrl?: string
+  description?: string
+  uploadedAt: Date
+
+FileData
+  id?: string
+  title: string
+  url: string
+  description?: string
+  uploadedAt: Date
+
+QuizData
+  id?: string
+  title: string
+  description?: string
+  duration: number
+  passRate: number
+  questions: any[]
+
+Batch (from Firestore batches collection / useYearsData)
+  id: string
+  batchName: string
+  batch_name?: string
+  batchId?: string
+  imageUrl?: string
+  image_url?: string
+  cr?: string
+  actor?: string
+  group_link?: string
+  groupLink?: string
+  graduate_date?: string
+  graduateDate?: string
+  academic_supervisor?: string
+  academicSupervisor?: string
+  createdAt?: Date
+
+================================================================================
+CURRENT USER BATCH (client/hooks/useCurrentUserBatch.ts)
+================================================================================
+
+CurrentBatch
+  id: string
+  batchName: string
+  cr?: string
+
+UseCurrentUserBatchState
+  batch?: CurrentBatch
+  loading: boolean
+  error: string | null
+
+================================================================================
+MAPS (client/hooks/useMaps.ts)
+================================================================================
+
+MapItem
+  id: string
+  name: string
+  location: string
+  description?: string
+  type?: string
+  video_url?: string
+  createdAt?: Date
+
+================================================================================
+BOOKS (client/hooks/useBooks.ts)
+================================================================================
+
+BookData
+  id?: string
+  title: string
+  author: string
+  description?: string
+  isbn?: string
+  publishedDate?: string
+  publisher?: string
+  category?: string
+  imageUrl?: string
+  pdfUrl?: string
+  createdAt?: Date
+  updatedAt?: Date
+
+================================================================================
+CACHE (client/lib/cacheManager.ts)
+================================================================================
+
+YearsCacheData
+  years: any[]
+  batches: any[]
+  subjects: any[]
+  lastFetched: number
+
+CacheEntry<T>
+  data: T
+  timestamp: number
+  version: number
+
+================================================================================
+API (shared/api.ts)
+================================================================================
+
+DemoResponse
+  message: string
+
+================================================================================
+AUTH CONTEXT (client/contexts/AuthContext.tsx)
+================================================================================
+
+AuthContextType
+  currentUser: User | null
+  login: (email: string, password: string) => Promise<void>
+  logout: () => Promise<void>
+  loading: boolean
+  authError: string | null
+
+================================================================================
+PAGINATION (client/hooks/usePaginatedData.ts)
+================================================================================
+
+PaginatedDataOptions<T>
+  (generic options for paginated data hook)
+
+================================================================================
+END OF MODELS
+================================================================================

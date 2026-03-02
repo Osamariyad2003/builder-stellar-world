@@ -34,9 +34,8 @@ interface QuizQuestion {
   question: string;
   options: string[];
   correctAnswer: number;
-  explanation?: string;
   imageUrl?: string;
-  explanation?: {
+  explanation?: string | {
     text: string;
     imageUrl?: string;
   };
@@ -69,17 +68,20 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
     type: "multiple_choice" as "flashcard" | "multiple_choice",
   });
 
-  const [currentQuestion, setCurrentQuestion] = useState({
+  const [currentQuestion, setCurrentQuestion] = useState<{
+    question: string;
+    options: string[];
+    correctAnswer: number;
+    imageUrl: string;
+    weight: number;
+    explanation: { text: string; imageUrl?: string };
+  }>({
     question: "",
     options: ["", "", "", ""],
     correctAnswer: 0,
-    explanation: "",
     imageUrl: "",
     weight: 1,
-    explanation: {
-      text: "",
-      imageUrl: "",
-    },
+    explanation: { text: "", imageUrl: "" },
   });
 
   const [loading, setLoading] = useState(false);
@@ -154,13 +156,9 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
           question: "",
           options: [""],
           correctAnswer: 0,
-          explanation: "",
           imageUrl: "",
           weight: 1,
-          explanation: {
-            text: "",
-            imageUrl: "",
-          },
+          explanation: { text: "", imageUrl: "" },
         });
       }
       return;
@@ -183,13 +181,9 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
         question: "",
         options: ["", "", "", ""],
         correctAnswer: 0,
-        explanation: "",
         imageUrl: "",
         weight: 1,
-        explanation: {
-          text: "",
-          imageUrl: "",
-        },
+        explanation: { text: "", imageUrl: "" },
       });
     }
   };
@@ -481,11 +475,11 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
               <Textarea
                 id="explanation"
                 placeholder="Explain why this is the correct answer..."
-                value={currentQuestion.explanation || ""}
+                value={typeof currentQuestion.explanation === "object" ? (currentQuestion.explanation?.text ?? "") : (currentQuestion.explanation ?? "")}
                 onChange={(e) =>
                   setCurrentQuestion((prev) => ({
                     ...prev,
-                    explanation: e.target.value,
+                    explanation: { ...(prev.explanation || {}), text: e.target.value },
                   }))
                 }
                 rows={3}
@@ -547,7 +541,7 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                         setCurrentQuestion((prev) => ({
                           ...prev,
                           explanation: {
-                            ...(prev.explanation || {}),
+                            text: prev.explanation?.text ?? "",
                             imageUrl: e.target.value,
                           },
                         }))
@@ -571,7 +565,7 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                             setCurrentQuestion((prev) => ({
                               ...prev,
                               explanation: {
-                                ...(prev.explanation || {}),
+                                text: prev.explanation?.text ?? "",
                                 imageUrl: imageUrl,
                               },
                             }));
@@ -586,7 +580,7 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                               setCurrentQuestion((prev) => ({
                                 ...prev,
                                 explanation: {
-                                  ...(prev.explanation || {}),
+                                  text: prev.explanation?.text ?? "",
                                   imageUrl: imageUrl,
                                 },
                               }));
@@ -709,7 +703,10 @@ export function QuizForm({ quiz, onClose, onSave }: QuizFormProps) {
                         {question.explanation && (
                           <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                             <p className="text-sm text-blue-800 dark:text-blue-200">
-                              <span className="font-semibold">Explanation:</span> {question.explanation}
+                              <span className="font-semibold">Explanation:</span>{" "}
+                              {typeof question.explanation === "object"
+                                ? (question.explanation as { text?: string }).text
+                                : question.explanation}
                             </p>
                           </div>
                         )}

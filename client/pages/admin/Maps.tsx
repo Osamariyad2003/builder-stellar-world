@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMaps } from "@/hooks/useMaps";
+import { MapVideoWithThumbnail } from "@/components/MapVideoWithThumbnail";
 import { MapPin, Plus, Trash2 } from "lucide-react";
 
 export default function Maps() {
@@ -170,9 +171,17 @@ export default function Maps() {
               {maps.map((m) => (
                 <div
                   key={m.id}
-                  className="p-3 border rounded flex items-center justify-between"
+                  className="p-3 border rounded flex flex-col sm:flex-row sm:items-center gap-3"
                 >
-                  <div className="min-w-0">
+                  {m.video_url && (
+                    <div className="w-full sm:w-64 flex-shrink-0 min-w-0">
+                      <MapVideoWithThumbnail
+                        videoUrl={m.video_url}
+                        title={m.name || "Map video"}
+                      />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
                     <div className="font-medium truncate">{m.name}</div>
                     <div className="text-xs text-muted-foreground truncate">
                       {m.location}
@@ -189,7 +198,7 @@ export default function Maps() {
                     )}
                     {m.video_url && (
                       <a
-                        className="text-xs text-blue-600 hover:underline"
+                        className="text-xs text-blue-600 hover:underline mt-1 inline-block"
                         href={m.video_url}
                         target="_blank"
                         rel="noreferrer"
@@ -198,7 +207,7 @@ export default function Maps() {
                       </a>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <Button
                       variant="ghost"
                       size="sm"

@@ -389,7 +389,6 @@ export default function Years() {
                       try {
                         await updateYear?.(yearData.id, {
                           batchName: editingBatchValue,
-                          batch_name: editingBatchValue,
                         });
                         setEditingBatchId(null);
                         setEditingBatchValue("");
@@ -720,7 +719,7 @@ export default function Years() {
                                         </p>
                                         <Button
                                           variant="ghost"
-                                          size="xs"
+                                          size="sm"
                                           onClick={() =>
                                             handleAddVideo(subject, lecture.id)
                                           }
@@ -778,7 +777,7 @@ export default function Years() {
                                         </p>
                                         <Button
                                           variant="ghost"
-                                          size="xs"
+                                          size="sm"
                                           onClick={() =>
                                             handleAddFile(subject, lecture.id)
                                           }
@@ -842,7 +841,7 @@ export default function Years() {
                                         </p>
                                         <Button
                                           variant="ghost"
-                                          size="xs"
+                                          size="sm"
                                           onClick={() =>
                                             handleAddQuiz(subject, lecture.id)
                                           }
@@ -1267,8 +1266,8 @@ export default function Years() {
                 );
               })()
             ) : (
-              // list batches
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+              // list batches (two-column layout on mobile)
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                 {(batches || []).map((b: any) => (
                   <Card
                     key={b.id}
@@ -1282,15 +1281,15 @@ export default function Years() {
                       className="flex-1"
                       onClick={(e) => editingBatchId === b.id && e.stopPropagation()}
                     >
-                      <div className="flex items-start gap-4">
+                      <div className="flex flex-col sm:flex-row items-start gap-4">
                         {b.imageUrl ? (
                           <img
                             src={b.imageUrl}
                             alt={b.batchName}
-                            className="w-56 h-56 object-cover rounded-md flex-shrink-0"
+                            className="w-full sm:w-32 sm:h-32 md:w-40 md:h-40 object-cover rounded-md flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-56 h-56 rounded-md flex-shrink-0 bg-muted" />
+                          <div className="w-full sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-md flex-shrink-0 bg-muted" />
                         )}
                         <div className="flex-1 min-w-0">
                           {editingBatchId === b.id ? (
