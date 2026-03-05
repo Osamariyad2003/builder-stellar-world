@@ -18,6 +18,7 @@ export interface MapItem {
   description?: string;
   type?: string;
   video_url?: string;
+   thumbnailUrl?: string;
   createdAt?: Date;
 }
 
@@ -41,6 +42,7 @@ export function useMaps() {
             description: v.description || v.desc || "",
             type: v.type || v.mapType || "",
             video_url: v.video_url || v.videoUrl || "",
+            thumbnailUrl: v.thumbnailUrl || v.thumbnail_url || "",
             createdAt: v.createdAt?.toDate?.() || undefined,
           });
         });
@@ -61,8 +63,24 @@ export function useMaps() {
     const payload: any = { ...item, createdAt: new Date() };
     if (payload.type && !payload.mapType) payload.mapType = payload.type;
     if (payload.mapType && !payload.type) payload.type = payload.mapType;
+    // Keep thumbnailUrl and thumbnail_url in sync
+    if (payload.thumbnailUrl && !payload.thumbnail_url) {
+      payload.thumbnail_url = payload.thumbnailUrl;
+    }
+    if (payload.thumbnail_url && !payload.thumbnailUrl) {
+      payload.thumbnailUrl = payload.thumbnail_url;
+    }
     // Trim whitespace from string fields
-    ["name", "location", "description", "video_url", "type", "mapType"].forEach(
+    [
+      "name",
+      "location",
+      "description",
+      "video_url",
+      "thumbnailUrl",
+      "thumbnail_url",
+      "type",
+      "mapType",
+    ].forEach(
       (k) => {
         if (typeof payload[k] === "string") payload[k] = payload[k].trim();
       },
@@ -75,7 +93,23 @@ export function useMaps() {
     const payload: any = { ...item };
     if (payload.type && !payload.mapType) payload.mapType = payload.type;
     if (payload.mapType && !payload.type) payload.type = payload.mapType;
-    ["name", "location", "description", "video_url", "type", "mapType"].forEach(
+    // Keep thumbnailUrl and thumbnail_url in sync
+    if (payload.thumbnailUrl && !payload.thumbnail_url) {
+      payload.thumbnail_url = payload.thumbnailUrl;
+    }
+    if (payload.thumbnail_url && !payload.thumbnailUrl) {
+      payload.thumbnailUrl = payload.thumbnail_url;
+    }
+    [
+      "name",
+      "location",
+      "description",
+      "video_url",
+      "thumbnailUrl",
+      "thumbnail_url",
+      "type",
+      "mapType",
+    ].forEach(
       (k) => {
         if (typeof payload[k] === "string") payload[k] = payload[k].trim();
       },

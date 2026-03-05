@@ -171,6 +171,9 @@ export function useYears() {
         if ((patch as any).batchName && !(patch as any).batch_name) {
           firestorePatch.batch_name = (patch as any).batchName;
         }
+        if ((patch as any).imageUrl && !(patch as any).image_url) {
+          firestorePatch.image_url = (patch as any).imageUrl;
+        }
         await updateDoc(found.ref, firestorePatch);
         queryClient.invalidateQueries({ queryKey: ["years-data"] });
         return;
@@ -855,6 +858,7 @@ export function useYears() {
             name,
             order: yearNumber,
             imageUrl: "",
+            image_url: "",
             batch_name: name,
             createdAt: new Date(),
           });
@@ -869,6 +873,7 @@ export function useYears() {
             name,
             order: yearNumber,
             imageUrl: "",
+            image_url: "",
             batch_name: name,
             createdAt: new Date(),
           });
@@ -901,6 +906,8 @@ export function useYears() {
       graduate_date?: string;
       academicSupervisor?: string;
       academic_supervisor?: string;
+      registrationName?: string;
+      registration_names?: string[];
     } = {},
   ) => {
     const name = data.batchName || "New Batch";
@@ -910,6 +917,11 @@ export function useYears() {
     const graduateDate = data.graduateDate || data.graduate_date || "";
     const academicSupervisor =
       data.academicSupervisor || data.academic_supervisor || "";
+    const registrationNames = Array.isArray(data.registration_names)
+      ? data.registration_names
+      : data.registrationName != null && data.registrationName !== ""
+        ? [String(data.registrationName).trim()]
+        : [];
 
     // Clear cache to prepare for fresh data
     clearCache();
@@ -927,6 +939,7 @@ export function useYears() {
       graduate_date: graduateDate,
       academicSupervisor,
       academic_supervisor: academicSupervisor,
+      registrationNames,
     };
     setBatches((prev) => [tempBatch, ...prev]);
 
@@ -945,6 +958,7 @@ export function useYears() {
           group_link: groupLink,
           graduate_date: graduateDate,
           academic_supervisor: academicSupervisor,
+          registration_names: registrationNames,
           createdAt: new Date(),
         });
 
@@ -966,6 +980,7 @@ export function useYears() {
           graduate_date: graduateDate,
           academicSupervisor,
           academic_supervisor: academicSupervisor,
+          registrationNames,
         };
         setBatches((prev) => [
           realBatch,
@@ -993,6 +1008,7 @@ export function useYears() {
         graduate_date: graduateDate,
         academicSupervisor,
         academic_supervisor: academicSupervisor,
+        registrationNames,
       };
       setBatches((prev) => [offlineBatch, ...prev]);
     }

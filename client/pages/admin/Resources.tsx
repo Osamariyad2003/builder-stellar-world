@@ -33,10 +33,18 @@ import {
   Users,
   Calendar,
   Loader2,
+  ArrowUpDown,
+  Filter,
 } from "lucide-react";
+
+type SortField = "subject" | "title" | "date" | "order";
+type SortOrder = "asc" | "desc";
 
 export default function Resources() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [subjectFilter, setSubjectFilter] = useState<string>("");
+  const [sortBy, setSortBy] = useState<SortField>("subject");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [selectedLecture, setSelectedLecture] = useState<any>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [pageSize, setPageSize] = useState(10);
@@ -77,20 +85,67 @@ export default function Resources() {
   const lectureParam = searchParams.get("lecture");
   const tabParam = searchParams.get("tab");
 
-  // Get current page data or search through all cached data
-  const displayLectures = searchTerm
+  // Distinct subjects for filter dropdown (from all loaded lectures)
+  const subjectOptions = React.useMemo(() => {
+    const set = new Set<string>();
+    allLectures.forEach((l) => {
+      const s = (l.subject || "Unknown").trim();
+      if (s) set.add(s);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [allLectures]);
+
+  // Base list: when subject filter is on, use all loaded lectures filtered by subject; otherwise current page or all for search
+  const baseList = subjectFilter
     ? allLectures.filter(
+        (l) => (l.subject || "Unknown").trim() === subjectFilter,
+      )
+    : searchTerm
+      ? allLectures
+      : lectures;
+
+  // Apply search on top of base list
+  const displayLectures = searchTerm
+    ? baseList.filter(
         (lecture) =>
           lecture.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lecture.subject.toLowerCase().includes(searchTerm.toLowerCase()),
+          (lecture.subject || "").toLowerCase().includes(searchTerm.toLowerCase()),
       )
-    : lectures;
+    : baseList;
 
   let filteredLectures = displayLectures;
 
   if (lectureParam) {
     filteredLectures = allLectures.filter((l) => l.id === lectureParam);
   }
+
+  // Sort by subject, title, date, or order
+  const sortedLectures = React.useMemo(() => {
+    const list = [...filteredLectures];
+    const mult = sortOrder === "asc" ? 1 : -1;
+    list.sort((a, b) => {
+      if (sortBy === "subject") {
+        const sa = (a.subject || "Unknown").toLowerCase();
+        const sb = (b.subject || "Unknown").toLowerCase();
+        return mult * sa.localeCompare(sb);
+      }
+      if (sortBy === "title") {
+        const ta = (a.title || "").toLowerCase();
+        const tb = (b.title || "").toLowerCase();
+        return mult * ta.localeCompare(tb);
+      }
+      if (sortBy === "date") {
+        const da = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const db = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return mult * (da - db);
+      }
+      // order
+      const oa = (a as any).order ?? 0;
+      const ob = (b as any).order ?? 0;
+      return mult * (oa - ob);
+    });
+    return list;
+  }, [filteredLectures, sortBy, sortOrder]);
 
   // Get cached pages for display
   const cachedPages: number[] = [];
@@ -290,17 +345,82 @@ export default function Resources() {
         </Button>
       </div>
 
-      {/* Search */}
+      {/* Search, Filter and Sort */}
       <Card>
         <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search lectures by title or subject..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search lectures by title or subject..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                  aria-label="Search lectures"
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+                <Filter className="h-4 w-4 text-muted-foreground" aria-hidden />
+                <label htmlFor="filter-subject" className="text-sm font-medium whitespace-nowrap">
+                  Subject
+                </label>
+                <select
+                  id="filter-subject"
+                  value={subjectFilter}
+                  onChange={(e) => setSubjectFilter(e.target.value)}
+                  className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm min-w-[140px]"
+                  aria-label="Filter by subject"
+                >
+                  <option value="">All subjects</option>
+                  {subjectOptions.map((sub) => (
+                    <option key={sub} value={sub}>
+                      {sub}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-sm text-muted-foreground hidden sm:inline">|</span>
+                <ArrowUpDown className="h-4 w-4 text-muted-foreground hidden sm:inline" aria-hidden />
+                <label htmlFor="sort-by" className="text-sm font-medium whitespace-nowrap">
+                  Sort by
+                </label>
+                <select
+                  id="sort-by"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortField)}
+                  className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  aria-label="Sort by field"
+                >
+                  <option value="subject">Subject</option>
+                  <option value="title">Title</option>
+                  <option value="date">Date</option>
+                  <option value="order">Order</option>
+                </select>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+                  className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  aria-label="Sort order"
+                >
+                  <option value="asc">A–Z / Oldest first</option>
+                  <option value="desc">Z–A / Newest first</option>
+                </select>
+              </div>
+            </div>
+            {subjectFilter && (
+              <p className="text-sm text-muted-foreground">
+                Showing lectures in subject: <strong>{subjectFilter}</strong>
+                {" "}
+                <button
+                  type="button"
+                  onClick={() => setSubjectFilter("")}
+                  className="text-primary hover:underline"
+                  aria-label="Clear subject filter"
+                >
+                  Clear filter
+                </button>
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -330,7 +450,7 @@ export default function Resources() {
       {/* Lectures List */}
       {!loading && !error && (
         <div className="space-y-6">
-          {filteredLectures.map((lecture) => (
+          {sortedLectures.map((lecture) => (
             <Card
               key={lecture.id}
               className={`hover:shadow-lg transition-all duration-200 border-l-4 ${lectureParam === lecture.id ? 'border-l-primary bg-primary/5' : 'border-l-primary/20 hover:border-l-primary'}`}

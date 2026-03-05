@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMaps } from "@/hooks/useMaps";
 import { MapVideoWithThumbnail } from "@/components/MapVideoWithThumbnail";
-import { MapPin, Plus, Trash2, Edit2 } from "lucide-react";
+import { MapPin, Plus, Trash2, Edit2, Upload } from "lucide-react";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 export default function Maps() {
   const { maps, loading, error, createMap, updateMap, deleteMap } = useMaps();
@@ -15,6 +16,7 @@ export default function Maps() {
     description: "",
     video_url: "",
     type: "",
+    thumbnailUrl: "",
   });
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -26,6 +28,7 @@ export default function Maps() {
       description: "",
       video_url: "",
       type: "",
+      thumbnailUrl: "",
     });
 
   const submit = async (e: React.FormEvent) => {
@@ -126,6 +129,54 @@ export default function Maps() {
                 placeholder="https://..."
               />
             </div>
+            <div className="space-y-2">
+              <Label>Thumbnail image (optional)</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={form.thumbnailUrl}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, thumbnailUrl: e.target.value }))
+                  }
+                  placeholder="https://res.cloudinary.com/.../image.jpg"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-shrink-0"
+                  onClick={async () => {
+                    try {
+                      const input = document.createElement("input");
+                      input.type = "file";
+                      input.accept = "image/*";
+                      input.onchange = async () => {
+                        const file = input.files?.[0];
+                        if (!file) return;
+                        try {
+                          const url = await uploadImageToCloudinary(file);
+                          if (!url || typeof url !== "string") {
+                            alert("Upload failed: invalid Cloudinary response");
+                            return;
+                          }
+                          setForm((f) => ({ ...f, thumbnailUrl: url }));
+                        } catch (err) {
+                          console.error("Thumbnail upload failed:", err);
+                          alert("Failed to upload thumbnail");
+                        }
+                      };
+                      input.click();
+                    } catch (err) {
+                      console.error(err);
+                      alert("Could not open file dialog");
+                    }
+                  }}
+                  aria-label="Upload thumbnail image to Cloudinary"
+                >
+                  <Upload className="h-4 w-4 mr-1" />
+                  Upload
+                </Button>
+              </div>
+            </div>
             <div className="md:col-span-3 flex justify-end space-x-2">
               {editingId ? (
                 <>
@@ -177,6 +228,7 @@ export default function Maps() {
                     <div className="w-full sm:w-64 flex-shrink-0 min-w-0">
                       <MapVideoWithThumbnail
                         videoUrl={m.video_url}
+                        thumbnailUrl={m.thumbnailUrl}
                         title={m.name || "Map video"}
                       />
                     </div>
@@ -219,6 +271,7 @@ export default function Maps() {
                           description: m.description || "",
                           video_url: m.video_url || "",
                           type: m.type || "",
+                          thumbnailUrl: m.thumbnailUrl || "",
                         });
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}

@@ -1,20 +1,25 @@
 # MedAdmin / Builder Stellar World – App Models (Data Types)
 # All domain and data models used across the app (shared, hooks, cache, API).
+# Generated for reference; source of truth: shared/types.ts and hook files.
 
 ================================================================================
 SHARED TYPES (shared/types.ts)
 ================================================================================
 
+BilingualText
+  en: string
+  ar: string
+
 NewsItem
   id?: string
-  title: string
-  content: string
+  title: BilingualText
+  content: BilingualText
   imageUrl?: string
   createdAt: Date
   updatedAt: Date
   authorName: string
   authorId: string
-  tags: string[]
+  tags: { en: string[]; ar: string[] }
   isPinned: boolean
   viewsCount: number
   attachments: string[]
@@ -22,6 +27,7 @@ NewsItem
   yearId?: string
   yearNumber?: number
   batchId?: string
+  sendNotification?: boolean
 
 Lecture
   id?: string
@@ -71,10 +77,9 @@ QuizQuestion
   question: string
   options: string[]
   correctAnswer: number
-  explanation?: string
   imageUrl?: string
   weight?: number
-  explanation?: { text: string; imageUrl?: string }
+  explanation?: string | { text: string; imageUrl?: string }
 
 Professor
   id?: string
@@ -92,14 +97,16 @@ Professor
 
 Research
   id?: string
-  projectTitle: string
-  abstract?: string
-  fieldOfResearch?: string[]
+  projectTitle: BilingualText
+  abstract?: BilingualText
+  fieldOfResearch?: { en: string[]; ar: string[] }
   contactPerson?: string[]
-  authorshipPosition?: string[]
-  projectDuration?: string
-  requiredSkills?: string[]
-  supervisor?: string
+  contactEmail?: string
+  contactPhone?: string
+  authorshipPosition?: { en: string[]; ar: string[] }
+  projectDuration?: BilingualText
+  requiredSkills?: { en: string[]; ar: string[] }
+  supervisor?: BilingualText
   createdAt: Date
   updatedAt?: Date
 
@@ -159,6 +166,7 @@ User
   createdAt?: Date
   yearId?: string
   yearLabel?: string
+  batchId?: string
 
 Notification
   id?: string
@@ -171,8 +179,35 @@ Notification
   createdAt: Date
   batchId?: string
 
+MCQQuestion
+  id?: string
+  question: string
+  options: string[]
+  correctAnswer: number
+  explanation?: string
+  imageUrl?: string
+
+MCQ
+  id?: string
+  title: string
+  description?: string
+  category?: string
+  difficulty?: "easy" | "medium" | "hard"
+  timeLimit?: number
+  questions: MCQQuestion[]
+  createdAt: Date
+  updatedAt?: Date
+  createdBy?: string
+
 ================================================================================
-YEARS / BATCHES / CURRICULUM (client/hooks/useYears.ts)
+API (shared/api.ts)
+================================================================================
+
+DemoResponse
+  message: string
+
+================================================================================
+YEARS / BATCHES / CURRICULUM (client/hooks/useYears.ts, useYearsData.ts)
 ================================================================================
 
 YearData
@@ -183,6 +218,7 @@ YearData
   batchName?: string
   batchId?: string
   imageUrl?: string
+  image_url?: string
   academicSupervisor?: string
   actor?: string
   cr?: string
@@ -233,7 +269,7 @@ QuizData
   passRate: number
   questions: any[]
 
-Batch (from Firestore batches collection / useYearsData)
+Batch (Firestore: batches collection; useYearsData fetchBatches)
   id: string
   batchName: string
   batch_name?: string
@@ -248,7 +284,11 @@ Batch (from Firestore batches collection / useYearsData)
   graduateDate?: string
   academic_supervisor?: string
   academicSupervisor?: string
+  registration_names?: string[]
+  registrationNames?: string[]
+  ref?: DocumentReference (Firestore)
   createdAt?: Date
+  updatedAt?: Date
 
 ================================================================================
 CURRENT USER BATCH (client/hooks/useCurrentUserBatch.ts)
@@ -275,6 +315,9 @@ MapItem
   description?: string
   type?: string
   video_url?: string
+  thumbnailUrl?: string
+  thumbnail_url?: string
+  mapType?: string
   createdAt?: Date
 
 ================================================================================
@@ -296,6 +339,22 @@ BookData
   updatedAt?: Date
 
 ================================================================================
+PAGINATION (client/hooks/usePaginatedData.ts)
+================================================================================
+
+PaginatedDataOptions<T>
+  queryKey: string[]
+  queryFn: (pageIndex: number, pageSize: number, lastDoc?: any) => Promise<{
+    data: T[]
+    total: number
+    hasMore: boolean
+  }>
+  pageSize?: number
+  enabled?: boolean
+  staleTime?: number
+  gcTime?: number
+
+================================================================================
 CACHE (client/lib/cacheManager.ts)
 ================================================================================
 
@@ -311,13 +370,6 @@ CacheEntry<T>
   version: number
 
 ================================================================================
-API (shared/api.ts)
-================================================================================
-
-DemoResponse
-  message: string
-
-================================================================================
 AUTH CONTEXT (client/contexts/AuthContext.tsx)
 ================================================================================
 
@@ -329,11 +381,32 @@ AuthContextType
   authError: string | null
 
 ================================================================================
-PAGINATION (client/hooks/usePaginatedData.ts)
+FIRESTORE COLLECTIONS (logical structure)
 ================================================================================
 
-PaginatedDataOptions<T>
-  (generic options for paginated data hook)
+batches
+  batch_name, image_url, cr, group_link, graduate_date, academic_supervisor,
+  registration_names[], batchId, createdAt, updatedAt
+  sub: years
+
+batches/{batchId}/years
+  name, order, imageUrl, aca_supervisor, cr, actor, group_link, batchId, ...
+
+years/{yearId}/subjects
+  name, subjectId, imageUrl, ...
+
+subjects/{subjectId}/lectures
+  title, description, subjectId, order, createdAt, uploadedBy, ...
+
+lectures/{lectureId}/videos
+lectures/{lectureId}/files
+lectures/{lectureId}/quizzes
+
+users (top-level)
+  displayName, email, role, photoURL, yearId, batchId, ...
+
+news, notifications, orders, products, categories, research, professors,
+books, maps, mcq (top-level or under a known path as used in app)
 
 ================================================================================
 END OF MODELS

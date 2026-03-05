@@ -83,6 +83,7 @@ export default function Years() {
   const [editingBatchGroupLink, setEditingBatchGroupLink] = useState<string>("");
   const [editingBatchGraduateDate, setEditingBatchGraduateDate] = useState<string>("");
   const [editingBatchSupervisor, setEditingBatchSupervisor] = useState<string>("");
+  const [editingBatchRegistrationName, setEditingBatchRegistrationName] = useState<string>("");
 
   // Add Batch dialog state
   const [batchName, setBatchName] = useState<string>("");
@@ -90,6 +91,7 @@ export default function Years() {
   const [batchGroupLink, setBatchGroupLink] = useState<string>("");
   const [batchGraduateDate, setBatchGraduateDate] = useState<string>("");
   const [batchSupervisor, setBatchSupervisor] = useState<string>("");
+  const [batchRegistrationName, setBatchRegistrationName] = useState<string>("");
 
   // Selected batch for viewing years (sync with ?batch= query param)
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
@@ -996,6 +998,17 @@ export default function Years() {
                     placeholder="e.g., Dr. Ahmed Hassan"
                   />
                 </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">
+                    Registration name (optional)
+                  </label>
+                  <Input
+                    value={batchRegistrationName}
+                    onChange={(e) => setBatchRegistrationName(e.target.value)}
+                    placeholder="Name used in registration / mobile app"
+                    aria-label="Registration name for batch"
+                  />
+                </div>
               </div>
 
               <DialogFooter className="mt-4">
@@ -1015,12 +1028,14 @@ export default function Years() {
                         graduate_date: batchGraduateDate?.trim(),
                         academicSupervisor: batchSupervisor?.trim(),
                         academic_supervisor: batchSupervisor?.trim(),
+                        registrationName: batchRegistrationName?.trim(),
                       });
                       setBatchName("");
                       setBatchCR("");
                       setBatchGroupLink("");
                       setBatchGraduateDate("");
                       setBatchSupervisor("");
+                      setBatchRegistrationName("");
                       // close dialog
                       const closeBtn = document.querySelector(
                         "[data-dialog-close]",
@@ -1135,8 +1150,11 @@ export default function Years() {
                           <h2 className="text-xl font-semibold">
                             {batch?.batchName || "Batch"}
                           </h2>
-                          <div className="text-sm text-muted-foreground">
-                            {batch?.cr ? `CR: ${batch.cr}` : ""}
+                          <div className="text-sm text-muted-foreground space-y-0.5">
+                            {batch?.cr ? <div>CR: {batch.cr}</div> : null}
+                            {((batch as any)?.registrationNames?.length > 0 || (batch as any)?.registration_names?.length > 0) && (
+                              <div>Registration: {(batch as any).registrationNames?.[0] ?? (batch as any).registration_names?.[0]}</div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1349,6 +1367,16 @@ export default function Years() {
                                 className="w-full"
                                 onClick={(e) => e.stopPropagation()}
                               />
+                              <Input
+                                value={editingBatchRegistrationName || ""}
+                                onChange={(e) =>
+                                  setEditingBatchRegistrationName(e.target.value)
+                                }
+                                placeholder="Registration name (e.g. for mobile app)"
+                                className="w-full"
+                                onClick={(e) => e.stopPropagation()}
+                                aria-label="Registration name"
+                              />
                               <div className="flex items-center gap-2">
                                 <Button
                                   size="sm"
@@ -1404,6 +1432,9 @@ export default function Years() {
                                   onClick={async (e) => {
                                     e.stopPropagation();
                                     try {
+                                      const regNames = editingBatchRegistrationName?.trim()
+                                        ? [editingBatchRegistrationName.trim()]
+                                        : [];
                                       await updateBatch?.(b.id, {
                                         batch_name: editingBatchValue,
                                         batchName: editingBatchValue,
@@ -1416,6 +1447,8 @@ export default function Years() {
                                         graduateDate: editingBatchGraduateDate,
                                         academic_supervisor: editingBatchSupervisor,
                                         academicSupervisor: editingBatchSupervisor,
+                                        registration_names: regNames,
+                                        registrationNames: regNames,
                                       });
                                       setEditingBatchId(null);
                                       setEditingBatchValue("");
@@ -1424,6 +1457,7 @@ export default function Years() {
                                       setEditingBatchGroupLink("");
                                       setEditingBatchGraduateDate("");
                                       setEditingBatchSupervisor("");
+                                      setEditingBatchRegistrationName("");
                                       alert("Saved");
                                     } catch (err) {
                                       console.error(err);
@@ -1445,6 +1479,7 @@ export default function Years() {
                                     setEditingBatchGroupLink("");
                                     setEditingBatchGraduateDate("");
                                     setEditingBatchSupervisor("");
+                                    setEditingBatchRegistrationName("");
                                   }}
                                 >
                                   Cancel
@@ -1458,6 +1493,9 @@ export default function Years() {
                               </CardTitle>
                               <CardDescription className="text-sm text-muted-foreground space-y-1">
                                 {b.cr && <div>CR: {b.cr}</div>}
+                                {((b as any).registrationNames?.length > 0 || (b as any).registration_names?.length > 0) && (
+                                  <div>Registration: {(b as any).registrationNames?.[0] ?? (b as any).registration_names?.[0]}</div>
+                                )}
                                 {(b.academicSupervisor || b.academic_supervisor) && (
                                   <div>Supervisor: {b.academicSupervisor || b.academic_supervisor}</div>
                                 )}
@@ -1518,6 +1556,8 @@ export default function Years() {
                               setEditingBatchGroupLink(b.groupLink || b.group_link || "");
                               setEditingBatchGraduateDate(b.graduateDate || b.graduate_date || "");
                               setEditingBatchSupervisor(b.academicSupervisor || b.academic_supervisor || "");
+                              const rn = (b as any).registrationNames;
+                              setEditingBatchRegistrationName(Array.isArray(rn) && rn.length > 0 ? rn[0] : (b as any).registration_names?.[0] ?? "");
                             }}
                           >
                             Edit
