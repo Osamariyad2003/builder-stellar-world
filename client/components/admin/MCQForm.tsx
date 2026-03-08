@@ -35,18 +35,22 @@ import { uploadToImageKitServer } from "@/lib/imagekit";
 
 interface MCQFormProps {
   mcq?: MCQ | null;
+  /** When creating, pass list of subjects to relate the MCQ to a subject */
+  subjects?: { id: string; name: string }[];
   onClose: () => void;
   onSave: (data: Partial<MCQ>) => void;
 }
 
-export function MCQForm({ mcq, onClose, onSave }: MCQFormProps) {
+export function MCQForm({ mcq, subjects, onClose, onSave }: MCQFormProps) {
+  const showSubjectSelect = Boolean(subjects && subjects.length > 0);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>(mcq?.subjectId || "");
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category: "",
-    difficulty: "medium" as "easy" | "medium" | "hard",
-    timeLimit: 30,
-    questions: [] as MCQQuestion[],
+    title: mcq?.title || "",
+    description: mcq?.description || "",
+    category: mcq?.category || "",
+    difficulty: (mcq?.difficulty || "medium") as "easy" | "medium" | "hard",
+    timeLimit: mcq?.timeLimit ?? 30,
+    questions: (mcq?.questions || []) as MCQQuestion[],
   });
 
   const [isAddingQuestion, setIsAddingQuestion] = useState(false);
@@ -61,6 +65,7 @@ export function MCQForm({ mcq, onClose, onSave }: MCQFormProps) {
 
   useEffect(() => {
     if (mcq) {
+      setSelectedSubjectId(mcq.subjectId || "");
       setFormData({
         title: mcq.title || "",
         description: mcq.description || "",
@@ -139,6 +144,7 @@ export function MCQForm({ mcq, onClose, onSave }: MCQFormProps) {
       timeLimit: formData.timeLimit,
       questions: formData.questions,
       updatedAt: new Date(),
+      ...(showSubjectSelect ? { subjectId: selectedSubjectId || undefined } : {}),
       ...(mcq ? {} : { createdAt: new Date() }),
     };
 
@@ -192,6 +198,25 @@ export function MCQForm({ mcq, onClose, onSave }: MCQFormProps) {
             <CardDescription>Title, description, and settings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {showSubjectSelect && (
+              <div>
+                <Label htmlFor="mcq-subject">Subject</Label>
+                <select
+                  id="mcq-subject"
+                  value={selectedSubjectId}
+                  onChange={(e) => setSelectedSubjectId(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  aria-label="Select subject for this MCQ"
+                >
+                  <option value="">No subject</option>
+                  {subjects?.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <Label htmlFor="title">MCQ Title *</Label>
               <Input

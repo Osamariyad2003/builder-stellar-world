@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,12 +6,38 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Search, Trash2, Edit2, HelpCircle } from "lucide-react";
 import { MCQForm } from "@/components/admin/MCQForm";
 import { useMCQ } from "@/hooks/useMCQ";
+import { useYears } from "@/hooks/useYears";
 import { MCQ } from "@shared/types";
 
 export default function MCQPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [subjectFilter, setSubjectFilter] = useState<string>("");
   const [selected, setSelected] = useState<MCQ | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const { years } = useYears();
+  const allSubjectsForForm = useMemo(() => {
+    const list: { id: string; name: string }[] = [];
+    const seen = new Set<string>();
+    (years || []).forEach((y: any) =>
+      (y.subjects || []).forEach((s: any) => {
+        if (!seen.has(s.id)) {
+          seen.add(s.id);
+          list.push({ id: s.id, name: s.name || s.id });
+        }
+      })
+    );
+    return list.sort((a, b) => a.name.localeCompare(b.name));
+  }, [years]);
+  const subjectIdToName = useMemo(() => {
+    const m: Record<string, string> = {};
+    (years || []).forEach((y: any) =>
+      (y.subjects || []).forEach((s: any) => {
+        m[s.id] = s.name || s.id;
+      })
+    );
+    return m;
+  }, [years]);
 
   const {
     mcqs,
@@ -28,6 +54,10 @@ export default function MCQPage() {
 
   const handleCreate = () => {
     setSelected(null);
+    if (allSubjectsForForm.length === 0) {
+      alert("No subjects found. Add subjects from the Years page first, then create an MCQ.");
+      return;
+    }
     setIsFormOpen(true);
   };
 
@@ -178,12 +208,14 @@ export default function MCQPage() {
     }
   };
 
-  const filtered = mcqs.filter(
-    (mcq) =>
+  const filtered = mcqs.filter((mcq) => {
+    const matchesSearch =
       mcq.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       mcq.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      mcq.difficulty?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      mcq.difficulty?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSubject = !subjectFilter || mcq.subjectId === subjectFilter;
+    return matchesSearch && matchesSubject;
+  });
 
   const getDifficultyColor = (difficulty?: string) => {
     switch (difficulty) {
@@ -202,6 +234,7 @@ export default function MCQPage() {
     return (
       <MCQForm
         mcq={selected}
+        subjects={allSubjectsForForm}
         onClose={() => {
           setIsFormOpen(false);
           setSelected(null);
@@ -294,19 +327,41 @@ export default function MCQPage() {
         </Card>
       )}
 
-      {/* Search Bar */}
+      {/* Search and filter */}
       {!loading && !error && (
         <>
           <Card>
             <CardContent className="pt-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by title, category, or difficulty..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by title, category, or difficulty..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                    aria-label="Search MCQs"
+                  />
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <label htmlFor="mcq-subject-filter" className="text-sm font-medium whitespace-nowrap">
+                    Subject
+                  </label>
+                  <select
+                    id="mcq-subject-filter"
+                    value={subjectFilter}
+                    onChange={(e) => setSubjectFilter(e.target.value)}
+                    className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm min-w-[160px]"
+                    aria-label="Filter by subject"
+                  >
+                    <option value="">All subjects</option>
+                    {allSubjectsForForm.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -317,12 +372,12 @@ export default function MCQPage() {
               <CardContent className="text-center py-12">
                 <HelpCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-semibold mb-2">
-                  {mcqs.length === 0 ? "No MCQs found" : "No MCQs match your search"}
+                  {mcqs.length === 0 ? "No MCQs found" : "No MCQs match your search or filter"}
                 </h3>
                 <p className="text-muted-foreground mb-4">
                   {mcqs.length === 0
                     ? "Start by creating your first MCQ."
-                    : "Try adjusting your search terms."}
+                    : "Try adjusting your search or subject filter."}
                 </p>
                 {mcqs.length === 0 && (
                   <Button onClick={handleCreate}>Create First MCQ</Button>
@@ -345,6 +400,11 @@ export default function MCQPage() {
                             </p>
                           )}
                           <div className="flex gap-2 flex-wrap mt-3">
+                            {mcq.subjectId && (
+                              <Badge variant="outline">
+                                {subjectIdToName[mcq.subjectId] || mcq.subjectId}
+                              </Badge>
+                            )}
                             {mcq.category && (
                               <Badge variant="secondary">{mcq.category}</Badge>
                             )}

@@ -74,6 +74,7 @@ export function useMCQ() {
         mcqsData.push({
           id: doc.id,
           ...data,
+          subjectId: data.subjectId || undefined,
           createdAt: data.createdAt?.toDate?.() || new Date(),
           updatedAt: data.updatedAt?.toDate?.() || new Date(),
         } as MCQ);
@@ -101,6 +102,7 @@ export function useMCQ() {
     try {
       const newMCQ = {
         ...mcq,
+        subjectId: mcq.subjectId || undefined,
         createdAt: new Date(),
         updatedAt: new Date(),
         createdBy: "admin",

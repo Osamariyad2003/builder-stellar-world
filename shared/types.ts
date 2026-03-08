@@ -218,6 +218,7 @@ export interface MCQ {
   description?: string;
   category?: string;
   difficulty?: "easy" | "medium" | "hard";
+  subjectId?: string;
   timeLimit?: number; // in minutes
   questions: MCQQuestion[];
   createdAt: Date;
