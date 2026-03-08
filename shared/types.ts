@@ -165,6 +165,8 @@ export interface OrderItem {
 
 export interface Order {
   id?: string;
+  orderName?: string;
+  orderNumber?: string;
   userId?: string;
   username?: string;
   userName: string;

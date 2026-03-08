@@ -519,6 +519,26 @@ export default function SubjectPage() {
           >
             <Trash2 className="h-4 w-4" />
           </Button>
+          {(() => {
+            const year = years.find(
+              (y: any) =>
+                y.id === subject?.yearId ||
+                (y.subjects || []).some((s: any) => s.id === subject?.id),
+            );
+            const yearId = year?.id;
+            const batchId = year?.batchId || (year as any)?.batch_name;
+            const deepLink =
+              batchId && yearId && subject?.id
+                ? `/admin/years?batch=${encodeURIComponent(batchId)}&year=${encodeURIComponent(yearId)}&subject=${encodeURIComponent(subject.id)}`
+                : "/admin/years";
+            return (
+              <Link to={deepLink}>
+                <Button variant="outline" size="sm">
+                  View in Years
+                </Button>
+              </Link>
+            );
+          })()}
           <Link to="/admin/years">
             <Button variant="ghost">Back</Button>
           </Link>
@@ -562,7 +582,12 @@ export default function SubjectPage() {
                       )}
 
                       <div>
-                        <div className="font-medium">{lecture.name}</div>
+                        <div className="font-medium">
+                          <span className="text-muted-foreground font-normal mr-2">
+                            Order {lecture.order ?? "—"}
+                          </span>
+                          {lecture.name}
+                        </div>
                         <div className="text-sm text-muted-foreground">
                           {lecture.description}
                         </div>

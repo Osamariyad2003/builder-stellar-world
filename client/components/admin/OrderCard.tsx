@@ -15,9 +15,14 @@ export default function OrderCard({ order, onChangeStatus, onDelete }: OrderCard
     <Card key={order.id}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>
-            Order for {order.username || order.userName}
-            <div className="text-xs text-muted-foreground">{order.createdAt?.toLocaleString?.()}</div>
+          <CardTitle className="flex flex-col gap-0.5">
+            <span>
+              {order.username || order.userName || "Unknown customer"}
+            </span>
+            <span className="text-sm font-normal text-muted-foreground">
+              Order #{order.id?.slice(0, 8) ?? "—"}
+              {order.createdAt && ` · ${order.createdAt.toLocaleString()}`}
+            </span>
           </CardTitle>
 
           <div className="flex items-center gap-2">

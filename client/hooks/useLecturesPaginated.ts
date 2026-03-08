@@ -32,6 +32,8 @@ async function fetchLecturesPage(
       const data = docSnapshot.data();
       const lectureId = docSnapshot.id;
       const lectureRef = docSnapshot.ref;
+      // Subject ID from path: .../Subjects/{subjectId}/lectures/{lectureId}
+      const subjectId = (lectureRef.parent?.parent as any)?.id ?? data.subjectId ?? "Unknown";
 
       // Fetch subcollections in parallel
       const [filesSnapshot, quizzesSnapshot, videosSnapshot] = await Promise.all([
@@ -87,7 +89,8 @@ async function fetchLecturesPage(
         id: lectureId,
         title: data.title || "",
         description: data.description || "",
-        subject: data.subjectId || "Unknown",
+        subject: subjectId,
+        subjectId: subjectId,
         order: data.order || 1,
         createdAt: data.createdAt?.toDate() || new Date(),
         createdBy: data.uploadedBy || "",

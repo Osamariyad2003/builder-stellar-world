@@ -37,6 +37,8 @@ interface LectureFormProps {
   lecture?: any;
   subjectId?: string | null;
   subjectName?: string;
+  /** When creating a new lecture without subjectId, pass list of subjects to choose from */
+  subjects?: { id: string; name: string }[];
   yearType?: "basic" | "clinical";
   onClose: () => void;
   onSave: (lecture: any) => void;
@@ -46,11 +48,14 @@ export function LectureForm({
   lecture,
   subjectId,
   subjectName,
+  subjects,
   yearType,
   onClose,
   onSave,
 }: LectureFormProps) {
   const isEditing = !!lecture?.id;
+  const showSubjectSelect = !isEditing && !subjectId && subjects && subjects.length > 0;
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>(subjectId || "");
   const [formData, setFormData] = useState({
     name: lecture?.name || "",
     description: lecture?.description || "",
@@ -60,6 +65,8 @@ export function LectureForm({
 
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const effectiveSubjectId = subjectId || selectedSubjectId;
+  const effectiveSubjectName = subjectName || (showSubjectSelect && selectedSubjectId ? subjects?.find((s) => s.id === selectedSubjectId)?.name : null);
 
   useEffect(() => {
     if (lecture) {
@@ -118,12 +125,16 @@ export function LectureForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (showSubjectSelect && !selectedSubjectId) {
+      alert("Please select a subject for this lecture.");
+      return;
+    }
     setLoading(true);
 
     try {
       const lectureData = {
         ...formData,
-        subjectId: subjectId,
+        subjectId: effectiveSubjectId,
         ...(isEditing && lecture
           ? { id: lecture.id }
           : { createdAt: new Date(), uploadedBy: "Current User" }),
@@ -152,7 +163,9 @@ export function LectureForm({
             <p className="text-muted-foreground">
               {isEditing
                 ? `Editing "${lecture?.name}" in ${subjectName}`
-                : `Add a new lecture to ${subjectName}`}
+                : effectiveSubjectName
+                  ? `Add a new lecture to ${effectiveSubjectName}`
+                  : "Add a new lecture — select a subject below"}
             </p>
           </div>
         </div>
@@ -174,6 +187,26 @@ export function LectureForm({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {showSubjectSelect && (
+              <div className="space-y-2">
+                <Label htmlFor="subject">Subject *</Label>
+                <select
+                  id="subject"
+                  required
+                  value={selectedSubjectId}
+                  onChange={(e) => setSelectedSubjectId(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  aria-label="Select subject for this lecture"
+                >
+                  <option value="">Select a subject</option>
+                  {subjects?.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="name">Lecture Name *</Label>
               <Input
@@ -207,11 +240,12 @@ export function LectureForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="order">Order</Label>
+              <Label htmlFor="order">Display order (position in list)</Label>
               <Input
                 id="order"
                 type="number"
                 min="1"
+                placeholder="1"
                 value={formData.order}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -219,6 +253,7 @@ export function LectureForm({
                     order: parseInt(e.target.value) || 1,
                   }))
                 }
+                aria-label="Display order - position of lecture in the list"
               />
             </div>
 
@@ -350,7 +385,7 @@ export function LectureForm({
             <CardHeader>
               <CardTitle>Preview</CardTitle>
               <CardDescription>
-                How the lecture will appear in {subjectName}
+                How the lecture will appear in {effectiveSubjectName || subjectName || "subject"}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -378,7 +413,7 @@ export function LectureForm({
                       </p>
                     )}
                     <div className="text-xs text-muted-foreground mt-2">
-                      Lecture {formData.order} • {subjectName}
+                      Lecture {formData.order} • {effectiveSubjectName || subjectName || "—"}
                     </div>
                   </div>
                 </div>

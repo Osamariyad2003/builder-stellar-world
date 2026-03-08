@@ -66,12 +66,27 @@ export function useOrders() {
               createdAt = new Date(v.orderDate);
             }
 
+            // Retrieve person/customer name from all possible Firestore fields
+            const personName =
+              v.customerName ||
+              v.customer_name ||
+              v.username ||
+              v.userName ||
+              v.user_name ||
+              v.displayName ||
+              v.display_name ||
+              v.name ||
+              v.buyerName ||
+              v.buyer_name ||
+              "";
+
             data.push({
               id: d.id,
+              orderName: v.orderName || v.order_name || "",
+              orderNumber: v.orderNumber || v.order_number || v.orderId || "",
               userId: v.userId || v.user_id || "",
-              // normalize username field (prefer `username` if present)
-              username: v.username || v.userName || v.user_name || v.customerName || "",
-              userName: v.userName || v.user_name || v.customerName || "",
+              username: personName,
+              userName: personName,
               userEmail: v.userEmail || v.email || "",
               userPhone: userPhone,
               address: address,

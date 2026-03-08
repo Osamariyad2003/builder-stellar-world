@@ -79,21 +79,51 @@ export default function Resources() {
   
   const error = paginationError ? (paginationError as Error).message : null;
 
-  const { addVideo, addFile, addQuiz } = useYears();
+  const { years, addVideo, addFile, addQuiz } = useYears();
 
   const [searchParams] = useSearchParams();
   const lectureParam = searchParams.get("lecture");
   const tabParam = searchParams.get("tab");
 
-  // Distinct subjects for filter dropdown (from all loaded lectures)
+  // Subject names exact to years tabs: subjectId -> name
+  const subjectIdToName = React.useMemo(() => {
+    const m: Record<string, string> = {};
+    (years || []).forEach((y: any) =>
+      (y.subjects || []).forEach((s: any) => {
+        m[s.id] = s.name || s.id;
+      })
+    );
+    return m;
+  }, [years]);
+
+  // All subjects for Create Lecture (from years) — used to relate new lecture to a subject
+  const allSubjectsForForm = React.useMemo(() => {
+    const list: { id: string; name: string }[] = [];
+    const seen = new Set<string>();
+    (years || []).forEach((y: any) =>
+      (y.subjects || []).forEach((s: any) => {
+        if (!seen.has(s.id)) {
+          seen.add(s.id);
+          list.push({ id: s.id, name: s.name || s.id });
+        }
+      })
+    );
+    return list.sort((a, b) => a.name.localeCompare(b.name));
+  }, [years]);
+
+  // Distinct subjects for filter dropdown (use subject name from years when available)
   const subjectOptions = React.useMemo(() => {
     const set = new Set<string>();
     allLectures.forEach((l) => {
-      const s = (l.subject || "Unknown").trim();
-      if (s) set.add(s);
+      const id = (l.subject || (l as any).subjectId || "Unknown").trim();
+      if (id) set.add(id);
     });
-    return Array.from(set).sort((a, b) => a.localeCompare(b));
-  }, [allLectures]);
+    return Array.from(set).sort((a, b) => {
+      const nameA = subjectIdToName[a] || a;
+      const nameB = subjectIdToName[b] || b;
+      return nameA.localeCompare(nameB);
+    });
+  }, [allLectures, subjectIdToName]);
 
   // Base list: when subject filter is on, use all loaded lectures filtered by subject; otherwise current page or all for search
   const baseList = subjectFilter
@@ -180,6 +210,10 @@ export default function Resources() {
 
   const handleCreateNew = () => {
     setSelectedLecture(null);
+    if (allSubjectsForForm.length === 0) {
+      alert("No subjects found. Add subjects from the Years page first, then create a lecture.");
+      return;
+    }
     setIsFormOpen(true);
   };
 
@@ -301,9 +335,13 @@ export default function Resources() {
 
   // Lecture Form
   if (isFormOpen) {
+    const isNewLecture = !selectedLecture;
     return (
       <LectureForm
         lecture={selectedLecture}
+        subjectId={isNewLecture ? null : (selectedLecture?.subject || (selectedLecture as any)?.subjectId) || null}
+        subjectName={isNewLecture ? undefined : (selectedLecture?.subject ? subjectIdToName[selectedLecture.subject] : undefined)}
+        subjects={isNewLecture ? allSubjectsForForm : undefined}
         onClose={() => {
           setIsFormOpen(false);
           setSelectedLecture(null);
@@ -313,8 +351,12 @@ export default function Resources() {
             if (selectedLecture) {
               await updateLecture(selectedLecture.id, lectureData);
             } else {
-              // For new lectures, you might want to add subject selection
-              await createLecture(lectureData, "default-subject");
+              const subjectId = lectureData.subjectId;
+              if (!subjectId) {
+                alert("Please select a subject for the new lecture.");
+                return;
+              }
+              await createLecture(lectureData, subjectId);
             }
             setIsFormOpen(false);
             setSelectedLecture(null);
@@ -375,7 +417,7 @@ export default function Resources() {
                   <option value="">All subjects</option>
                   {subjectOptions.map((sub) => (
                     <option key={sub} value={sub}>
-                      {sub}
+                      {subjectIdToName[sub] || sub}
                     </option>
                   ))}
                 </select>
@@ -409,7 +451,7 @@ export default function Resources() {
             </div>
             {subjectFilter && (
               <p className="text-sm text-muted-foreground">
-                Showing lectures in subject: <strong>{subjectFilter}</strong>
+                Showing lectures in subject: <strong>{subjectIdToName[subjectFilter] || subjectFilter}</strong>
                 {" "}
                 <button
                   type="button"
@@ -462,7 +504,9 @@ export default function Resources() {
                     <div className="flex items-center gap-3 mb-2">
                       <BookOpen className="h-5 w-5 text-primary" />
                       <CardTitle className="text-xl">{lecture.title}</CardTitle>
-                      <Badge variant="secondary">{lecture.subject}</Badge>
+                      <Badge variant="secondary">
+                        {subjectIdToName[lecture.subject] || (lecture as any).subjectId || lecture.subject}
+                      </Badge>
                     </div>
                     <CardDescription className="text-base">
                       {lecture.description}

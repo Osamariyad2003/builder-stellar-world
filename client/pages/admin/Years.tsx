@@ -53,6 +53,7 @@ import {
   Video,
   FolderPlus,
   Loader2,
+  Link2,
 } from "lucide-react";
 
 export default function Years() {
@@ -103,6 +104,7 @@ export default function Years() {
     const b = qp.get("batch");
     setSelectedBatchId(b);
   }, [location.search]);
+
 
   const toggleSection = async (
     lectureId: string,
@@ -168,6 +170,19 @@ export default function Years() {
   } = useYears();
 
   const { news } = useNews();
+
+  // Scroll to subject when URL has batch, year, subject and we have years loaded
+  React.useEffect(() => {
+    const qp = new URLSearchParams(location.search);
+    const batchId = qp.get("batch");
+    const yearId = qp.get("year");
+    const subjectId = qp.get("subject");
+    if (!batchId || !yearId || !subjectId || !selectedBatchId || !years?.length) return;
+    const el = document.querySelector(`[data-subject-id="${subjectId}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [location.search, selectedBatchId, years]);
 
   const handleAddQuiz = (subject: any, lectureId: string) => {
     setSelectedSubject(subject);
@@ -528,8 +543,15 @@ export default function Years() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {yearData.subjects?.map((subject: any) => (
-                <Card key={subject.id} className="bg-secondary/10">
+              {yearData.subjects?.map((subject: any) => {
+                const batchId = yearData.batchId || (yearData as any).batch_name;
+                const deepLinkToSubject = `/admin/years?batch=${encodeURIComponent(batchId || "")}&year=${encodeURIComponent(yearData.id || "")}&subject=${encodeURIComponent(subject.id || "")}`;
+                return (
+                <Card
+                  key={subject.id}
+                  className="bg-secondary/10"
+                  data-subject-id={subject.id}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -555,6 +577,15 @@ export default function Years() {
                         <Badge variant="outline" className="text-xs">
                           {subject.lectures?.length || 0} lectures
                         </Badge>
+                        <Link
+                          to={deepLinkToSubject}
+                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                          title="Link to this subject (batch → year → subject)"
+                          aria-label="Link to this subject"
+                        >
+                          <Link2 className="h-3.5 w-3.5" />
+                          Link
+                        </Link>
                       </div>
                       <div className="flex gap-1">
                         <Button
@@ -614,7 +645,13 @@ export default function Years() {
                                   )}
                                 </div>
                                 <div className="flex-1 min-w-0">
+                                  <p className="text-xs text-muted-foreground mb-1">
+                                    Subject: {subject.name}
+                                  </p>
                                   <h4 className="font-medium text-sm mb-1 truncate">
+                                    <span className="text-muted-foreground font-normal mr-2">
+                                      Order {lecture.order ?? "—"}
+                                    </span>
                                     {lecture.name}
                                   </h4>
                                   <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
@@ -900,7 +937,8 @@ export default function Years() {
                     </CardContent>
                   )}
                 </Card>
-              ))}
+              );
+              })}
             </div>
           )}
         </div>
