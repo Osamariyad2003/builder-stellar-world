@@ -112,6 +112,9 @@ export interface Research {
   contactPerson?: string[];
   contactEmail?: string;
   contactPhone?: string;
+  bookUrl?: string;
+  driveUrl?: string;
+  thumbnailUrl?: string;
   authorshipPosition?: {
     en: string[];
     ar: string[];

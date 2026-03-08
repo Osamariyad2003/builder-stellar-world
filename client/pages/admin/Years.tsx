@@ -1190,9 +1190,11 @@ export default function Years() {
                           </h2>
                           <div className="text-sm text-muted-foreground space-y-0.5">
                             {batch?.cr ? <div>CR: {batch.cr}</div> : null}
-                            {((batch as any)?.registrationNames?.length > 0 || (batch as any)?.registration_names?.length > 0) && (
-                              <div>Registration: {(batch as any).registrationNames?.[0] ?? (batch as any).registration_names?.[0]}</div>
-                            )}
+                            {(() => {
+                              const ba = batch as any;
+                              const regName = ba?.registrationNames?.[0] ?? ba?.registration_names?.[0] ?? ba?.registrationName ?? ba?.registration_name;
+                              return regName ? <div>Register name: {regName}</div> : null;
+                            })()}
                           </div>
                         </div>
                       </div>
@@ -1405,16 +1407,21 @@ export default function Years() {
                                 className="w-full"
                                 onClick={(e) => e.stopPropagation()}
                               />
-                              <Input
-                                value={editingBatchRegistrationName || ""}
-                                onChange={(e) =>
-                                  setEditingBatchRegistrationName(e.target.value)
-                                }
-                                placeholder="Registration name (e.g. for mobile app)"
-                                className="w-full"
-                                onClick={(e) => e.stopPropagation()}
-                                aria-label="Registration name"
-                              />
+                              <div>
+                                <label className="text-xs font-medium text-muted-foreground block mb-1">
+                                  Register name
+                                </label>
+                                <Input
+                                  value={editingBatchRegistrationName || ""}
+                                  onChange={(e) =>
+                                    setEditingBatchRegistrationName(e.target.value)
+                                  }
+                                  placeholder="e.g. for mobile app"
+                                  className="w-full"
+                                  onClick={(e) => e.stopPropagation()}
+                                  aria-label="Registration name"
+                                />
+                              </div>
                               <div className="flex items-center gap-2">
                                 <Button
                                   size="sm"
@@ -1470,9 +1477,8 @@ export default function Years() {
                                   onClick={async (e) => {
                                     e.stopPropagation();
                                     try {
-                                      const regNames = editingBatchRegistrationName?.trim()
-                                        ? [editingBatchRegistrationName.trim()]
-                                        : [];
+                                      const regStr = editingBatchRegistrationName?.trim() ?? "";
+                                      const regNames = regStr ? [regStr] : [];
                                       await updateBatch?.(b.id, {
                                         batch_name: editingBatchValue,
                                         batchName: editingBatchValue,
@@ -1487,6 +1493,8 @@ export default function Years() {
                                         academicSupervisor: editingBatchSupervisor,
                                         registration_names: regNames,
                                         registrationNames: regNames,
+                                        registration_name: regStr,
+                                        registrationName: regStr,
                                       });
                                       setEditingBatchId(null);
                                       setEditingBatchValue("");
@@ -1531,9 +1539,11 @@ export default function Years() {
                               </CardTitle>
                               <CardDescription className="text-sm text-muted-foreground space-y-1">
                                 {b.cr && <div>CR: {b.cr}</div>}
-                                {((b as any).registrationNames?.length > 0 || (b as any).registration_names?.length > 0) && (
-                                  <div>Registration: {(b as any).registrationNames?.[0] ?? (b as any).registration_names?.[0]}</div>
-                                )}
+                                {(() => {
+                                  const ba = b as any;
+                                  const regName = ba?.registrationNames?.[0] ?? ba?.registration_names?.[0] ?? ba?.registrationName ?? ba?.registration_name;
+                                  return regName ? <div>Register name: {regName}</div> : null;
+                                })()}
                                 {(b.academicSupervisor || b.academic_supervisor) && (
                                   <div>Supervisor: {b.academicSupervisor || b.academic_supervisor}</div>
                                 )}
@@ -1594,8 +1604,10 @@ export default function Years() {
                               setEditingBatchGroupLink(b.groupLink || b.group_link || "");
                               setEditingBatchGraduateDate(b.graduateDate || b.graduate_date || "");
                               setEditingBatchSupervisor(b.academicSupervisor || b.academic_supervisor || "");
-                              const rn = (b as any).registrationNames;
-                              setEditingBatchRegistrationName(Array.isArray(rn) && rn.length > 0 ? rn[0] : (b as any).registration_names?.[0] ?? "");
+                              const ba = b as any;
+                              const rn = ba.registrationNames ?? ba.registration_names;
+                              const regStr = Array.isArray(rn) && rn.length > 0 ? rn[0] : ba.registration_names?.[0] ?? ba.registration_name ?? ba.registrationName ?? "";
+                              setEditingBatchRegistrationName(regStr);
                             }}
                           >
                             Edit

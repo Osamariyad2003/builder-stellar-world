@@ -199,21 +199,40 @@ export function useYears() {
     // Clear cache to prepare for fresh data
     clearCache();
 
+    const regNames = patch.registration_names ?? patch.registrationNames;
+    const registrationNameStr =
+      patch.registration_name ??
+      patch.registrationName ??
+      (Array.isArray(regNames) && regNames.length > 0 ? regNames[0] : "");
+    const normalizedPatch = {
+      ...patch,
+      ...(regNames !== undefined && { registration_name: registrationNameStr }),
+      updatedAt: new Date(),
+    };
+
     if (isOfflineMode || !navigator.onLine) {
       setBatches((prev) =>
-        prev.map((b) => (b.id === batchId ? { ...b, ...patch } : b)),
+        prev.map((b) =>
+          b.id === batchId
+            ? { ...b, ...patch, registration_name: registrationNameStr, registrationName: registrationNameStr }
+            : b,
+        ),
       );
       return;
     }
     try {
       const batchRef = doc(db, "batches", batchId);
-      await updateDoc(batchRef, { ...patch, updatedAt: new Date() });
+      await updateDoc(batchRef, normalizedPatch);
       // refresh retry to trigger re-fetch
       queryClient.invalidateQueries({ queryKey: ["years-data"] });
     } catch (err) {
       console.error("Failed to update batch:", err);
       setBatches((prev) =>
-        prev.map((b) => (b.id === batchId ? { ...b, ...patch } : b)),
+        prev.map((b) =>
+          b.id === batchId
+            ? { ...b, ...patch, registration_name: registrationNameStr, registrationName: registrationNameStr }
+            : b,
+        ),
       );
     }
   };
@@ -907,6 +926,7 @@ export function useYears() {
       academicSupervisor?: string;
       academic_supervisor?: string;
       registrationName?: string;
+      registration_name?: string;
       registration_names?: string[];
     } = {},
   ) => {
@@ -922,11 +942,12 @@ export function useYears() {
       : data.registrationName != null && data.registrationName !== ""
         ? [String(data.registrationName).trim()]
         : [];
+    const registrationNameStr = registrationNames[0] ?? data.registrationName ?? data.registration_name ?? "";
 
     // Clear cache to prepare for fresh data
     clearCache();
 
-    // Optimistic temporary batch to update UI immediately
+    // Optimistic temporary batch to update UI immediately (include registration_name for local display)
     const tempId = `batch_temp_${Date.now()}`;
     const tempBatch = {
       id: tempId,
@@ -940,6 +961,8 @@ export function useYears() {
       academicSupervisor,
       academic_supervisor: academicSupervisor,
       registrationNames,
+      registration_name: registrationNameStr,
+      registrationName: registrationNameStr,
     };
     setBatches((prev) => [tempBatch, ...prev]);
 
@@ -959,6 +982,7 @@ export function useYears() {
           graduate_date: graduateDate,
           academic_supervisor: academicSupervisor,
           registration_names: registrationNames,
+          registration_name: registrationNameStr,
           createdAt: new Date(),
         });
 
@@ -968,7 +992,7 @@ export function useYears() {
           // ignore non-critical
         }
 
-        // Replace temp batch with saved batch data
+        // Replace temp batch with saved batch data (include registration_name locally)
         const realBatch = {
           id: docRef.id,
           batchName: name,
@@ -981,6 +1005,8 @@ export function useYears() {
           academicSupervisor,
           academic_supervisor: academicSupervisor,
           registrationNames,
+          registration_name: registrationNameStr,
+          registrationName: registrationNameStr,
         };
         setBatches((prev) => [
           realBatch,

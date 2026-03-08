@@ -29,6 +29,9 @@ export function ResearchForm({ research, onClose, onSave }: ResearchFormProps) {
     contactPerson: [] as string[],
     contactEmail: "",
     contactPhone: "",
+    bookUrl: "",
+    driveUrl: "",
+    thumbnailUrl: "",
     authorshipPosition: { en: [] as string[], ar: [] as string[] },
     projectDuration: { en: "", ar: "" } as BilingualText,
     requiredSkills: { en: [] as string[], ar: [] as string[] },
@@ -46,6 +49,9 @@ export function ResearchForm({ research, onClose, onSave }: ResearchFormProps) {
         contactPerson: research.contactPerson || [],
         contactEmail: research.contactEmail || "",
         contactPhone: research.contactPhone || "",
+        bookUrl: research.bookUrl || "",
+        driveUrl: research.driveUrl || "",
+        thumbnailUrl: research.thumbnailUrl || "",
         authorshipPosition: research.authorshipPosition || { en: [], ar: [] },
         projectDuration: research.projectDuration || { en: "", ar: "" },
         requiredSkills: research.requiredSkills || { en: [], ar: [] },
@@ -111,6 +117,9 @@ export function ResearchForm({ research, onClose, onSave }: ResearchFormProps) {
       contactPerson: formData.contactPerson,
       contactEmail: formData.contactEmail,
       contactPhone: formData.contactPhone,
+      bookUrl: formData.bookUrl || undefined,
+      driveUrl: formData.driveUrl || undefined,
+      thumbnailUrl: formData.thumbnailUrl || undefined,
       authorshipPosition: formData.authorshipPosition,
       projectDuration: formData.projectDuration,
       requiredSkills: formData.requiredSkills,
@@ -320,6 +329,42 @@ export function ResearchForm({ research, onClose, onSave }: ResearchFormProps) {
                         ...prev,
                         contactPhone: e.target.value,
                       }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Book URL</Label>
+                  <Input
+                    type="url"
+                    placeholder="https://example.com/books/..."
+                    value={formData.bookUrl}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, bookUrl: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Drive URL</Label>
+                  <Input
+                    type="url"
+                    placeholder="https://drive.google.com/..."
+                    value={formData.driveUrl}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, driveUrl: e.target.value }))
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Thumbnail URL</Label>
+                  <Input
+                    type="url"
+                    placeholder="https://example.com/image.jpg"
+                    value={formData.thumbnailUrl}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, thumbnailUrl: e.target.value }))
                     }
                   />
                 </div>

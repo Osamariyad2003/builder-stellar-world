@@ -8,10 +8,21 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  orderBy,
   onSnapshot,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+
+function toBilingual(o: any): { en: string; ar: string } {
+  if (!o || typeof o !== "object") return { en: String(o || ""), ar: String(o || "") };
+  return { en: o.en != null ? String(o.en) : "", ar: o.ar != null ? String(o.ar) : "" };
+}
+function toBilingualArray(o: any): { en: string[]; ar: string[] } {
+  if (!o || typeof o !== "object") return { en: [], ar: [] };
+  const en = Array.isArray(o.en) ? o.en : [];
+  const ar = Array.isArray(o.ar) ? o.ar : [];
+  return { en, ar };
+}
 
 // Mock data for development
 const mockResearch: Research[] = [
@@ -52,48 +63,7 @@ export function useResearch() {
   const [isOfflineMode, setIsOfflineMode] = useState(false);
 
   useEffect(() => {
-    const testFirebaseConnection = async () => {
-      try {
-        const testQuery = query(collection(db, "research"));
-        await getDocs(testQuery);
-
-        const q = query(collection(db, "research"), orderBy("createdAt", "desc"));
-        const unsubscribe = onSnapshot(
-          q,
-          (querySnapshot) => {
-            const data: Research[] = [];
-            querySnapshot.forEach((docSnap) => {
-              const d = docSnap.data() as any;
-              data.push({
-                id: docSnap.id,
-                projectTitle: d.projectTitle || d.title || "",
-                abstract: d.abstract || "",
-                fieldOfResearch: d.fieldOfResearch || [],
-                contactPerson: d.contactPerson || [],
-                authorshipPosition: d.authorshipPosition || [],
-                projectDuration: d.projectDuration || "",
-                requiredSkills: d.requiredSkills || [],
-                supervisor: d.supervisor || "",
-                createdAt: d.createdAt?.toDate ? d.createdAt.toDate() : d.createdAt || new Date(),
-                updatedAt: d.updatedAt?.toDate ? d.updatedAt.toDate() : d.updatedAt || new Date(),
-              } as Research);
-            });
-            setResearch(data);
-            setLoading(false);
-          },
-          (err) => {
-            console.error("Error in research listener:", err);
-            enterOfflineMode();
-          },
-        );
-
-        return unsubscribe;
-      } catch (err) {
-        console.error("Firebase connection failed for research:", err);
-        enterOfflineMode();
-        return null;
-      }
-    };
+    let unsubscribe: (() => void) | null = null;
 
     const enterOfflineMode = () => {
       setIsOfflineMode(true);
@@ -102,7 +72,71 @@ export function useResearch() {
       setLoading(false);
     };
 
-    testFirebaseConnection();
+    const attachListener = () => {
+      const q = query(collection(db, "research"));
+      unsubscribe = onSnapshot(
+        q,
+        (querySnapshot) => {
+          try {
+            const data: Research[] = [];
+            querySnapshot.forEach((docSnap) => {
+              const d = docSnap.data() as any;
+              const rawTitle = d.projectTitle || d.title;
+              const rawAbstract = d.abstract;
+              const rawField = d.fieldOfResearch;
+              const rawAuthorship = d.authorshipPosition;
+              const rawDuration = d.projectDuration;
+              const rawSkills = d.requiredSkills;
+              const rawSupervisor = d.supervisor;
+              data.push({
+                id: docSnap.id,
+                projectTitle: typeof rawTitle === "string" ? { en: rawTitle, ar: rawTitle } : toBilingual(rawTitle),
+                abstract: typeof rawAbstract === "string" ? { en: rawAbstract, ar: rawAbstract } : toBilingual(rawAbstract),
+                fieldOfResearch: toBilingualArray(rawField),
+                contactPerson: Array.isArray(d.contactPerson) ? d.contactPerson : [],
+                contactEmail: d.contactEmail || "",
+                contactPhone: d.contactPhone || d.phone || "",
+                bookUrl: d.bookUrl || d.book_url || "",
+                driveUrl: d.driveUrl || d.drive || d.drive_url || "",
+                thumbnailUrl: d.thumbnailUrl || d.thumbnail_url || "",
+                authorshipPosition: toBilingualArray(rawAuthorship),
+                projectDuration: toBilingual(rawDuration),
+                requiredSkills: toBilingualArray(rawSkills),
+                supervisor: toBilingual(rawSupervisor),
+                createdAt: d.createdAt?.toDate ? d.createdAt.toDate() : (d.createdAt ? new Date(d.createdAt) : new Date()),
+                updatedAt: d.updatedAt?.toDate ? d.updatedAt.toDate() : (d.updatedAt ? new Date(d.updatedAt) : new Date()),
+              } as Research);
+            });
+            data.sort((a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0));
+            setResearch(data);
+            setError(null);
+          } catch (e) {
+            console.error("Error processing research snapshot:", e);
+            setResearch([]);
+          }
+          setLoading(false);
+        },
+        (err) => {
+          console.error("Error in research listener:", err);
+          enterOfflineMode();
+        },
+      );
+    };
+
+    const run = async () => {
+      try {
+        await getDocs(query(collection(db, "research")));
+        attachListener();
+      } catch (err) {
+        console.error("Firebase connection failed for research:", err);
+        enterOfflineMode();
+      }
+    };
+
+    run();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   const createResearch = async (researchData: Omit<Research, "id">) => {
@@ -113,7 +147,15 @@ export function useResearch() {
     }
 
     try {
-      await addDoc(collection(db, "research"), researchData as any);
+      const payload = { ...researchData } as any;
+      if (payload.contactPhone != null) payload.phone = payload.contactPhone;
+      if (payload.bookUrl != null) payload.book_url = payload.bookUrl;
+      if (payload.driveUrl != null) payload.drive = payload.drive_url = payload.driveUrl;
+      if (payload.thumbnailUrl != null) payload.thumbnail_url = payload.thumbnailUrl;
+      if (payload.createdAt instanceof Date) payload.createdAt = Timestamp.fromDate(payload.createdAt);
+      if (payload.updatedAt instanceof Date) payload.updatedAt = Timestamp.fromDate(payload.updatedAt);
+      Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
+      await addDoc(collection(db, "research"), payload);
     } catch (err) {
       console.error("Error creating research:", err);
       setIsOfflineMode(true);
@@ -128,7 +170,15 @@ export function useResearch() {
     }
 
     try {
-      await updateDoc(doc(db, "research", id), researchData as any);
+      const payload = { ...researchData } as any;
+      if (payload.contactPhone != null) payload.phone = payload.contactPhone;
+      if (payload.bookUrl != null) payload.book_url = payload.bookUrl;
+      if (payload.driveUrl != null) payload.drive = payload.drive_url = payload.driveUrl;
+      if (payload.thumbnailUrl != null) payload.thumbnail_url = payload.thumbnailUrl;
+      if (payload.updatedAt instanceof Date) payload.updatedAt = Timestamp.fromDate(payload.updatedAt);
+      if (payload.createdAt instanceof Date) payload.createdAt = Timestamp.fromDate(payload.createdAt);
+      Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
+      await updateDoc(doc(db, "research", id), payload);
     } catch (err) {
       console.error("Error updating research:", err);
       setResearch((prev) => prev.map((r) => (r.id === id ? { ...r, ...researchData } : r)));

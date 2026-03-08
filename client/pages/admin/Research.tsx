@@ -15,11 +15,13 @@ export default function Research() {
 
   const { research, loading, error, createResearch, updateResearch, deleteResearch } = useResearch();
 
-  const filtered = research.filter((r) =>
-    typeof r.projectTitle === "string"
-      ? r.projectTitle.toLowerCase().includes(searchTerm.toLowerCase())
-      : r.projectTitle[displayLanguage]?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = research.filter((r) => {
+    const title =
+      typeof r.projectTitle === "string"
+        ? r.projectTitle
+        : (r.projectTitle && typeof r.projectTitle === "object" && (r.projectTitle[displayLanguage] ?? r.projectTitle.en ?? "")) || "";
+    return title.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const handleCreate = () => {
     setSelected(null);
@@ -42,12 +44,21 @@ export default function Research() {
       return;
     }
 
+    const placeholderThumb = "https://placehold.co/400x300/e2e8f0/64748b?text=Research";
+    const placeholderDrive = "https://drive.google.com/drive/folders/sample";
+    const placeholderBook = "https://example.com/books/sample-research";
+
     const sampleResearch = [
       {
         projectTitle: { en: "Antibiotic Resistance Patterns in Local Hospitals", ar: "أنماط مقاومة المضادات الحيوية في المستشفيات المحلية" },
         abstract: { en: "A comprehensive study examining the prevalence and mechanisms of antibiotic resistance in bacterial pathogens isolated from three major hospitals in the region over a 12-month period.", ar: "دراسة شاملة تفحص انتشار آليات مقاومة المضادات الحيوية في مسببات الأمراض البكتيرية المعزولة من ثلاث مستشفيات كبرى في المنطقة على مدى فترة 12 شهرًا." },
         fieldOfResearch: { en: ["Microbiology", "Infectious Diseases", "Public Health"], ar: ["علم الأحياء الدقيقة", "الأمراض المعدية", "الصحة العامة"] },
         contactPerson: ["Dr. Emily Rodriguez"],
+        contactPhone: "+962 6 123 4567",
+        contactEmail: "emily.rodriguez@example.edu",
+        bookUrl: placeholderBook,
+        driveUrl: placeholderDrive,
+        thumbnailUrl: placeholderThumb,
         authorshipPosition: { en: ["Lead Researcher"], ar: ["الباحث الرئيسي"] },
         projectDuration: { en: "12 months", ar: "12 شهرًا" },
         requiredSkills: { en: ["Bacterial isolation and identification", "Antibiotic susceptibility testing", "Data analysis"], ar: ["عزل وتحديد البكتيريا", "اختبار حساسية المضادات الحيوية", "تحليل البيانات"] },
@@ -58,6 +69,11 @@ export default function Research() {
         abstract: { en: "An observational study investigating the correlation between sleep patterns and academic performance, focusing on memory retention and clinical reasoning abilities.", ar: "دراسة مراقبة تبحث العلاقة بين أنماط النوم والأداء الأكاديمي، مع التركيز على الاحتفاظ بالذاكرة وقدرات التفكير السريري." },
         fieldOfResearch: { en: ["Medical Education", "Sleep Medicine", "Neuroscience"], ar: ["التعليم الطبي", "طب النوم", "علم الأعصاب"] },
         contactPerson: ["Dr. Sarah Johnson", "Dr. Michael Chen"],
+        contactPhone: "+962 6 234 5678",
+        contactEmail: "sarah.johnson@example.edu",
+        bookUrl: placeholderBook,
+        driveUrl: placeholderDrive,
+        thumbnailUrl: placeholderThumb,
         authorshipPosition: { en: ["Co-lead", "Data Manager"], ar: ["قائد مشارك", "مدير البيانات"] },
         projectDuration: { en: "8 months", ar: "8 أشهر" },
         requiredSkills: { en: ["Statistical analysis", "Sleep assessment tools", "Psychological testing"], ar: ["التحليل الإحصائي", "أدوات تقييم النوم", "الاختبارات النفسية"] },
@@ -68,6 +84,11 @@ export default function Research() {
         abstract: { en: "A randomized controlled trial comparing traditional surgical training methods with VR-based simulation techniques in teaching laparoscopic procedures.", ar: "تجربة عشوائية محكومة تقارن طرق التدريب الجراحي التقليدية مع تقنيات المحاكاة القائمة على الواقع الافتراضي في تعليم إجراءات تنظير البطن." },
         fieldOfResearch: { en: ["Surgery", "Medical Education", "Technology"], ar: ["الجراحة", "التعليم الطبي", "التكنولوجيا"] },
         contactPerson: ["Dr. Robert Williams"],
+        contactPhone: "+962 6 345 6789",
+        contactEmail: "robert.williams@example.edu",
+        bookUrl: placeholderBook,
+        driveUrl: placeholderDrive,
+        thumbnailUrl: placeholderThumb,
         authorshipPosition: { en: ["Principal Investigator"], ar: ["الباحث الرئيسي"] },
         projectDuration: { en: "18 months", ar: "18 شهرًا" },
         requiredSkills: { en: ["Surgical expertise", "VR technology", "Educational assessment"], ar: ["الخبرة الجراحية", "تكنولوجيا الواقع الافتراضي", "التقييم التعليمي"] },
@@ -78,6 +99,11 @@ export default function Research() {
         abstract: { en: "Investigation of novel biomarkers that can predict cardiovascular complications in newly diagnosed Type 2 diabetes patients with high sensitivity and specificity.", ar: "التحقيق في مؤشرات حيوية جديدة يمكنها التنبؤ بمضاعفات القلب والأوعية الدموية لدى مرضى السكري من النوع الثاني المشخصين حديثًا بحساسية وخصوصية عالية." },
         fieldOfResearch: { en: ["Cardiology", "Endocrinology", "Biomarker Research"], ar: ["أمراض القلب", "الغدد الصماء", "أبحاث المؤشرات الحيوية"] },
         contactPerson: ["Dr. Priya Sharma"],
+        contactPhone: "+962 6 456 7890",
+        contactEmail: "priya.sharma@example.edu",
+        bookUrl: placeholderBook,
+        driveUrl: placeholderDrive,
+        thumbnailUrl: placeholderThumb,
         authorshipPosition: { en: ["Lead Researcher"], ar: ["الباحث الرئيسي"] },
         projectDuration: { en: "14 months", ar: "14 شهرًا" },
         requiredSkills: { en: ["Molecular biology", "Biostatistics", "Laboratory techniques"], ar: ["علم الأحياء الجزيئية", "الإحصائيات الحيوية", "تقنيات المختبر"] },
@@ -88,6 +114,11 @@ export default function Research() {
         abstract: { en: "A long-term prospective study examining psychological adjustment, quality of life, and mental health disorders in patients undergoing cancer treatment.", ar: "دراسة استشرافية طويلة الأجل تفحص التكيف النفسي وجودة الحياة واضطرابات الصحة العقلية لدى المرضى الذين يخضعون للعلاج من السرطان." },
         fieldOfResearch: { en: ["Oncology", "Psychiatry", "Clinical Psychology"], ar: ["علم الأورام", "الطب النفسي", "علم النفس السريري"] },
         contactPerson: ["Dr. Margaret Stewart"],
+        contactPhone: "+962 6 567 8901",
+        contactEmail: "margaret.stewart@example.edu",
+        bookUrl: placeholderBook,
+        driveUrl: placeholderDrive,
+        thumbnailUrl: placeholderThumb,
         authorshipPosition: { en: ["Principal Investigator"], ar: ["الباحث الرئيسي"] },
         projectDuration: { en: "24 months", ar: "24 شهرًا" },
         requiredSkills: { en: ["Psychological assessment", "Patient counseling", "Longitudinal data analysis"], ar: ["التقييم النفسي", "استشارة المرضى", "تحليل البيانات الطولية"] },
@@ -98,6 +129,11 @@ export default function Research() {
         abstract: { en: "Exploring genetic variations that influence antihypertensive drug efficacy and adverse effects to enable personalized medication selection for better patient outcomes.", ar: "استكشاف الاختلافات الجينية التي تؤثر على فعالية الأدوية المضادة لارتفاع ضغط الدم والآثار الضائرة لتمكين اختيار الأدوية الشخصية لتحسين نتائج المرضى." },
         fieldOfResearch: { en: ["Pharmacology", "Genetics", "Cardiovascular Medicine"], ar: ["الصيدلة", "علم الوراثة", "طب القلب والأوعية الدموية"] },
         contactPerson: ["Dr. Aditya Patel"],
+        contactPhone: "+962 6 678 9012",
+        contactEmail: "aditya.patel@example.edu",
+        bookUrl: placeholderBook,
+        driveUrl: placeholderDrive,
+        thumbnailUrl: placeholderThumb,
         authorshipPosition: { en: ["Lead Researcher"], ar: ["الباحث الرئيسي"] },
         projectDuration: { en: "10 months", ar: "10 أشهر" },
         requiredSkills: { en: ["Genetic sequencing", "Pharmacokinetics", "Clinical trial management"], ar: ["تسلسل الجينات", "حركة الدواء في الجسم", "إدارة التجارب السريرية"] },
@@ -108,6 +144,11 @@ export default function Research() {
         abstract: { en: "An epidemiological investigation of air quality, allergen levels, and climatic factors as predictors of asthma hospitalizations in urban populations.", ar: "تحقيق وبائي عن جودة الهواء ومستويات مسببات الحساسية والعوامل المناخية كمنبئات بدخول مستشفيات الربو في السكان الحضر." },
         fieldOfResearch: { en: ["Pulmonology", "Environmental Health", "Epidemiology"], ar: ["طب الرئة", "الصحة البيئية", "علم الأوبئة"] },
         contactPerson: ["Dr. Thomas Anderson"],
+        contactPhone: "+962 6 789 0123",
+        contactEmail: "thomas.anderson@example.edu",
+        bookUrl: placeholderBook,
+        driveUrl: placeholderDrive,
+        thumbnailUrl: placeholderThumb,
         authorshipPosition: { en: ["Co-lead"], ar: ["قائد مشارك"] },
         projectDuration: { en: "12 months", ar: "12 شهرًا" },
         requiredSkills: { en: ["Environmental sampling", "Epidemiological modeling", "Respiratory assessment"], ar: ["أخذ عينات بيئية", "النمذجة الوبائية", "تقييم التنفس"] },
@@ -118,6 +159,11 @@ export default function Research() {
         abstract: { en: "Evaluating the effectiveness of telemedicine interventions in providing specialized medical care to underserved rural areas and measuring patient satisfaction and health outcomes.", ar: "تقييم فعالية التدخلات الطبية عن بعد في توفير الرعاية الطبية المتخصصة للمناطق الريفية المحرومة من الخدمات وقياس رضا المرضى والنتائج الصحية." },
         fieldOfResearch: { en: ["Healthcare Technology", "Public Health", "Rural Medicine"], ar: ["تكنولوجيا الرعاية الصحية", "الصحة العامة", "الطب الريفي"] },
         contactPerson: ["Dr. Christopher Lee"],
+        contactPhone: "+962 6 890 1234",
+        contactEmail: "christopher.lee@example.edu",
+        bookUrl: placeholderBook,
+        driveUrl: placeholderDrive,
+        thumbnailUrl: placeholderThumb,
         authorshipPosition: { en: ["Principal Investigator"], ar: ["الباحث الرئيسي"] },
         projectDuration: { en: "15 months", ar: "15 شهرًا" },
         requiredSkills: { en: ["Telehealth platform management", "Outcome measurement", "Community health assessment"], ar: ["إدارة منصة الصحة الإلكترونية", "قياس النتائج", "تقييم صحة المجتمع"] },
@@ -237,11 +283,18 @@ export default function Research() {
       {!loading && !error && (
         <div className="space-y-4">
           {filtered.map((r) => {
-            const title = typeof r.projectTitle === "string" ? r.projectTitle : r.projectTitle[displayLanguage] || r.projectTitle.en;
-            const abstract = typeof r.abstract === "string" ? r.abstract : r.abstract?.[displayLanguage] || r.abstract?.en;
-            const fields = typeof r.fieldOfResearch === "object" && r.fieldOfResearch !== null && !Array.isArray(r.fieldOfResearch)
-              ? r.fieldOfResearch[displayLanguage] || r.fieldOfResearch.en
-              : r.fieldOfResearch || [];
+            const title =
+              typeof r.projectTitle === "string"
+                ? r.projectTitle
+                : (r.projectTitle && (r.projectTitle[displayLanguage] ?? r.projectTitle.en)) || "";
+            const abstract =
+              typeof r.abstract === "string"
+                ? r.abstract
+                : (r.abstract && (r.abstract[displayLanguage] ?? r.abstract.en)) ?? "";
+            const fields =
+              typeof r.fieldOfResearch === "object" && r.fieldOfResearch !== null && !Array.isArray(r.fieldOfResearch)
+                ? (r.fieldOfResearch[displayLanguage] ?? r.fieldOfResearch.en) ?? []
+                : Array.isArray(r.fieldOfResearch) ? r.fieldOfResearch : [];
 
             return (
               <Card key={r.id} className="hover:shadow-md transition-shadow">

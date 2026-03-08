@@ -13,14 +13,18 @@ export async function fetchBatches() {
   const batchesSnapshot = await getDocs(collection(db, "batches"));
   return batchesSnapshot.docs.map((batchDoc) => {
     const batchData = batchDoc.data() as any;
+    const regNames = batchData.registrationNames || batchData.registration_names || [];
+    const registrationNameStr =
+      batchData.registration_name ??
+      batchData.registrationName ??
+      (Array.isArray(regNames) && regNames.length > 0 ? regNames[0] : "");
     return {
       id: batchDoc.id,
       batchName: batchData.batch_name || batchData.batchName || "",
       imageUrl: batchData.image_url || batchData.imageUrl || "",
-      registrationNames:
-        batchData.registrationNames ||
-        batchData.registration_names ||
-        [],
+      registrationNames: regNames,
+      registration_name: registrationNameStr,
+      registrationName: registrationNameStr,
       aca_supervisor:
         batchData.aca_supervisor ||
         batchData.acadmic_supervisor ||
