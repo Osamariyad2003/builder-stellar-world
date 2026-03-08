@@ -111,19 +111,10 @@ export default function Resources() {
     return list.sort((a, b) => a.name.localeCompare(b.name));
   }, [years]);
 
-  // Distinct subjects for filter dropdown (use subject name from years when available)
+  // Filter dropdown: retrieve all subjects (from years) so every subject appears in the filter
   const subjectOptions = React.useMemo(() => {
-    const set = new Set<string>();
-    allLectures.forEach((l) => {
-      const id = (l.subject || (l as any).subjectId || "Unknown").trim();
-      if (id) set.add(id);
-    });
-    return Array.from(set).sort((a, b) => {
-      const nameA = subjectIdToName[a] || a;
-      const nameB = subjectIdToName[b] || b;
-      return nameA.localeCompare(nameB);
-    });
-  }, [allLectures, subjectIdToName]);
+    return allSubjectsForForm.map((s) => s.id);
+  }, [allSubjectsForForm]);
 
   // Base list: when subject filter is on, use all loaded lectures filtered by subject; otherwise current page or all for search
   const baseList = subjectFilter
