@@ -66,6 +66,15 @@ function formatDuration(seconds: number) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+function sortLecturesByOrderThenCreatedAt(a: any, b: any): number {
+  const orderA = a.order ?? 999;
+  const orderB = b.order ?? 999;
+  if (orderA !== orderB) return orderA - orderB;
+  const tA = a.createdAt?.getTime?.() ?? 0;
+  const tB = b.createdAt?.getTime?.() ?? 0;
+  return tA - tB;
+}
+
 export default function SubjectPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -133,19 +142,24 @@ export default function SubjectPage() {
           // Load lectures for this subject
           const lecturesRef = collection(db, "Subjects", id, "lectures");
           const lecturesSnap = await getDocs(lecturesRef);
-          const lectures = lecturesSnap.docs.map((lectureDoc) => ({
-            id: lectureDoc.id,
-            name: lectureDoc.data().name || lectureDoc.data().title || "",
-            description: lectureDoc.data().description || "",
-            imageUrl: lectureDoc.data().imageUrl || "",
-            videos: undefined,
-            files: undefined,
-            quizzes: undefined,
-          }));
+          const lectures = lecturesSnap.docs.map((lectureDoc) => {
+            const d = lectureDoc.data();
+            return {
+              id: lectureDoc.id,
+              name: d.name || d.title || "",
+              description: d.description || "",
+              imageUrl: d.imageUrl || "",
+              order: d.order ?? 999,
+              createdAt: d.createdAt?.toDate?.() ?? null,
+              videos: undefined,
+              files: undefined,
+              quizzes: undefined,
+            };
+          });
 
           setDirectSubject({
             ...foundSubject,
-            lectures: lectures.sort((a, b) => (a.order || 0) - (b.order || 0)),
+            lectures: lectures.sort(sortLecturesByOrderThenCreatedAt),
           });
         } else {
           setError("Subject not found");
@@ -356,21 +370,24 @@ export default function SubjectPage() {
               "lectures",
             );
             const lecturesSnap = await getDocs(lecturesRef);
-            const lectures = lecturesSnap.docs.map((lectureDoc) => ({
-              id: lectureDoc.id,
-              name: lectureDoc.data().name || lectureDoc.data().title || "",
-              description: lectureDoc.data().description || "",
-              imageUrl: lectureDoc.data().imageUrl || "",
-              videos: undefined,
-              files: undefined,
-              quizzes: undefined,
-            }));
+            const lectures = lecturesSnap.docs.map((lectureDoc) => {
+              const d = lectureDoc.data();
+              return {
+                id: lectureDoc.id,
+                name: d.name || d.title || "",
+                description: d.description || "",
+                imageUrl: d.imageUrl || "",
+                order: d.order ?? 999,
+                createdAt: d.createdAt?.toDate?.() ?? null,
+                videos: undefined,
+                files: undefined,
+                quizzes: undefined,
+              };
+            });
 
             setDirectSubject({
               ...subject,
-              lectures: lectures.sort(
-                (a, b) => (a.order || 0) - (b.order || 0),
-              ),
+              lectures: lectures.sort(sortLecturesByOrderThenCreatedAt),
             });
           }
         }}
