@@ -310,6 +310,59 @@ export default function Research() {
                               <span key={f} className="bg-muted px-2 py-1 rounded text-xs">{f}</span>
                             ))}
                           </div>
+                          {(r.bookUrl || r.driveUrl || r.thumbnailUrl || r.contactEmail || r.contactPhone) && (
+                            <div className="mt-4 space-y-1 text-xs">
+                              <div className="font-semibold text-muted-foreground">Resources</div>
+                              <div className="flex flex-wrap gap-2">
+                                {r.bookUrl && (
+                                  <a
+                                    href={r.bookUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center rounded-md border px-2 py-1 text-xs hover:bg-muted"
+                                  >
+                                    Book link
+                                  </a>
+                                )}
+                                {r.driveUrl && (
+                                  <a
+                                    href={r.driveUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center rounded-md border px-2 py-1 text-xs hover:bg-muted"
+                                  >
+                                    Drive folder
+                                  </a>
+                                )}
+                                {r.thumbnailUrl && (
+                                  <a
+                                    href={r.thumbnailUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center rounded-md border px-2 py-1 text-xs hover:bg-muted"
+                                  >
+                                    Thumbnail
+                                  </a>
+                                )}
+                                {r.contactEmail && (
+                                  <a
+                                    href={`mailto:${r.contactEmail}`}
+                                    className="inline-flex items-center rounded-md border px-2 py-1 text-xs hover:bg-muted"
+                                  >
+                                    Email
+                                  </a>
+                                )}
+                                {r.contactPhone && (
+                                  <a
+                                    href={`tel:${r.contactPhone}`}
+                                    className="inline-flex items-center rounded-md border px-2 py-1 text-xs hover:bg-muted"
+                                  >
+                                    Phone
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <div className={`flex items-center gap-2 ${displayLanguage === "ar" ? "mr-4" : "ml-4"}`}>
                           <Button variant="ghost" onClick={() => handleEdit(r)}>

@@ -756,16 +756,28 @@ export default function Years() {
                                         <p className="text-xs font-medium text-muted-foreground">
                                           Videos:
                                         </p>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() =>
-                                            handleAddVideo(subject, lecture.id)
-                                          }
-                                          className="h-6 px-2 text-xs"
-                                        >
-                                          <Plus className="h-3 w-3 mr-1" /> Add
-                                        </Button>
+                                        <div className="flex items-center gap-1">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleAddVideo(subject, lecture.id)
+                                            }
+                                            className="h-6 px-2 text-xs"
+                                          >
+                                            <Plus className="h-3 w-3 mr-1" /> Add
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 px-2 text-xs"
+                                            onClick={() =>
+                                              (window.location.href = `/admin/videos?lecture=${lecture.id}`)
+                                            }
+                                          >
+                                            Open page
+                                          </Button>
+                                        </div>
                                       </div>
                                       <div className="space-y-1">
                                         {lecture.videos &&
@@ -814,16 +826,28 @@ export default function Years() {
                                         <p className="text-xs font-medium text-muted-foreground">
                                           Files:
                                         </p>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() =>
-                                            handleAddFile(subject, lecture.id)
-                                          }
-                                          className="h-6 px-2 text-xs"
-                                        >
-                                          <Plus className="h-3 w-3 mr-1" /> Add
-                                        </Button>
+                                        <div className="flex items-center gap-1">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleAddFile(subject, lecture.id)
+                                            }
+                                            className="h-6 px-2 text-xs"
+                                          >
+                                            <Plus className="h-3 w-3 mr-1" /> Add
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 px-2 text-xs"
+                                            onClick={() =>
+                                              (window.location.href = `/admin/files?lecture=${lecture.id}`)
+                                            }
+                                          >
+                                            Open page
+                                          </Button>
+                                        </div>
                                       </div>
                                       <div className="space-y-1">
                                         {lecture.files &&
@@ -878,16 +902,28 @@ export default function Years() {
                                         <p className="text-xs font-medium text-muted-foreground">
                                           Quizzes:
                                         </p>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() =>
-                                            handleAddQuiz(subject, lecture.id)
-                                          }
-                                          className="h-6 px-2 text-xs"
-                                        >
-                                          <Plus className="h-3 w-3 mr-1" /> Add
-                                        </Button>
+                                        <div className="flex items-center gap-1">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                              handleAddQuiz(subject, lecture.id)
+                                            }
+                                            className="h-6 px-2 text-xs"
+                                          >
+                                            <Plus className="h-3 w-3 mr-1" /> Add
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 px-2 text-xs"
+                                            onClick={() =>
+                                              (window.location.href = `/admin/quizzes?lecture=${lecture.id}`)
+                                            }
+                                          >
+                                            Open page
+                                          </Button>
+                                        </div>
                                       </div>
                                       <div className="space-y-1">
                                         {lecture.quizzes &&
