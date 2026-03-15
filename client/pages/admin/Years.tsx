@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Accordion,
   AccordionContent,
@@ -35,7 +36,6 @@ import {
   uploadImageToCloudinary,
   setLocalCloudinaryConfig,
 } from "@/lib/cloudinary";
-import { uploadToImageKitServer } from "@/lib/imagekit";
 import { useNews } from "@/hooks/useNews";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -88,11 +88,21 @@ export default function Years() {
 
   // Add Batch dialog state
   const [batchName, setBatchName] = useState<string>("");
+  const [batchImageUrl, setBatchImageUrl] = useState<string>("");
   const [batchCR, setBatchCR] = useState<string>("");
   const [batchGroupLink, setBatchGroupLink] = useState<string>("");
   const [batchGraduateDate, setBatchGraduateDate] = useState<string>("");
   const [batchSupervisor, setBatchSupervisor] = useState<string>("");
   const [batchRegistrationName, setBatchRegistrationName] = useState<string>("");
+  const [createYears1To6, setCreateYears1To6] = useState<boolean>(true);
+  const [yearImageUrls, setYearImageUrls] = useState<Record<number, string>>({
+    1: "",
+    2: "",
+    3: "",
+    4: "",
+    5: "",
+    6: "",
+  });
 
   // Selected batch for viewing years (sync with ?batch= query param)
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
@@ -372,24 +382,79 @@ export default function Years() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {yearData.imageUrl ? (
-              <img
-                src={yearData.imageUrl}
-                alt={`Year ${yearData.yearNumber}`}
-                className="w-24 h-24 object-cover rounded-md flex-shrink-0"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
+            <div className="flex flex-col items-start gap-1 flex-shrink-0">
+              {yearData.imageUrl ? (
+                <img
+                  src={yearData.imageUrl}
+                  alt={`Year ${yearData.yearNumber}`}
+                  className="w-24 h-24 object-cover rounded-md"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-md bg-muted flex items-center justify-center">
+                  {type === "basic" ? (
+                    <GraduationCap className="h-6 w-6 text-blue-600" />
+                  ) : (
+                    <Stethoscope className="h-6 w-6 text-red-600" />
+                  )}
+                </div>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const choice = window.prompt(
+                    "Paste image URL, or leave empty to upload a file:",
+                    yearData.imageUrl ?? "",
+                  );
+                  if (choice === null) return;
+                  const trimmed = choice.trim();
+                  if (trimmed) {
+                    try {
+                      await updateYear?.(yearData.id, {
+                        imageUrl: trimmed,
+                      });
+                      alert("Image updated");
+                    } catch (err) {
+                      console.error(err);
+                      alert("Failed to update image");
+                    }
+                    return;
+                  }
+                  const input = document.createElement("input");
+                  input.type = "file";
+                  input.accept = "image/*";
+                  input.onchange = async (ev) => {
+                    const file = (ev.target as HTMLInputElement).files?.[0];
+                    if (!file) return;
+                    try {
+                      const imageUrl = await uploadImageToCloudinary(file);
+                      if (!imageUrl) {
+                        alert("Upload failed");
+                        return;
+                      }
+                      await updateYear?.(yearData.id, {
+                        imageUrl,
+                      });
+                      alert("Image updated");
+                    } catch (err) {
+                      console.error(err);
+                      alert("Failed to upload image");
+                    }
+                  };
+                  input.click();
                 }}
-              />
-            ) : (
-              <div className="w-24 h-24 rounded-md flex-shrink-0 bg-muted flex items-center justify-center">
-                {type === "basic" ? (
-                  <GraduationCap className="h-6 w-6 text-blue-600" />
-                ) : (
-                  <Stethoscope className="h-6 w-6 text-red-600" />
-                )}
-              </div>
-            )}
+                aria-label="Change year image"
+              >
+                <Upload className="h-3 w-3 mr-1" />
+                Change Image
+              </Button>
+            </div>
 
             <CardTitle className="flex flex-col">
               {editingBatchId === yearData.id ? (
@@ -1033,6 +1098,63 @@ export default function Years() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">
+                    Batch image URL (optional)
+                  </label>
+                  <Input
+                    value={batchImageUrl}
+                    onChange={(e) => setBatchImageUrl(e.target.value)}
+                    placeholder="https://..."
+                    aria-label="Batch image URL"
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="create-years-1-6"
+                    checked={createYears1To6}
+                    onCheckedChange={(checked) =>
+                      setCreateYears1To6(checked === true)
+                    }
+                    aria-label="Create years 1 to 6 for this batch"
+                  />
+                  <label
+                    htmlFor="create-years-1-6"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Create years 1–6 for this batch
+                  </label>
+                </div>
+                {createYears1To6 && (
+                  <div className="space-y-2 rounded-md border p-3 bg-muted/30">
+                    <span className="text-sm font-medium block">
+                      Image URL for each year (optional)
+                    </span>
+                    {[1, 2, 3, 4, 5, 6].map((num) => (
+                      <div key={num} className="flex items-center gap-2">
+                        <label
+                          className="text-sm text-muted-foreground w-16 shrink-0"
+                          htmlFor={`year-${num}-image`}
+                        >
+                          Year {num}
+                        </label>
+                        <Input
+                          id={`year-${num}-image`}
+                          value={yearImageUrls[num] ?? ""}
+                          onChange={(e) =>
+                            setYearImageUrls((prev) => ({
+                              ...prev,
+                              [num]: e.target.value,
+                            }))
+                          }
+                          placeholder="Image URL (optional)"
+                          className="flex-1"
+                          aria-label={`Year ${num} image URL`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div>
+                  <label className="text-sm font-medium mb-1 block">
                     CR (optional)
                   </label>
                   <Input
@@ -1095,6 +1217,7 @@ export default function Years() {
                       }
                       await createBatch?.({
                         batchName: batchName.trim(),
+                        imageUrl: batchImageUrl?.trim() || undefined,
                         cr: batchCR?.trim(),
                         groupLink: batchGroupLink?.trim(),
                         group_link: batchGroupLink?.trim(),
@@ -1103,13 +1226,24 @@ export default function Years() {
                         academicSupervisor: batchSupervisor?.trim(),
                         academic_supervisor: batchSupervisor?.trim(),
                         registrationName: batchRegistrationName?.trim(),
+                        createYearsCount: createYears1To6 ? 6 : 0,
+                        yearImages: createYears1To6
+                          ? Object.fromEntries(
+                              [1, 2, 3, 4, 5, 6].map((n) => [
+                                n,
+                                (yearImageUrls[n] ?? "").trim(),
+                              ]),
+                            )
+                          : undefined,
                       });
                       setBatchName("");
+                      setBatchImageUrl("");
                       setBatchCR("");
                       setBatchGroupLink("");
                       setBatchGraduateDate("");
                       setBatchSupervisor("");
                       setBatchRegistrationName("");
+                      setYearImageUrls({ 1: "", 2: "", 3: "", 4: "", 5: "", 6: "" });
                       // close dialog
                       const closeBtn = document.querySelector(
                         "[data-dialog-close]",
@@ -1260,15 +1394,10 @@ export default function Years() {
                                   try {
                                     imageUrl =
                                       await uploadImageToCloudinary(file);
-                                  } catch (cloudErr: any) {
-                                    console.warn(
-                                      "Cloudinary upload failed, trying ImageKit",
-                                      cloudErr?.message || cloudErr,
-                                    );
-                                    imageUrl = await uploadToImageKitServer(
-                                      file,
-                                      file.name,
-                                    );
+                                  } catch (e) {
+                                    console.error(e);
+                                    alert("Upload failed");
+                                    return;
                                   }
                                   if (!imageUrl) {
                                     alert("Upload failed");
@@ -1472,23 +1601,10 @@ export default function Years() {
                                         const file = input.files?.[0];
                                         if (!file) return;
                                         try {
-                                          let imageUrl: string | null = null;
-                                          try {
-                                            imageUrl =
-                                              await uploadImageToCloudinary(
-                                                file,
-                                              );
-                                          } catch (cloudErr: any) {
-                                            console.warn(
-                                              "Cloudinary upload failed, trying ImageKit",
-                                              cloudErr?.message || cloudErr,
+                                          const imageUrl =
+                                            await uploadImageToCloudinary(
+                                              file,
                                             );
-                                            imageUrl =
-                                              await uploadToImageKitServer(
-                                                file,
-                                                file.name,
-                                              );
-                                          }
                                           if (!imageUrl) {
                                             alert("Upload failed");
                                             return;
@@ -1661,20 +1777,8 @@ export default function Years() {
                                   const file = input.files?.[0];
                                   if (!file) return;
                                   try {
-                                    let imageUrl: string | null = null;
-                                    try {
-                                      imageUrl =
-                                        await uploadImageToCloudinary(file);
-                                    } catch (cloudErr: any) {
-                                      console.warn(
-                                        "Cloudinary upload failed, trying ImageKit",
-                                        cloudErr?.message || cloudErr,
-                                      );
-                                      imageUrl = await uploadToImageKitServer(
-                                        file,
-                                        file.name,
-                                      );
-                                    }
+                                    const imageUrl =
+                                      await uploadImageToCloudinary(file);
                                     if (!imageUrl) {
                                       alert("Upload failed");
                                       return;
@@ -1691,16 +1795,16 @@ export default function Years() {
                                 };
                                 input.click();
                               } catch (err) {
-                                console.error(err);
-                                alert("Could not open file dialog");
-                              }
-                            }}
-                          >
-                            Change Image
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
+                                  console.error(err);
+                                  alert("Could not open file dialog");
+                                }
+                              }}
+                            >
+                              Change Image
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
                             onClick={async (e) => {
                               e.stopPropagation();
                               try {

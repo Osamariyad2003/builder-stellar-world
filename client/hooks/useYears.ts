@@ -831,6 +831,7 @@ export function useYears() {
       yearNumber?: number;
       name?: string;
       type?: "basic" | "clinical";
+      imageUrl?: string;
     } = {},
   ) => {
     // Clear cache to prepare for fresh data
@@ -839,6 +840,7 @@ export function useYears() {
     const yearNumber = data.yearNumber || 1;
     const name = data.name || `Year ${yearNumber}`;
     const type = data.type || (yearNumber <= 3 ? "basic" : "clinical");
+    const imageUrl = data.imageUrl ?? "";
 
     if (isOfflineMode || !navigator.onLine) {
       const newYear: YearData = {
@@ -848,7 +850,7 @@ export function useYears() {
         type: type as "basic" | "clinical",
         batchName: "",
         batchId: batchId || undefined,
-        imageUrl: "",
+        imageUrl,
         academicSupervisor: "",
         actor: "",
         cr: "",
@@ -876,8 +878,8 @@ export function useYears() {
           const docRef = await addDoc(yearsRef, {
             name,
             order: yearNumber,
-            imageUrl: "",
-            image_url: "",
+            imageUrl,
+            image_url: imageUrl,
             batch_name: name,
             createdAt: new Date(),
           });
@@ -891,8 +893,8 @@ export function useYears() {
           const docRef = await addDoc(yearsRef, {
             name,
             order: yearNumber,
-            imageUrl: "",
-            image_url: "",
+            imageUrl,
+            image_url: imageUrl,
             batch_name: name,
             createdAt: new Date(),
           });
@@ -928,6 +930,10 @@ export function useYears() {
       registrationName?: string;
       registration_name?: string;
       registration_names?: string[];
+      /** Create years 1..N for this batch (e.g. 6). Years get optional images from yearImages. */
+      createYearsCount?: number;
+      /** Optional image URL per year number (1-based), e.g. { 1: "url1", 2: "url2" }. */
+      yearImages?: Record<number, string>;
     } = {},
   ) => {
     const name = data.batchName || "New Batch";
@@ -1012,6 +1018,30 @@ export function useYears() {
           realBatch,
           ...prev.filter((b) => b.id !== tempId),
         ]);
+
+        const createYearsCount = data.createYearsCount ?? 0;
+        const yearImages = data.yearImages ?? {};
+        if (createYearsCount > 0 && docRef.id) {
+          const batchRef = doc(db, "batches", docRef.id);
+          const yearsRef = collection(batchRef, "years");
+          for (let i = 1; i <= createYearsCount; i++) {
+            const yearName = `Year ${i}`;
+            const img = yearImages[i] ?? "";
+            const yearDocRef = await addDoc(yearsRef, {
+              name: yearName,
+              order: i,
+              imageUrl: img,
+              image_url: img,
+              batch_name: yearName,
+              createdAt: new Date(),
+            });
+            try {
+              await updateDoc(yearDocRef, { yearId: yearDocRef.id });
+            } catch (e) {
+              // ignore
+            }
+          }
+        }
 
         // trigger a fresh fetch to load nested years if any
         queryClient.invalidateQueries({ queryKey: ["years-data"] });
