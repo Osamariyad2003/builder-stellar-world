@@ -37,6 +37,20 @@ export async function fetchBatches() {
         batchData.groupUrl ||
         batchData.group_url ||
         "",
+      graduateDate:
+        batchData.graduate_date ||
+        batchData.graduateDate ||
+        "",
+      createdAt: batchData.createdAt,
+      order: (() => {
+        const o = batchData.order;
+        if (typeof o === "number" && Number.isFinite(o)) return o;
+        if (typeof o === "string" && o.trim() !== "") {
+          const n = parseInt(o, 10);
+          return Number.isNaN(n) ? undefined : n;
+        }
+        return undefined;
+      })(),
       ref: batchDoc.ref,
     };
   });

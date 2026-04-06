@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +27,13 @@ import {
   Upload,
 } from "lucide-react";
 import { MCQ, MCQQuestion } from "@shared/types";
+
+export type MCQSubjectOption = {
+  id: string;
+  name: string;
+  /** Curriculum year (1–6) for this subject’s parent year. */
+  yearNumber: number;
+};
 import {
   uploadImageToCloudinary,
   setLocalCloudinaryConfig,
@@ -35,14 +42,26 @@ import { uploadToImageKitServer } from "@/lib/imagekit";
 
 interface MCQFormProps {
   mcq?: MCQ | null;
-  /** When creating, pass list of subjects to relate the MCQ to a subject */
-  subjects?: { id: string; name: string }[];
+  /** Subjects from Years, each tagged with academic year 1–6 */
+  subjects?: MCQSubjectOption[];
   onClose: () => void;
   onSave: (data: Partial<MCQ>) => void;
 }
 
+const ACADEMIC_YEAR_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
+
+const normalizeYearNumber = (n: unknown): number => {
+  if (typeof n === "number" && n >= 1 && n <= 6 && Number.isFinite(n)) {
+    return Math.trunc(n);
+  }
+  return 1;
+};
+
 export function MCQForm({ mcq, subjects, onClose, onSave }: MCQFormProps) {
   const showSubjectSelect = Boolean(subjects && subjects.length > 0);
+  const [selectedYearNumber, setSelectedYearNumber] = useState<number>(() =>
+    normalizeYearNumber(mcq?.yearNumber),
+  );
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>(mcq?.subjectId || "");
   const [formData, setFormData] = useState({
     title: mcq?.title || "",
@@ -63,8 +82,28 @@ export function MCQForm({ mcq, subjects, onClose, onSave }: MCQFormProps) {
     imageUrl: "",
   });
 
+  const subjectsForYear = useMemo(
+    () =>
+      (subjects || []).filter(
+        (s) => s.yearNumber === selectedYearNumber,
+      ),
+    [subjects, selectedYearNumber],
+  );
+
   useEffect(() => {
     if (mcq) {
+      let yr = normalizeYearNumber(mcq.yearNumber);
+      if (
+        (!mcq.yearNumber || mcq.yearNumber < 1 || mcq.yearNumber > 6) &&
+        mcq.subjectId &&
+        subjects?.length
+      ) {
+        const sub = subjects.find((s) => s.id === mcq.subjectId);
+        if (sub && sub.yearNumber >= 1 && sub.yearNumber <= 6) {
+          yr = sub.yearNumber;
+        }
+      }
+      setSelectedYearNumber(yr);
       setSelectedSubjectId(mcq.subjectId || "");
       setFormData({
         title: mcq.title || "",
@@ -75,7 +114,15 @@ export function MCQForm({ mcq, subjects, onClose, onSave }: MCQFormProps) {
         questions: mcq.questions || [],
       });
     }
-  }, [mcq]);
+  }, [mcq, subjects]);
+
+  useEffect(() => {
+    if (!subjects?.length) return;
+    const ok = subjectsForYear.some((s) => s.id === selectedSubjectId);
+    if (selectedSubjectId && !ok) {
+      setSelectedSubjectId("");
+    }
+  }, [selectedYearNumber, subjects, subjectsForYear, selectedSubjectId]);
 
   const handleAddQuestion = () => {
     if (!currentQuestion.question.trim()) {
@@ -136,6 +183,15 @@ export function MCQForm({ mcq, subjects, onClose, onSave }: MCQFormProps) {
       return;
     }
 
+    if (
+      showSubjectSelect &&
+      selectedSubjectId &&
+      !subjectsForYear.some((s) => s.id === selectedSubjectId)
+    ) {
+      alert("Selected subject does not belong to the chosen academic year.");
+      return;
+    }
+
     const payload: Partial<MCQ> = {
       title: formData.title,
       description: formData.description,
@@ -143,6 +199,7 @@ export function MCQForm({ mcq, subjects, onClose, onSave }: MCQFormProps) {
       difficulty: formData.difficulty,
       timeLimit: formData.timeLimit,
       questions: formData.questions,
+      yearNumber: selectedYearNumber,
       updatedAt: new Date(),
       ...(showSubjectSelect ? { subjectId: selectedSubjectId || undefined } : {}),
       ...(mcq ? {} : { createdAt: new Date() }),
@@ -199,23 +256,55 @@ export function MCQForm({ mcq, subjects, onClose, onSave }: MCQFormProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             {showSubjectSelect && (
-              <div>
-                <Label htmlFor="mcq-subject">Subject</Label>
-                <select
-                  id="mcq-subject"
-                  value={selectedSubjectId}
-                  onChange={(e) => setSelectedSubjectId(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  aria-label="Select subject for this MCQ"
-                >
-                  <option value="">No subject</option>
-                  {subjects?.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <>
+                <div>
+                  <Label htmlFor="mcq-academic-year">Academic year *</Label>
+                  <select
+                    id="mcq-academic-year"
+                    value={selectedYearNumber}
+                    onChange={(e) =>
+                      setSelectedYearNumber(
+                        normalizeYearNumber(parseInt(e.target.value, 10)),
+                      )
+                    }
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    aria-label="Academic year from 1 to 6"
+                  >
+                    {ACADEMIC_YEAR_OPTIONS.map((y) => (
+                      <option key={y} value={y}>
+                        Year {y}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    MCQ is tied to curriculum Year 1–6. Subjects below are filtered
+                    to this year.
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="mcq-subject">Subject</Label>
+                  <select
+                    id="mcq-subject"
+                    value={selectedSubjectId}
+                    onChange={(e) => setSelectedSubjectId(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    aria-label="Select subject for this MCQ"
+                  >
+                    <option value="">No subject</option>
+                    {subjectsForYear.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                  {subjectsForYear.length === 0 && (
+                    <p className="mt-1 text-xs text-amber-700 dark:text-amber-500">
+                      No subjects for Year {selectedYearNumber}. Add subjects on
+                      the Years page for this year.
+                    </p>
+                  )}
+                </div>
+              </>
             )}
             <div>
               <Label htmlFor="title">MCQ Title *</Label>

@@ -26,9 +26,18 @@ export interface Lecture {
   title: string;
   description?: string;
   subject: string;
+  /** Same as subject when loaded from Firestore path */
+  subjectId?: string;
   order: number;
   createdAt: Date;
   createdBy: string;
+  /** Denormalized counters on the lecture document — list views should use these instead of loading subcollections */
+  filesCount?: number;
+  quizzesCount?: number;
+  videosCount?: number;
+  imageUrl?: string;
+  updatedAt?: Date;
+  /** Full resources — only populate when explicitly loaded (e.g. subject page), not on paginated index */
   videos: Video[];
   files: FileResource[];
   quizzes: Quiz[];
@@ -221,6 +230,8 @@ export interface MCQ {
   description?: string;
   category?: string;
   difficulty?: "easy" | "medium" | "hard";
+  /** Academic year level (1–6), aligned with curriculum years. */
+  yearNumber?: number;
   subjectId?: string;
   timeLimit?: number; // in minutes
   questions: MCQQuestion[];

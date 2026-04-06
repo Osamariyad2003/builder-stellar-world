@@ -696,7 +696,7 @@ export default function SubjectPage() {
                               <button
                                 onClick={() =>
                                   navigate(
-                                    `/admin/videos?lecture=${lecture.id}`,
+                                    `/admin/resources/lectures/${lecture.id}?subject=${encodeURIComponent(subject?.id ?? "")}&tab=videos`,
                                   )
                                 }
                                 className="text-xs text-blue-600 flex items-center gap-1 px-2"
@@ -713,7 +713,9 @@ export default function SubjectPage() {
                         ) : (
                           <button
                             onClick={() =>
-                              navigate(`/admin/videos?lecture=${lecture.id}`)
+                              navigate(
+                                `/admin/resources/lectures/${lecture.id}?subject=${encodeURIComponent(subject?.id ?? "")}&tab=videos`,
+                              )
                             }
                             className="text-xs text-blue-600 flex items-center gap-1 px-2"
                             title="Videos"
@@ -725,7 +727,7 @@ export default function SubjectPage() {
                         <button
                           onClick={() =>
                             navigate(
-                              `/admin/resources?lecture=${lecture.id}&tab=files`,
+                              `/admin/resources/lectures/${lecture.id}?subject=${encodeURIComponent(subject?.id ?? "")}&tab=files`,
                             )
                           }
                           className="text-xs text-green-600 flex items-center gap-1 px-2"
@@ -738,7 +740,7 @@ export default function SubjectPage() {
                         <button
                           onClick={() =>
                             navigate(
-                              `/admin/resources?lecture=${lecture.id}&tab=quizzes`,
+                              `/admin/resources/lectures/${lecture.id}?subject=${encodeURIComponent(subject?.id ?? "")}&tab=quizzes`,
                             )
                           }
                           className="text-xs text-purple-600 flex items-center gap-1 px-2"

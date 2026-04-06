@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,15 @@ import {
 import { uploadToImageKitServer } from "@/lib/imagekit";
 import { SubjectForm } from "@/components/admin/SubjectForm";
 import { LectureForm } from "@/components/admin/LectureForm";
+import { sortByName, type SortDirection } from "@/lib/adminListSort";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export default function YearPage() {
   const { id } = useParams();
@@ -22,6 +31,7 @@ export default function YearPage() {
 
   const [editingField, setEditingField] = useState<string | null>(null);
   const [fieldValue, setFieldValue] = useState<string>("");
+  const [subjectSortDir, setSubjectSortDir] = useState<SortDirection>("asc");
 
   const {
     years,
@@ -38,6 +48,11 @@ export default function YearPage() {
   } = useYears();
 
   const year = years.find((y: any) => y.id === id);
+
+  const sortedSubjects = useMemo(
+    () => sortByName(year?.subjects || [], subjectSortDir),
+    [year?.subjects, subjectSortDir],
+  );
 
   if (loading) {
     return (
@@ -434,10 +449,31 @@ export default function YearPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-end mb-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="year-page-subject-sort" className="text-xs">
+                Sort subjects by name
+              </Label>
+              <Select
+                value={subjectSortDir}
+                onValueChange={(v) => setSubjectSortDir(v as SortDirection)}
+              >
+                <SelectTrigger
+                  id="year-page-subject-sort"
+                  className="w-[200px]"
+                  aria-label="Subject name sort order"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asc">A → Z</SelectItem>
+                  <SelectItem value="desc">Z → A</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <Button
               onClick={() => setIsSubjectFormOpen(true)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 shrink-0"
             >
               <Plus className="h-3 w-3" /> Add Subject
             </Button>
@@ -447,7 +483,7 @@ export default function YearPage() {
             <div className="text-center py-8">No subjects added yet.</div>
           ) : (
             <div className="grid gap-4">
-              {year.subjects.map((subject: any) => (
+              {sortedSubjects.map((subject: any) => (
                 <Card key={subject.id} className="bg-secondary/10">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">

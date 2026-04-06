@@ -19,6 +19,7 @@ import Years from "./pages/admin/Years";
 import YearPage from "./pages/admin/YearPage";
 import Books from "./pages/admin/Books";
 import Resources from "./pages/admin/Resources";
+import LectureResourcesPage from "./pages/admin/LectureResourcesPage";
 import Professors from "./pages/admin/Professors";
 import Users from "./pages/admin/Users";
 import SubjectPage from "./pages/admin/SubjectPage";
@@ -75,8 +76,8 @@ const App = () => (
                 <Route path="years/:id" element={<YearPage />} />
                 <Route path="books" element={<Books />} />
                 <Route path="subjects/:id" element={<SubjectPage />} />
+                <Route path="resources/lectures/:lectureId" element={<LectureResourcesPage />} />
                 <Route path="resources" element={<Resources />} />
-                <Route path="resources/*" element={<Resources />} />
                 {/* Handle legacy uppercase route /admin/VIDEOS */}
                 <Route
                   path="VIDEOS"

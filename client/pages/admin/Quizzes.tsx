@@ -9,7 +9,9 @@ import { HelpCircle } from "lucide-react";
 export default function QuizzesPage() {
   const [searchParams] = useSearchParams();
   const lectureId = searchParams.get("lecture");
-  const { lectures, loading: lecturesLoading, error: lecturesError } = useLectures();
+  const { lectures, loading: lecturesLoading, error: lecturesError } = useLectures({
+    enableRealtime: true,
+  });
   const { items: quizzes, loading, error } = useLectureQuizzes(lectureId);
 
   if (loading || lecturesLoading) return <div>Loading...</div>;

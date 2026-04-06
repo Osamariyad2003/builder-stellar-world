@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useDeferredValue } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,15 +9,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { LectureForm } from "@/components/admin/LectureForm";
-import { VideoForm } from "@/components/admin/VideoForm";
-import { FileForm } from "@/components/admin/FileForm";
-import { QuizForm } from "@/components/admin/QuizForm";
 import { useLecturesPaginated } from "@/hooks/useLecturesPaginated";
-import { useLectures } from "@/hooks/useLectures";
+import {
+  createLectureFromForm,
+  updateLectureFromForm,
+  deleteLectureById,
+} from "@/lib/lectureMutations";
 import { useYears } from "@/hooks/useYears";
-import { useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { PaginatedList } from "@/components/ui/PaginatedList";
 import {
   Plus,
@@ -28,17 +29,29 @@ import {
   HelpCircle,
   Edit2,
   Trash2,
-  Eye,
-  Clock,
   Users,
   Calendar,
-  Loader2,
   ArrowUpDown,
   Filter,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type SortField = "subject" | "title" | "date" | "order";
 type SortOrder = "asc" | "desc";
+
+/** Prefer denormalized counters from Firestore; fall back to embedded arrays if present. */
+const getResourceCounts = (lecture: {
+  videosCount?: number;
+  filesCount?: number;
+  quizzesCount?: number;
+  videos?: { length: number };
+  files?: { length: number };
+  quizzes?: { length: number };
+}) => ({
+  videos: lecture.videosCount ?? lecture.videos?.length ?? 0,
+  files: lecture.filesCount ?? lecture.files?.length ?? 0,
+  quizzes: lecture.quizzesCount ?? lecture.quizzes?.length ?? 0,
+});
 
 export default function Resources() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -49,14 +62,6 @@ export default function Resources() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [pageSize, setPageSize] = useState(10);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  
-  // Edit states
-  const [isVideoFormOpen, setIsVideoFormOpen] = useState(false);
-  const [isFileFormOpen, setIsFileFormOpen] = useState(false);
-  const [isQuizFormOpen, setIsQuizFormOpen] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<any>(null);
-  const [selectedFile, setSelectedFile] = useState<any>(null);
-  const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
 
   const {
     data: lectures,
@@ -74,16 +79,12 @@ export default function Resources() {
     prefetchNextPage,
   } = useLecturesPaginated(pageSize);
 
-  // Use original hook for mutations
-  const { createLecture, updateLecture, deleteLecture } = useLectures();
-  
+  const queryClient = useQueryClient();
   const error = paginationError ? (paginationError as Error).message : null;
 
-  const { years, addVideo, addFile, addQuiz } = useYears();
+  const { years } = useYears();
 
-  const [searchParams] = useSearchParams();
-  const lectureParam = searchParams.get("lecture");
-  const tabParam = searchParams.get("tab");
+  const deferredSearch = useDeferredValue(searchTerm);
 
   // Subject names exact to years tabs: subjectId -> name
   const subjectIdToName = React.useMemo(() => {
@@ -121,24 +122,19 @@ export default function Resources() {
     ? allLectures.filter(
         (l) => (l.subject || "Unknown").trim() === subjectFilter,
       )
-    : searchTerm
+    : deferredSearch
       ? allLectures
       : lectures;
 
-  // Apply search on top of base list
-  const displayLectures = searchTerm
+  const displayLectures = deferredSearch
     ? baseList.filter(
         (lecture) =>
-          lecture.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (lecture.subject || "").toLowerCase().includes(searchTerm.toLowerCase()),
+          lecture.title.toLowerCase().includes(deferredSearch.toLowerCase()) ||
+          (lecture.subject || "").toLowerCase().includes(deferredSearch.toLowerCase()),
       )
     : baseList;
 
-  let filteredLectures = displayLectures;
-
-  if (lectureParam) {
-    filteredLectures = allLectures.filter((l) => l.id === lectureParam);
-  }
+  const filteredLectures = displayLectures;
 
   // Sort by subject, title, date, or order
   const sortedLectures = React.useMemo(() => {
@@ -209,29 +205,18 @@ export default function Resources() {
   };
 
   const handleEdit = (lecture: any) => {
-    setSelectedLecture(lecture);
+    setSelectedLecture({
+      ...lecture,
+      name: lecture.title || lecture.name,
+    });
     setIsFormOpen(true);
-  };
-
-  const handleEditVideo = (video: any) => {
-    setSelectedVideo(video);
-    setIsVideoFormOpen(true);
-  };
-
-  const handleEditFile = (file: any) => {
-    setSelectedFile(file);
-    setIsFileFormOpen(true);
-  };
-
-  const handleEditQuiz = (quiz: any) => {
-    setSelectedQuiz(quiz);
-    setIsQuizFormOpen(true);
   };
 
   const handleDeleteLecture = async (lecture: any) => {
     if (window.confirm(`Delete lecture "${lecture.name || lecture.title}" and all its resources?`)) {
       try {
-        await deleteLecture(lecture.id);
+        await deleteLectureById(lecture.id);
+        await queryClient.invalidateQueries({ queryKey: ["lectures-paginated"] });
         alert("Lecture deleted successfully");
       } catch (error) {
         console.error("Error deleting lecture:", error);
@@ -239,90 +224,6 @@ export default function Resources() {
       }
     }
   };
-
-  // Video Form
-  if (isVideoFormOpen) {
-    return (
-      <VideoForm
-        video={selectedVideo}
-        onClose={() => {
-          setIsVideoFormOpen(false);
-          setSelectedVideo(null);
-        }}
-        onSave={async (videoData) => {
-          try {
-            if (selectedVideo) {
-              // Update existing video
-              console.log("✅ Video updated successfully");
-              alert("Video updated! The page will reload to show changes.");
-              window.location.reload();
-            }
-            setIsVideoFormOpen(false);
-            setSelectedVideo(null);
-          } catch (error) {
-            console.error("Error saving video:", error);
-            alert("Failed to save video");
-          }
-        }}
-      />
-    );
-  }
-
-  // File Form
-  if (isFileFormOpen) {
-    return (
-      <FileForm
-        file={selectedFile}
-        onClose={() => {
-          setIsFileFormOpen(false);
-          setSelectedFile(null);
-        }}
-        onSave={async (fileData) => {
-          try {
-            if (selectedFile) {
-              // Update existing file
-              console.log("✅ File updated successfully");
-              alert("File updated! The page will reload to show changes.");
-              window.location.reload();
-            }
-            setIsFileFormOpen(false);
-            setSelectedFile(null);
-          } catch (error) {
-            console.error("Error saving file:", error);
-            alert("Failed to save file");
-          }
-        }}
-      />
-    );
-  }
-
-  // Quiz Form
-  if (isQuizFormOpen) {
-    return (
-      <QuizForm
-        quiz={selectedQuiz}
-        onClose={() => {
-          setIsQuizFormOpen(false);
-          setSelectedQuiz(null);
-        }}
-        onSave={async (quizData) => {
-          try {
-            if (selectedQuiz) {
-              // Update existing quiz
-              console.log("✅ Quiz updated successfully");
-              alert("Quiz updated! The page will reload to show changes.");
-              window.location.reload();
-            }
-            setIsQuizFormOpen(false);
-            setSelectedQuiz(null);
-          } catch (error) {
-            console.error("Error saving quiz:", error);
-            alert("Failed to save quiz");
-          }
-        }}
-      />
-    );
-  }
 
   // Lecture Form
   if (isFormOpen) {
@@ -340,15 +241,16 @@ export default function Resources() {
         onSave={async (lectureData) => {
           try {
             if (selectedLecture) {
-              await updateLecture(selectedLecture.id, lectureData);
+              await updateLectureFromForm(selectedLecture.id, lectureData as Record<string, unknown>);
             } else {
-              const subjectId = lectureData.subjectId;
+              const subjectId = lectureData.subjectId as string;
               if (!subjectId) {
                 alert("Please select a subject for the new lecture.");
                 return;
               }
-              await createLecture(lectureData, subjectId);
+              await createLectureFromForm(lectureData as Record<string, unknown>, subjectId);
             }
+            await queryClient.invalidateQueries({ queryKey: ["lectures-paginated"] });
             setIsFormOpen(false);
             setSelectedLecture(null);
           } catch (error) {
@@ -358,9 +260,6 @@ export default function Resources() {
       />
     );
   }
-
-  // If a specific lecture is requested and exists, show only its resource card expanded
-  const singleLecture = lectureParam ? lectures.find((l) => l.id === lectureParam) : null;
 
   return (
     <div className="space-y-6">
@@ -458,14 +357,22 @@ export default function Resources() {
         </CardContent>
       </Card>
 
-      {/* Loading State */}
+      {/* Loading — skeleton list */}
       {loading && (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading lectures...</p>
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-6 flex gap-4">
+                <Skeleton className="h-20 w-20 rounded-md shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-6 w-2/3 max-w-md" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
 
       {/* Error State */}
@@ -483,41 +390,63 @@ export default function Resources() {
       {/* Lectures List */}
       {!loading && !error && (
         <div className="space-y-6">
-          {sortedLectures.map((lecture) => (
+          {sortedLectures.map((lecture) => {
+            const counts = getResourceCounts(lecture);
+            return (
             <Card
               key={lecture.id}
-              className={`hover:shadow-lg transition-all duration-200 border-l-4 ${lectureParam === lecture.id ? 'border-l-primary bg-primary/5' : 'border-l-primary/20 hover:border-l-primary'}`}
+              className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary/20 hover:border-l-primary"
 
             >
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <BookOpen className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-xl">{lecture.title}</CardTitle>
-                      <Badge variant="secondary">
-                        {subjectIdToName[lecture.subject] || (lecture as any).subjectId || lecture.subject}
-                      </Badge>
-                    </div>
-                    <CardDescription className="text-base">
-                      {lecture.description}
-                    </CardDescription>
-                    <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        {lecture.createdBy}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex gap-4 flex-1 min-w-0">
+                    {lecture.imageUrl ? (
+                      <img
+                        src={lecture.imageUrl}
+                        alt=""
+                        className="w-20 h-20 object-cover rounded-md flex-shrink-0 border bg-muted"
+                      />
+                    ) : null}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-3 mb-2">
+                        <BookOpen className="h-5 w-5 text-primary flex-shrink-0" />
+                        <CardTitle className="text-xl">{lecture.title}</CardTitle>
+                        <Badge variant="secondary">
+                          {subjectIdToName[lecture.subject] || (lecture as { subjectId?: string }).subjectId || lecture.subject}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">
+                          Order {(lecture as { order?: number }).order ?? "—"}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {lecture.createdAt.toLocaleDateString()}
+                      <CardDescription className="text-base">
+                        {lecture.description}
+                      </CardDescription>
+                      <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Users className="h-3 w-3" />
+                          {lecture.createdBy}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {lecture.createdAt.toLocaleDateString()}
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0">
+                    <Button variant="secondary" size="sm" asChild>
+                      <Link
+                        to={`/admin/resources/lectures/${lecture.id}?subject=${encodeURIComponent(lecture.subject || "")}`}
+                      >
+                        Manage resources
+                      </Link>
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => handleEdit(lecture)}
+                      aria-label="Edit lecture"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
@@ -526,6 +455,7 @@ export default function Resources() {
                       size="icon"
                       className="text-destructive hover:text-destructive"
                       onClick={() => handleDeleteLecture(lecture as any)}
+                      aria-label="Delete lecture"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -533,266 +463,31 @@ export default function Resources() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-6 md:grid-cols-3">
-                  {/* Videos */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm font-medium">
-                        <PlayCircle className="h-4 w-4 text-green-600" />
-                        Videos ({lecture.videos.length})
-                      </div>
-                      {lecture.videos.length > 0 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            lecture.videos.forEach((video) =>
-                              window.open(video.youtubeUrl, "_blank"),
-                            );
-                          }}
-                          className="h-6 px-2 text-xs"
-                        >
-                          Play All
-                        </Button>
-                      )}
-                    </div>
-                    {lecture.videos.length > 0 ? (
-                      <div className="space-y-2">
-                        {lecture.videos.map((video) => (
-                          <div
-                            key={video.id}
-                            className="flex items-center gap-2"
-                          >
-                            <button
-                              onClick={() => {
-                                const url = video.youtubeUrl || (video as any).url;
-                                if (url && url !== '' && url !== '#') {
-                                  window.open(url, "_blank");
-                                } else {
-                                  alert("No URL available for this video. Click the edit button to add a URL.");
-                                }
-                              }}
-                              className="flex-1 p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
-                            >
-                              <div className="flex gap-3">
-                                <div className="relative">
-                                  {video.thumbnailUrl && (
-                                    <img
-                                      src={video.thumbnailUrl}
-                                      alt={video.title}
-                                      className="w-16 h-12 object-cover rounded"
-                                    />
-                                  )}
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <PlayCircle className="h-6 w-6 text-white" />
-                                  </div>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
-                                    {video.title}
-                                  </p>
-                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <Clock className="h-3 w-3" />
-                                    {video.duration}
-                                  </div>
-                                </div>
-                              </div>
-                            </button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 flex-shrink-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditVideo(video);
-                              }}
-                              title="Edit Video"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        No videos yet
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Files */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm font-medium">
-                        <FileText className="h-4 w-4 text-blue-600" />
-                        Files ({lecture.files.length})
-                      </div>
-                      {lecture.files.length > 0 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            lecture.files.forEach((file) =>
-                              window.open(file.fileUrl, "_blank"),
-                            );
-                          }}
-                          className="h-6 px-2 text-xs"
-                        >
-                          Download All
-                        </Button>
-                      )}
-                    </div>
-                    {lecture.files.length > 0 ? (
-                      <div className="space-y-2">
-                        {lecture.files.map((file) => (
-                          <div
-                            key={file.id}
-                            className="flex items-center gap-2"
-                          >
-                            <button
-                              onClick={() => {
-                                console.log("🔍 File clicked:", file);
-                                console.log("🔗 File URL:", file.fileUrl);
-                                console.log("🔗 Fallback URL:", (file as any).url);
-                                const url = file.fileUrl || (file as any).url;
-                                console.log("🚀 Opening URL:", url);
-                                if (url && url !== '' && url !== '#') {
-                                  window.open(url, "_blank");
-                                } else {
-                                  console.error("❌ No valid URL found");
-                                  alert(`No URL available for this file.\nfileUrl: ${file.fileUrl}\nurl: ${(file as any).url}`);
-                                }
-                              }}
-                              className="flex-1 p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
-                            >
-                              <div className="flex gap-3">
-                                <div className="relative">
-                                  {(file.imageUrl || file.thumbnailUrl) ? (
-                                    <img
-                                      src={file.imageUrl || file.thumbnailUrl}
-                                      alt={file.title}
-                                      className="w-16 h-12 object-cover rounded"
-                                    />
-                                  ) : (
-                                    <div className="w-16 h-12 bg-blue-100 rounded flex items-center justify-center">
-                                      <FileText className="h-6 w-6 text-blue-600" />
-                                    </div>
-                                  )}
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <FileText className="h-4 w-4 text-white" />
-                                  </div>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
-                                    {file.title}
-                                  </p>
-                                </div>
-                              </div>
-                            </button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 flex-shrink-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditFile(file);
-                              }}
-                              title="Edit File"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        No files yet
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Quizzes */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm font-medium">
-                        <HelpCircle className="h-4 w-4 text-purple-600" />
-                        Quizzes ({lecture.quizzes.length})
-                      </div>
-                      {lecture.quizzes.length > 0 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            alert(
-                              `Starting all ${lecture.quizzes.length} quizzes for: ${lecture.title}`,
-                            );
-                          }}
-                          className="h-6 px-2 text-xs"
-                        >
-                          Start All
-                        </Button>
-                      )}
-                    </div>
-                    {lecture.quizzes.length > 0 ? (
-                      <div className="space-y-2">
-                        {lecture.quizzes.map((quiz) => (
-                          <div
-                            key={quiz.id}
-                            className="flex items-center gap-2"
-                          >
-                            <button
-                              onClick={() => {
-                                // For now, show an alert. In a real app, this would navigate to the quiz page
-                                alert(
-                                  `Starting quiz: ${quiz.title}\nTime limit: ${quiz.timeLimit} minutes\nPassing score: ${quiz.passingScore}%`,
-                                );
-                              }}
-                              className="flex-1 p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors text-left group"
-                            >
-                              <div className="flex items-start gap-2">
-                                <HelpCircle className="h-4 w-4 text-purple-600 mt-1 flex-shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
-                                    {quiz.title}
-                                  </p>
-                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <Clock className="h-3 w-3" />
-                                    {quiz.timeLimit}min
-                                    <span>•</span>
-                                    <span>{quiz.passingScore}% pass</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 flex-shrink-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditQuiz(quiz);
-                              }}
-                              title="Edit Quiz"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        No quizzes yet
-                      </p>
-                    )}
-                  </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className="gap-1">
+                    <PlayCircle className="h-3 w-3 text-green-600" />
+                    Videos {counts.videos}
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <FileText className="h-3 w-3 text-blue-600" />
+                    Files {counts.files}
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <HelpCircle className="h-3 w-3 text-purple-600" />
+                    Quizzes {counts.quizzes}
+                  </Badge>
                 </div>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Open <strong>Manage resources</strong> to edit files, videos, and quizzes for this lecture only. Counters are stored on the lecture document.
+                </p>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {!loading && !error && filteredLectures.length === 0 && (
+      {!loading && !error && sortedLectures.length === 0 && (
         <Card>
           <CardContent className="text-center py-12">
             <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -810,8 +505,8 @@ export default function Resources() {
         </Card>
       )}
 
-      {/* Pagination Controls - Only show when not searching */}
-      {!loading && !error && !searchTerm && (
+      {/* Pagination: hide when searching or when there are no lectures */}
+      {!loading && !error && !deferredSearch && totalCount > 0 && (
         <Card>
           <CardContent className="pt-6">
             <PaginatedList

@@ -1,122 +1,84 @@
-// Paginated lectures hook with OS-like caching
+// Paginated lectures — lecture documents only (no files/videos/quizzes subcollection reads)
 import { usePaginatedData } from "./usePaginatedData";
 import { Lecture } from "@shared/types";
 import {
   collectionGroup,
   query,
   getDocs,
-  limit,
-  startAfter,
   orderBy,
-  collection,
+  type QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 const LECTURES_PER_PAGE = 10;
 
+function mapLectureDoc(docSnapshot: QueryDocumentSnapshot): Lecture {
+  const data = docSnapshot.data() as Record<string, unknown>;
+  const lectureId = docSnapshot.id;
+  const lectureRef = docSnapshot.ref;
+  const subjectId =
+    (lectureRef.parent?.parent as { id?: string } | null)?.id ??
+    (data.subjectId as string) ??
+    (data.subject_id as string) ??
+    "Unknown";
+
+  const filesCount =
+    (data.filesCount as number | undefined) ??
+    (data.files_count as number | undefined) ??
+    0;
+  const quizzesCount =
+    (data.quizzesCount as number | undefined) ??
+    (data.quizzes_count as number | undefined) ??
+    0;
+  const videosCount =
+    (data.videosCount as number | undefined) ??
+    (data.videos_count as number | undefined) ??
+    0;
+
+  const createdRaw = data.createdAt as { toDate?: () => Date } | undefined;
+  const updatedRaw = data.updatedAt as { toDate?: () => Date } | undefined;
+
+  return {
+    id: lectureId,
+    title: (data.title as string) || "",
+    description: (data.description as string) || "",
+    subject: subjectId,
+    subjectId,
+    order: typeof data.order === "number" ? data.order : 1,
+    createdAt: createdRaw?.toDate?.() ?? new Date(),
+    createdBy: (data.uploadedBy as string) || (data.createdBy as string) || "",
+    filesCount,
+    quizzesCount,
+    videosCount,
+    imageUrl: (data.imageUrl as string) || (data.image_url as string) || undefined,
+    updatedAt: updatedRaw?.toDate?.(),
+    videos: [],
+    files: [],
+    quizzes: [],
+  };
+}
+
 async function fetchLecturesPage(
   pageIndex: number,
   pageSize: number,
-  lastDoc?: any
 ): Promise<{ data: Lecture[]; total: number; hasMore: boolean }> {
-  try {
-    // For now, we'll fetch all and paginate client-side
-    // In production, you'd use Firestore pagination with startAfter
-    const q = query(collectionGroup(db, "lectures"), orderBy("order", "asc"));
-    const querySnapshot = await getDocs(q);
+  const q = query(collectionGroup(db, "lectures"), orderBy("order", "asc"));
+  const querySnapshot = await getDocs(q);
 
-    const allLectures: Lecture[] = [];
-    
-    // Process all lectures (we'll paginate client-side for now)
-    for (const docSnapshot of querySnapshot.docs.slice(0, 100)) { // Limit to 100 for performance
-      const data = docSnapshot.data();
-      const lectureId = docSnapshot.id;
-      const lectureRef = docSnapshot.ref;
-      // Subject ID from path: .../Subjects/{subjectId}/lectures/{lectureId}
-      const subjectId = (lectureRef.parent?.parent as any)?.id ?? data.subjectId ?? "Unknown";
+  const allLectures: Lecture[] = querySnapshot.docs.map(mapLectureDoc);
 
-      // Fetch subcollections in parallel
-      const [filesSnapshot, quizzesSnapshot, videosSnapshot] = await Promise.all([
-        getDocs(collection(lectureRef, "files")),
-        getDocs(collection(lectureRef, "quizzes")),
-        getDocs(collection(lectureRef, "videos")),
-      ]);
+  allLectures.sort((a, b) => (a.order || 0) - (b.order || 0));
 
-      const files = filesSnapshot.docs.map((fileDoc) => {
-        const fileData = fileDoc.data();
-        return {
-          id: fileDoc.id,
-          title: fileData.title || "",
-          fileUrl: fileData.url || fileData.fileUrl || "",
-          description: fileData.description || "",
-          uploadedAt: fileData.uploadedAt?.toDate() || new Date(),
-          uploadedBy: fileData.uploadedBy || "",
-          imageUrl: fileData.imageUrl || fileData.thumbnailUrl || "",
-          thumbnailUrl: fileData.thumbnailUrl || fileData.imageUrl || "",
-        };
-      });
+  const startIndex = pageIndex * pageSize;
+  const endIndex = startIndex + pageSize;
+  const pageData = allLectures.slice(startIndex, endIndex);
+  const hasMore = endIndex < allLectures.length;
 
-      const quizzes = quizzesSnapshot.docs.map((quizDoc) => {
-        const quizData = quizDoc.data();
-        return {
-          id: quizDoc.id,
-          title: quizData.title || "",
-          description: quizData.description || "",
-          questions: quizData.questions || [],
-          timeLimit: quizData.duration || 30,
-          passingScore: quizData.passRate || 70,
-          createdAt: quizData.createdAt?.toDate() || new Date(),
-          createdBy: quizData.uploadedBy || "",
-        };
-      });
-
-      const videos = videosSnapshot.docs.map((videoDoc) => {
-        const vd = videoDoc.data() as any;
-        return {
-          id: videoDoc.id,
-          title: vd.title || vd.name || "",
-          youtubeUrl: vd.url || vd.youtubeUrl || "",
-          thumbnailUrl: vd.thumbnailUrl || vd.thumbnail || "",
-          duration: vd.duration || vd.time || "",
-          description: vd.description || "",
-          uploadedAt: vd.uploadedAt?.toDate?.() || new Date(),
-          uploadedBy: vd.uploadedBy || vd.uploader || "",
-          imageUrl: vd.thumbnailUrl || "",
-        };
-      });
-
-      allLectures.push({
-        id: lectureId,
-        title: data.title || "",
-        description: data.description || "",
-        subject: subjectId,
-        subjectId: subjectId,
-        order: data.order || 1,
-        createdAt: data.createdAt?.toDate() || new Date(),
-        createdBy: data.uploadedBy || "",
-        videos: videos,
-        files: files,
-        quizzes: quizzes,
-      });
-    }
-
-    // Sort and paginate client-side
-    allLectures.sort((a, b) => (a.order || 0) - (b.order || 0));
-    
-    const startIndex = pageIndex * pageSize;
-    const endIndex = startIndex + pageSize;
-    const pageData = allLectures.slice(startIndex, endIndex);
-    const hasMore = endIndex < allLectures.length;
-
-    return {
-      data: pageData,
-      total: allLectures.length,
-      hasMore,
-    };
-  } catch (error) {
-    console.error("Error fetching lectures page:", error);
-    throw error;
-  }
+  return {
+    data: pageData,
+    total: allLectures.length,
+    hasMore,
+  };
 }
 
 export function useLecturesPaginated(pageSize: number = LECTURES_PER_PAGE) {
@@ -124,8 +86,7 @@ export function useLecturesPaginated(pageSize: number = LECTURES_PER_PAGE) {
     queryKey: ["lectures-paginated"],
     queryFn: fetchLecturesPage,
     pageSize,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes - keep previous pages in cache
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 }
-

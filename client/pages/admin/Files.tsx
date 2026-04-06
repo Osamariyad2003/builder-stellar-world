@@ -9,7 +9,9 @@ import { FileText, Download, Edit2, Trash2 } from "lucide-react";
 export default function FilesPage() {
   const [searchParams] = useSearchParams();
   const lectureId = searchParams.get("lecture");
-  const { lectures, loading: lecturesLoading, error: lecturesError } = useLectures();
+  const { lectures, loading: lecturesLoading, error: lecturesError } = useLectures({
+    enableRealtime: true,
+  });
   const { items: files, loading, error } = useLectureFiles(lectureId);
 
   if (loading || lecturesLoading) return <div>Loading...</div>;

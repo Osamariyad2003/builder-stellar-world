@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Search, Trash2, Edit2, HelpCircle } from "lucide-react";
-import { MCQForm } from "@/components/admin/MCQForm";
+import { MCQForm, type MCQSubjectOption } from "@/components/admin/MCQForm";
 import { useMCQ } from "@/hooks/useMCQ";
 import { useYears } from "@/hooks/useYears";
 import { MCQ } from "@shared/types";
@@ -12,21 +12,31 @@ import { MCQ } from "@shared/types";
 export default function MCQPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("");
+  const [yearFilter, setYearFilter] = useState<string>("");
   const [selected, setSelected] = useState<MCQ | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const { years } = useYears();
-  const allSubjectsForForm = useMemo(() => {
-    const list: { id: string; name: string }[] = [];
+  const allSubjectsForForm = useMemo((): MCQSubjectOption[] => {
+    const list: MCQSubjectOption[] = [];
     const seen = new Set<string>();
-    (years || []).forEach((y: any) =>
+    (years || []).forEach((y: any) => {
+      const raw =
+        typeof y.yearNumber === "number" && Number.isFinite(y.yearNumber)
+          ? Math.trunc(y.yearNumber)
+          : 1;
+      const yearNumber = Math.min(6, Math.max(1, raw));
       (y.subjects || []).forEach((s: any) => {
         if (!seen.has(s.id)) {
           seen.add(s.id);
-          list.push({ id: s.id, name: s.name || s.id });
+          list.push({
+            id: s.id,
+            name: s.name || s.id,
+            yearNumber,
+          });
         }
-      })
-    );
+      });
+    });
     return list.sort((a, b) => a.name.localeCompare(b.name));
   }, [years]);
   const subjectIdToName = useMemo(() => {
@@ -197,6 +207,7 @@ export default function MCQPage() {
       for (let i = 0; i < sampleMCQs.length; i++) {
         await createMCQ({
           ...sampleMCQs[i],
+          yearNumber: (i % 6) + 1,
           createdAt: new Date(),
         });
         await new Promise((resolve) => setTimeout(resolve, 300));
@@ -214,7 +225,11 @@ export default function MCQPage() {
       mcq.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       mcq.difficulty?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSubject = !subjectFilter || mcq.subjectId === subjectFilter;
-    return matchesSearch && matchesSubject;
+    const matchesYear =
+      !yearFilter ||
+      (typeof mcq.yearNumber === "number" &&
+        String(mcq.yearNumber) === yearFilter);
+    return matchesSearch && matchesSubject && matchesYear;
   });
 
   const getDifficultyColor = (difficulty?: string) => {
@@ -343,24 +358,45 @@ export default function MCQPage() {
                     aria-label="Search MCQs"
                   />
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <label htmlFor="mcq-subject-filter" className="text-sm font-medium whitespace-nowrap">
-                    Subject
-                  </label>
-                  <select
-                    id="mcq-subject-filter"
-                    value={subjectFilter}
-                    onChange={(e) => setSubjectFilter(e.target.value)}
-                    className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm min-w-[160px]"
-                    aria-label="Filter by subject"
-                  >
-                    <option value="">All subjects</option>
-                    {allSubjectsForForm.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="mcq-year-filter" className="text-sm font-medium whitespace-nowrap">
+                      Year
+                    </label>
+                    <select
+                      id="mcq-year-filter"
+                      value={yearFilter}
+                      onChange={(e) => setYearFilter(e.target.value)}
+                      className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm min-w-[120px]"
+                      aria-label="Filter by academic year 1 to 6"
+                    >
+                      <option value="">All years</option>
+                      {[1, 2, 3, 4, 5, 6].map((y) => (
+                        <option key={y} value={String(y)}>
+                          Year {y}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="mcq-subject-filter" className="text-sm font-medium whitespace-nowrap">
+                      Subject
+                    </label>
+                    <select
+                      id="mcq-subject-filter"
+                      value={subjectFilter}
+                      onChange={(e) => setSubjectFilter(e.target.value)}
+                      className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm min-w-[160px]"
+                      aria-label="Filter by subject"
+                    >
+                      <option value="">All subjects</option>
+                      {allSubjectsForForm.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} (Y{s.yearNumber})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -400,6 +436,13 @@ export default function MCQPage() {
                             </p>
                           )}
                           <div className="flex gap-2 flex-wrap mt-3">
+                            {typeof mcq.yearNumber === "number" &&
+                              mcq.yearNumber >= 1 &&
+                              mcq.yearNumber <= 6 && (
+                                <Badge variant="default" className="bg-slate-700">
+                                  Year {mcq.yearNumber}
+                                </Badge>
+                              )}
                             {mcq.subjectId && (
                               <Badge variant="outline">
                                 {subjectIdToName[mcq.subjectId] || mcq.subjectId}

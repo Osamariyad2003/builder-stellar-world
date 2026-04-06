@@ -18,6 +18,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { db } from "@/lib/firebase";
 import { fetchAllYearsData } from "./useYearsData";
+import { adjustLectureResourceCounts } from "@/lib/lectureCounters";
 
 export interface YearData {
   id?: string;
@@ -440,6 +441,9 @@ export function useYears() {
           order: lectureData.order || 1,
           uploadedBy: lectureData.uploadedBy || "Current User",
           createdAt: new Date(),
+          filesCount: 0,
+          videosCount: 0,
+          quizzesCount: 0,
           lectureId: "", // Will be updated with document ID after creation
         };
 
@@ -680,7 +684,9 @@ export function useYears() {
         uploadedAt: new Date(),
         uploadedBy: "Current User",
       });
+      await adjustLectureResourceCounts(lectureRef, { videos: 1 });
       queryClient.invalidateQueries({ queryKey: ["years-data"] });
+      queryClient.invalidateQueries({ queryKey: ["lectures-paginated"] });
     } catch (error) {
       console.error("Error adding video:", error);
     }
@@ -752,8 +758,10 @@ export function useYears() {
       });
 
       await addDoc(collection(lectureRef, "files"), fileData);
+      await adjustLectureResourceCounts(lectureRef, { files: 1 });
       console.log("✅ File added successfully:", file.title);
       queryClient.invalidateQueries({ queryKey: ["years-data"] });
+      queryClient.invalidateQueries({ queryKey: ["lectures-paginated"] });
     } catch (error: any) {
       console.error("❌ Error adding file:", error);
       console.error("Error details:", error.code, error.message);
@@ -819,9 +827,65 @@ export function useYears() {
         createdAt: new Date(),
         uploadedBy: "Current User",
       });
+      await adjustLectureResourceCounts(lectureRef, { quizzes: 1 });
       queryClient.invalidateQueries({ queryKey: ["years-data"] });
+      queryClient.invalidateQueries({ queryKey: ["lectures-paginated"] });
     } catch (error) {
       console.error("Error adding quiz:", error);
+    }
+  };
+
+  const removeVideo = async (
+    subjectId: string,
+    lectureId: string,
+    videoId: string,
+  ) => {
+    if (!subjectId || !lectureId || !videoId) return;
+    try {
+      const lectureRef = doc(db, "Subjects", subjectId, "lectures", lectureId);
+      await deleteDoc(doc(lectureRef, "videos", videoId));
+      await adjustLectureResourceCounts(lectureRef, { videos: -1 });
+      queryClient.invalidateQueries({ queryKey: ["years-data"] });
+      queryClient.invalidateQueries({ queryKey: ["lectures-paginated"] });
+    } catch (e) {
+      console.error("Error removing video:", e);
+      throw e;
+    }
+  };
+
+  const removeFile = async (
+    subjectId: string,
+    lectureId: string,
+    fileId: string,
+  ) => {
+    if (!subjectId || !lectureId || !fileId) return;
+    try {
+      const lectureRef = doc(db, "Subjects", subjectId, "lectures", lectureId);
+      await deleteDoc(doc(lectureRef, "files", fileId));
+      await adjustLectureResourceCounts(lectureRef, { files: -1 });
+      queryClient.invalidateQueries({ queryKey: ["years-data"] });
+      queryClient.invalidateQueries({ queryKey: ["lectures-paginated"] });
+    } catch (e) {
+      console.error("Error removing file:", e);
+      throw e;
+    }
+  };
+
+  const removeQuiz = async (
+    subjectId: string,
+    lectureId: string,
+    quizId: string,
+  ) => {
+    if (!subjectId || !lectureId || !quizId) return;
+    try {
+      const lectureRef = doc(db, "Subjects", subjectId, "lectures", lectureId);
+      await deleteDoc(doc(lectureRef, "quizzes", quizId));
+      await adjustLectureResourceCounts(lectureRef, { quizzes: -1 });
+      queryClient.invalidateQueries({ queryKey: ["years-data"] });
+      queryClient.invalidateQueries({ queryKey: ["lectures-paginated"] });
+    } catch (e) {
+      console.error("Error removing quiz:", e);
+      throw e;
     }
   };
 
@@ -930,6 +994,8 @@ export function useYears() {
       registrationName?: string;
       registration_name?: string;
       registration_names?: string[];
+      /** Display / sort order (integer). */
+      order?: number;
       /** Create years 1..N for this batch (e.g. 6). Years get optional images from yearImages. */
       createYearsCount?: number;
       /** Optional image URL per year number (1-based), e.g. { 1: "url1", 2: "url2" }. */
@@ -943,6 +1009,10 @@ export function useYears() {
     const graduateDate = data.graduateDate || data.graduate_date || "";
     const academicSupervisor =
       data.academicSupervisor || data.academic_supervisor || "";
+    const batchOrder =
+      typeof data.order === "number" && Number.isFinite(data.order)
+        ? Math.trunc(data.order)
+        : undefined;
     const registrationNames = Array.isArray(data.registration_names)
       ? data.registration_names
       : data.registrationName != null && data.registrationName !== ""
@@ -969,6 +1039,7 @@ export function useYears() {
       registrationNames,
       registration_name: registrationNameStr,
       registrationName: registrationNameStr,
+      ...(batchOrder !== undefined ? { order: batchOrder } : {}),
     };
     setBatches((prev) => [tempBatch, ...prev]);
 
@@ -990,6 +1061,7 @@ export function useYears() {
           registration_names: registrationNames,
           registration_name: registrationNameStr,
           createdAt: new Date(),
+          ...(batchOrder !== undefined ? { order: batchOrder } : {}),
         });
 
         try {
@@ -1013,6 +1085,7 @@ export function useYears() {
           registrationNames,
           registration_name: registrationNameStr,
           registrationName: registrationNameStr,
+          ...(batchOrder !== undefined ? { order: batchOrder } : {}),
         };
         setBatches((prev) => [
           realBatch,
@@ -1278,6 +1351,9 @@ export function useYears() {
     addVideo,
     addFile,
     addQuiz,
+    removeVideo,
+    removeFile,
+    removeQuiz,
     loadLectureResources,
   };
 }

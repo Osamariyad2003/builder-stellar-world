@@ -14,12 +14,25 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-export function useLectures() {
+type UseLecturesOptions = {
+  /** When false (default), skips the heavy realtime listener that loads every lecture + all subcollections. Use mutations-only from Resources / lecture list. */
+  enableRealtime?: boolean;
+};
+
+export function useLectures(options?: UseLecturesOptions) {
+  const enableRealtime = options?.enableRealtime ?? false;
   const [lectures, setLectures] = useState<Lecture[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enableRealtime);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enableRealtime) {
+      setLectures([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     // Get all lectures from all subjects (avoid collection-group index requirement by sorting client-side)
     const q = query(collectionGroup(db, "lectures"));
 
@@ -133,7 +146,7 @@ export function useLectures() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [enableRealtime]);
 
   const createLecture = async (
     lectureData: Omit<Lecture, "id">,

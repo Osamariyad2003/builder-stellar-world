@@ -1,19 +1,17 @@
 import { useEffect, useState } from "react";
 import {
-  collectionGroup,
-  query,
-  where,
-  documentId,
-  getDocs,
   collection,
   onSnapshot,
   QuerySnapshot,
   DocumentData,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { findLectureDocumentRef } from "@/lib/resolveLectureDocument";
 
-// Generic hook to subscribe to a subcollection ('videos' | 'files' | 'quizzes') under a specific lecture
-export function useLectureSubcollection(lectureId: string | null, subcollectionName: string) {
+export function useLectureSubcollection(
+  lectureId: string | null,
+  subcollectionName: string,
+  subjectId?: string | null,
+) {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,22 +28,18 @@ export function useLectureSubcollection(lectureId: string | null, subcollectionN
       }
 
       try {
-        // Find the lecture document across all Subjects using a collectionGroup query by documentId
-        const q = query(collectionGroup(db, "lectures"), where(documentId(), "==", lectureId));
-        const lectureSnap = await getDocs(q);
-        if (lectureSnap.empty) {
+        const lectureRef = await findLectureDocumentRef(lectureId, subjectId);
+        if (!lectureRef) {
           if (mounted) {
             setItems([]);
             setLoading(false);
+            setError("Lecture not found");
           }
           return;
         }
 
-        // Use the first matching lecture document
-        const lectureDoc = lectureSnap.docs[0];
-        const subColRef = collection(lectureDoc.ref, subcollectionName);
+        const subColRef = collection(lectureRef, subcollectionName);
 
-        // Subscribe to the subcollection
         unsub = onSnapshot(
           subColRef,
           (snap: QuerySnapshot<DocumentData>) => {
@@ -57,6 +51,7 @@ export function useLectureSubcollection(lectureId: string | null, subcollectionN
             });
             setItems(data);
             setLoading(false);
+            setError(null);
           },
           (e) => {
             console.error(`Failed to subscribe to ${subcollectionName}:`, e);
@@ -64,10 +59,10 @@ export function useLectureSubcollection(lectureId: string | null, subcollectionN
             setLoading(false);
           },
         );
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error(`Error resolving lecture for ${subcollectionName}:`, e);
         if (mounted) {
-          setError(e.message || String(e));
+          setError(e instanceof Error ? e.message : String(e));
           setLoading(false);
         }
       }
@@ -79,19 +74,28 @@ export function useLectureSubcollection(lectureId: string | null, subcollectionN
       mounted = false;
       if (unsub) unsub();
     };
-  }, [lectureId, subcollectionName]);
+  }, [lectureId, subcollectionName, subjectId]);
 
   return { items, loading, error };
 }
 
-export function useLectureVideos(lectureId: string | null) {
-  return useLectureSubcollection(lectureId, "videos");
+export function useLectureVideos(
+  lectureId: string | null,
+  subjectId?: string | null,
+) {
+  return useLectureSubcollection(lectureId, "videos", subjectId);
 }
 
-export function useLectureFiles(lectureId: string | null) {
-  return useLectureSubcollection(lectureId, "files");
+export function useLectureFiles(
+  lectureId: string | null,
+  subjectId?: string | null,
+) {
+  return useLectureSubcollection(lectureId, "files", subjectId);
 }
 
-export function useLectureQuizzes(lectureId: string | null) {
-  return useLectureSubcollection(lectureId, "quizzes");
+export function useLectureQuizzes(
+  lectureId: string | null,
+  subjectId?: string | null,
+) {
+  return useLectureSubcollection(lectureId, "quizzes", subjectId);
 }

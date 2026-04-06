@@ -9,7 +9,9 @@ import { PlayCircle, Edit2, Trash2 } from "lucide-react";
 export default function VideosPage() {
   const [searchParams] = useSearchParams();
   const lectureId = searchParams.get("lecture");
-  const { lectures, loading: lecturesLoading, error: lecturesError } = useLectures();
+  const { lectures, loading: lecturesLoading, error: lecturesError } = useLectures({
+    enableRealtime: true,
+  });
   const { items: videos, loading, error } = useLectureVideos(lectureId);
 
   if (loading || lecturesLoading) return <div>Loading...</div>;

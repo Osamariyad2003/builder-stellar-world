@@ -71,10 +71,18 @@ export function useMCQ() {
         if (seenIds.has(doc.id)) return;
         seenIds.add(doc.id);
         const data = doc.data();
+        const yn = data.yearNumber;
+        const yearNumber =
+          typeof yn === "number" && yn >= 1 && yn <= 6
+            ? Math.trunc(yn)
+            : typeof yn === "string" && /^[1-6]$/.test(yn.trim())
+              ? parseInt(yn.trim(), 10)
+              : undefined;
         mcqsData.push({
           id: doc.id,
           ...data,
           subjectId: data.subjectId || undefined,
+          yearNumber,
           createdAt: data.createdAt?.toDate?.() || new Date(),
           updatedAt: data.updatedAt?.toDate?.() || new Date(),
         } as MCQ);
@@ -100,9 +108,15 @@ export function useMCQ() {
     }
 
     try {
+      const { yearNumber: ynRaw, ...mcqRest } = mcq;
+      const yearNumber =
+        typeof ynRaw === "number" && ynRaw >= 1 && ynRaw <= 6
+          ? Math.trunc(ynRaw)
+          : undefined;
       const newMCQ = {
-        ...mcq,
+        ...mcqRest,
         subjectId: mcq.subjectId || undefined,
+        ...(yearNumber !== undefined ? { yearNumber } : {}),
         createdAt: new Date(),
         updatedAt: new Date(),
         createdBy: "admin",
@@ -135,17 +149,35 @@ export function useMCQ() {
 
     try {
       const docRef = doc(db, "mcqs", id);
-      const updateData = {
+      const updateData: Record<string, unknown> = {
         ...updates,
         updatedAt: new Date(),
       };
+      if ("yearNumber" in updates) {
+        const y = updates.yearNumber;
+        if (typeof y === "number" && y >= 1 && y <= 6 && Number.isFinite(y)) {
+          updateData.yearNumber = Math.trunc(y);
+        } else {
+          delete updateData.yearNumber;
+        }
+      }
 
-      await updateDoc(docRef, updateData);
+      await updateDoc(docRef, updateData as Parameters<typeof updateDoc>[1]);
       console.log("✅ MCQ updated:", id);
 
-      const updated = mcqs.map((m) =>
-        m.id === id ? { ...m, ...updates, updatedAt: new Date() } : m
-      );
+      const updated = mcqs.map((m) => {
+        if (m.id !== id) return m;
+        const merged: MCQ = { ...m, ...updates, updatedAt: new Date() };
+        if ("yearNumber" in updates) {
+          const y = updates.yearNumber;
+          if (typeof y === "number" && y >= 1 && y <= 6 && Number.isFinite(y)) {
+            merged.yearNumber = Math.trunc(y);
+          } else {
+            merged.yearNumber = m.yearNumber;
+          }
+        }
+        return merged;
+      });
       setMcqs(updated);
       cacheManager.setCache("mcqs", updated);
     } catch (err) {

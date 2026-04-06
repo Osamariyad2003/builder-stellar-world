@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -36,6 +36,20 @@ import {
   uploadImageToCloudinary,
   setLocalCloudinaryConfig,
 } from "@/lib/cloudinary";
+import {
+  sortBatches,
+  sortByName,
+  type BatchSortField,
+  type SortDirection,
+} from "@/lib/adminListSort";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useNews } from "@/hooks/useNews";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -85,6 +99,7 @@ export default function Years() {
   const [editingBatchGraduateDate, setEditingBatchGraduateDate] = useState<string>("");
   const [editingBatchSupervisor, setEditingBatchSupervisor] = useState<string>("");
   const [editingBatchRegistrationName, setEditingBatchRegistrationName] = useState<string>("");
+  const [editingBatchOrder, setEditingBatchOrder] = useState<string>("");
 
   // Add Batch dialog state
   const [batchName, setBatchName] = useState<string>("");
@@ -94,6 +109,7 @@ export default function Years() {
   const [batchGraduateDate, setBatchGraduateDate] = useState<string>("");
   const [batchSupervisor, setBatchSupervisor] = useState<string>("");
   const [batchRegistrationName, setBatchRegistrationName] = useState<string>("");
+  const [batchOrder, setBatchOrder] = useState<string>("");
   const [createYears1To6, setCreateYears1To6] = useState<boolean>(true);
   const [yearImageUrls, setYearImageUrls] = useState<Record<number, string>>({
     1: "",
@@ -106,6 +122,9 @@ export default function Years() {
 
   // Selected batch for viewing years (sync with ?batch= query param)
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const [batchSortField, setBatchSortField] = useState<BatchSortField>("name");
+  const [batchSortDir, setBatchSortDir] = useState<SortDirection>("asc");
+  const [subjectSortDir, setSubjectSortDir] = useState<SortDirection>("asc");
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -178,6 +197,25 @@ export default function Years() {
     addQuiz,
     loadLectureResources,
   } = useYears();
+
+  const sortedBatches = useMemo(
+    () => sortBatches(batches || [], batchSortField, batchSortDir),
+    [batches, batchSortField, batchSortDir],
+  );
+
+  const batchListOrderCaption = useMemo(() => {
+    if (batchSortField === "name") {
+      return batchSortDir === "asc" ? "Name · A → Z" : "Name · Z → A";
+    }
+    if (batchSortField === "order") {
+      return batchSortDir === "asc"
+        ? "Order · low → high"
+        : "Order · high → low";
+    }
+    return batchSortDir === "asc"
+      ? "Date · oldest first"
+      : "Date · newest first";
+  }, [batchSortField, batchSortDir]);
 
   const { news } = useNews();
 
@@ -608,7 +646,7 @@ export default function Years() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {yearData.subjects?.map((subject: any) => {
+              {sortByName(yearData.subjects || [], subjectSortDir).map((subject: any) => {
                 const batchId = yearData.batchId || (yearData as any).batch_name;
                 const deepLinkToSubject = `/admin/years?batch=${encodeURIComponent(batchId || "")}&year=${encodeURIComponent(yearData.id || "")}&subject=${encodeURIComponent(subject.id || "")}`;
                 return (
@@ -1048,21 +1086,22 @@ export default function Years() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Academic Years Management</h1>
-          <div className="flex items-center gap-2">
-            <p className="text-muted-foreground">
-              Manage curriculum by academic years, subjects, and lectures
-            </p>
-          </div>
+    <div className="w-full min-w-0 max-w-full space-y-4 px-1 sm:space-y-6 sm:px-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            Academic Years Management
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+            Manage curriculum by academic years, subjects, and lectures
+          </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           <Button
             variant="outline"
             size="sm"
+            className="h-11 min-h-11 w-full touch-manipulation sm:h-9 sm:min-h-9 sm:w-auto"
             onClick={() => {
               clearCache();
               alert("Cache cleared. Data will be refreshed from server.");
@@ -1073,8 +1112,9 @@ export default function Years() {
           </Button>
           <Dialog>
             <DialogTrigger asChild>
-              <Button>
-                <FolderPlus className="h-4 w-4 mr-2" /> Add Batch
+              <Button className="h-11 min-h-11 w-full touch-manipulation sm:h-10 sm:min-h-10 sm:w-auto">
+                <FolderPlus className="h-4 w-4 sm:mr-2" />{" "}
+                <span>Add Batch</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -1205,6 +1245,21 @@ export default function Years() {
                     aria-label="Registration name for batch"
                   />
                 </div>
+                <div>
+                  <label className="text-sm font-medium mb-1 block">
+                    Order (optional, integer)
+                  </label>
+                  <Input
+                    value={batchOrder}
+                    onChange={(e) => setBatchOrder(e.target.value)}
+                    placeholder="e.g. 1 — lower shows first when sorting by order"
+                    inputMode="numeric"
+                    type="number"
+                    step={1}
+                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    aria-label="Batch display order as integer"
+                  />
+                </div>
               </div>
 
               <DialogFooter className="mt-4">
@@ -1214,6 +1269,16 @@ export default function Years() {
                       if (!batchName || !batchName.trim()) {
                         alert("Please provide a batch name");
                         return;
+                      }
+                      let orderArg: number | undefined;
+                      const orderTrim = batchOrder.trim();
+                      if (orderTrim !== "") {
+                        const n = parseInt(orderTrim, 10);
+                        if (Number.isNaN(n)) {
+                          alert("Order must be a whole number (integer).");
+                          return;
+                        }
+                        orderArg = n;
                       }
                       await createBatch?.({
                         batchName: batchName.trim(),
@@ -1226,6 +1291,7 @@ export default function Years() {
                         academicSupervisor: batchSupervisor?.trim(),
                         academic_supervisor: batchSupervisor?.trim(),
                         registrationName: batchRegistrationName?.trim(),
+                        ...(orderArg !== undefined ? { order: orderArg } : {}),
                         createYearsCount: createYears1To6 ? 6 : 0,
                         yearImages: createYears1To6
                           ? Object.fromEntries(
@@ -1243,6 +1309,7 @@ export default function Years() {
                       setBatchGraduateDate("");
                       setBatchSupervisor("");
                       setBatchRegistrationName("");
+                      setBatchOrder("");
                       setYearImageUrls({ 1: "", 2: "", 3: "", 4: "", 5: "", 6: "" });
                       // close dialog
                       const closeBtn = document.querySelector(
@@ -1303,22 +1370,22 @@ export default function Years() {
       {!loading && !error && (
         <>
           {/* Search */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Card className="min-w-0 overflow-hidden">
+            <CardContent className="px-3 py-4 pt-5 sm:px-6 sm:pt-6">
+              <div className="relative min-w-0">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search lectures, subjects, or content..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="min-h-11 pl-10 text-base sm:min-h-10 sm:text-sm"
                 />
               </div>
             </CardContent>
           </Card>
 
           {/* Show batches list or the selected batch's years */}
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-4 sm:space-y-6">
             {!batches || batches.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
@@ -1340,25 +1407,25 @@ export default function Years() {
                   (y: any) => (y.batchId || y.batch_name) === selectedBatchId,
                 );
                 return (
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
+                  <div className="min-w-0">
+                    <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-start">
                         {batch?.imageUrl ? (
                           <img
                             src={batch.imageUrl}
-                            alt={batch.batchName}
-                            className="w-40 h-40 object-cover rounded-md flex-shrink-0"
+                            alt={batch.batchName || "Batch"}
+                            className="h-40 w-full max-w-full shrink-0 rounded-md object-cover sm:h-36 sm:w-36 md:h-40 md:w-40"
                           />
                         ) : (
-                          <div className="w-40 h-40 rounded-md flex-shrink-0 bg-muted flex items-center justify-center">
+                          <div className="flex h-40 w-full max-w-full shrink-0 items-center justify-center rounded-md bg-muted sm:h-36 sm:w-36 md:h-40 md:w-40">
                             <BookOpen className="h-6 w-6 text-muted-foreground" />
                           </div>
                         )}
-                        <div>
-                          <h2 className="text-xl font-semibold">
+                        <div className="min-w-0 flex-1 basis-0">
+                          <h2 className="break-words text-xl font-semibold sm:text-2xl [overflow-wrap:anywhere]">
                             {batch?.batchName || "Batch"}
                           </h2>
-                          <div className="text-sm text-muted-foreground space-y-0.5">
+                          <div className="mt-1 space-y-0.5 text-sm text-muted-foreground">
                             {batch?.cr ? <div>CR: {batch.cr}</div> : null}
                             {(() => {
                               const ba = batch as any;
@@ -1369,8 +1436,9 @@ export default function Years() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex w-full shrink-0 flex-col gap-2 md:flex-row md:flex-wrap md:justify-end lg:w-auto lg:max-w-full lg:justify-end">
                         <Button
+                          className="h-11 min-h-11 w-full touch-manipulation md:w-auto"
                           onClick={() => {
                             setSelectedBatchId(null);
                             navigate("/admin/years");
@@ -1381,6 +1449,7 @@ export default function Years() {
                         <Button
                           size="sm"
                           variant="ghost"
+                          className="h-11 min-h-11 w-full touch-manipulation md:w-auto"
                           onClick={async () => {
                             try {
                               const input = document.createElement("input");
@@ -1424,6 +1493,7 @@ export default function Years() {
                         </Button>
 
                         <Button
+                          className="h-11 min-h-11 w-full touch-manipulation md:w-auto"
                           onClick={async () => {
                             try {
                               const yearNumStr = window.prompt(
@@ -1449,6 +1519,7 @@ export default function Years() {
                         </Button>
                         <Button
                           variant="destructive"
+                          className="h-11 min-h-11 w-full touch-manipulation md:w-auto"
                           onClick={async () => {
                             try {
                               if (
@@ -1467,6 +1538,36 @@ export default function Years() {
                         >
                           <Trash2 className="h-4 w-4" /> Delete
                         </Button>
+                      </div>
+                    </div>
+
+                    <div
+                      className="mt-4 rounded-lg border border-border bg-muted/30 p-3 sm:p-4"
+                      role="region"
+                      aria-label="Subject list sorting"
+                    >
+                      <div className="min-w-0 space-y-1.5">
+                        <Label htmlFor="years-subject-sort" className="text-xs">
+                          Sort subjects by name
+                        </Label>
+                        <Select
+                          value={subjectSortDir}
+                          onValueChange={(v) =>
+                            setSubjectSortDir(v as SortDirection)
+                          }
+                        >
+                          <SelectTrigger
+                            id="years-subject-sort"
+                            className="h-11 min-h-11 w-full min-w-0 max-w-full touch-manipulation sm:h-10 sm:min-h-10 sm:max-w-xs"
+                            aria-label="Subject name sort order"
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="asc">A → Z</SelectItem>
+                            <SelectItem value="desc">Z → A</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
@@ -1489,32 +1590,117 @@ export default function Years() {
                 );
               })()
             ) : (
-              // list batches — fewer columns so each card is wider (no truncated text)
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                {(batches || []).map((b: any) => (
+              <div className="min-w-0 space-y-3 sm:space-y-4">
+                <div
+                  className="grid w-full min-w-0 grid-cols-1 gap-3 rounded-lg border border-border bg-muted/30 p-3 sm:p-4 md:grid-cols-2 md:items-end lg:max-w-4xl"
+                  role="region"
+                  aria-label="Batch list sorting"
+                >
+                  <div className="min-w-0 space-y-1.5">
+                    <Label htmlFor="years-batch-sort-field" className="text-xs">
+                      Sort batches by
+                    </Label>
+                    <Select
+                      value={batchSortField}
+                      onValueChange={(v) => {
+                        const f = v as BatchSortField;
+                        setBatchSortField(f);
+                        if (f === "date") setBatchSortDir("desc");
+                        if (f === "name") setBatchSortDir("asc");
+                        if (f === "order") setBatchSortDir("asc");
+                      }}
+                    >
+                      <SelectTrigger
+                        id="years-batch-sort-field"
+                        className="h-11 min-h-11 w-full min-w-0 max-w-full touch-manipulation sm:h-10 sm:min-h-10"
+                        aria-label="Batch sort field"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="name">Name</SelectItem>
+                        <SelectItem value="date">Date (created / graduate)</SelectItem>
+                        <SelectItem value="order">Order (integer)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="min-w-0 space-y-1.5">
+                    <Label htmlFor="years-batch-sort-dir" className="text-xs">
+                      Order
+                    </Label>
+                    <Select
+                      value={batchSortDir}
+                      onValueChange={(v) =>
+                        setBatchSortDir(v as SortDirection)
+                      }
+                    >
+                      <SelectTrigger
+                        id="years-batch-sort-dir"
+                        className="h-11 min-h-11 w-full min-w-0 max-w-full touch-manipulation sm:h-10 sm:min-h-10"
+                        aria-label="Batch sort direction"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="asc">
+                          {batchSortField === "name"
+                            ? "A → Z"
+                            : batchSortField === "order"
+                              ? "Low → high (0, 1, 2…)"
+                              : "Oldest first"}
+                        </SelectItem>
+                        <SelectItem value="desc">
+                          {batchSortField === "name"
+                            ? "Z → A"
+                            : batchSortField === "order"
+                              ? "High → low"
+                              : "Newest first"}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              {/* Batches: single column of full-width cards (no multi-column grid) */}
+              <div className="flex w-full min-w-0 flex-col gap-3 sm:gap-4 md:gap-5">
+                {sortedBatches.map((b: any, batchIndex: number) => (
                   <Card
                     key={b.id}
-                    className="cursor-pointer flex flex-col overflow-hidden"
+                    className="relative flex min-w-0 cursor-pointer flex-col overflow-hidden rounded-lg border transition-[box-shadow,transform,border-color] duration-200 touch-manipulation hover:shadow-md active:scale-[0.998] md:hover:border-primary/25 md:hover:shadow-md"
                     onClick={() => {
                       navigate(`/admin/years?batch=${b.id}`);
                       setSelectedBatchId(b.id);
                     }}
                   >
+                    <div
+                      className="pointer-events-none absolute right-2 top-2 z-10 flex max-w-[calc(100%-1rem)] flex-col items-end gap-1 text-right sm:right-3 sm:top-3 sm:max-w-[min(100%-1.5rem,11rem)]"
+                      aria-label={`Sorted position ${batchIndex + 1} of ${sortedBatches.length}, ${batchListOrderCaption}`}
+                    >
+                      <Badge
+                        variant="secondary"
+                        className="tabular-nums text-xs shadow-sm sm:text-sm"
+                        title={`Order ${batchIndex + 1} of ${sortedBatches.length} (${batchListOrderCaption})`}
+                      >
+                        {batchIndex + 1}
+                      </Badge>
+                      <span className="max-w-full truncate rounded-md border border-border bg-background/95 px-1.5 py-0.5 text-[9px] font-medium leading-tight text-muted-foreground shadow-sm backdrop-blur-sm sm:px-2 sm:text-[10px]">
+                        {batchListOrderCaption}
+                      </span>
+                    </div>
                     <CardHeader 
-                      className="flex-1"
+                      className="flex-1 space-y-0 p-4 pr-[4.5rem] sm:p-6 sm:pr-28"
                       onClick={(e) => editingBatchId === b.id && e.stopPropagation()}
                     >
-                      <div className="flex flex-col sm:flex-row items-start gap-4">
+                      <div className="flex min-w-0 flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:gap-4">
                         {b.imageUrl ? (
                           <img
                             src={b.imageUrl}
-                            alt={b.batchName}
-                            className="w-full sm:w-32 sm:h-32 md:w-40 md:h-40 object-cover rounded-md flex-shrink-0"
+                            alt={b.batchName || "Batch"}
+                            className="h-auto w-full max-h-48 shrink-0 rounded-md object-cover sm:h-32 sm:w-32 sm:max-h-none md:h-40 md:w-40"
                           />
                         ) : (
-                          <div className="w-full sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-md flex-shrink-0 bg-muted" />
+                          <div className="flex aspect-[4/3] w-full max-h-48 shrink-0 items-center justify-center rounded-md bg-muted sm:aspect-auto sm:h-32 sm:w-32 sm:max-h-none md:h-40 md:w-40" />
                         )}
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 flex-1">
                           {editingBatchId === b.id ? (
                             <div className="flex flex-col gap-2 w-full" onClick={(e) => e.stopPropagation()}>
                               <Input
@@ -1587,9 +1773,28 @@ export default function Years() {
                                   aria-label="Registration name"
                                 />
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div>
+                                <label className="text-xs font-medium text-muted-foreground block mb-1">
+                                  Order (integer)
+                                </label>
+                                <Input
+                                  value={editingBatchOrder}
+                                  onChange={(e) =>
+                                    setEditingBatchOrder(e.target.value)
+                                  }
+                                  placeholder="e.g. 1"
+                                  inputMode="numeric"
+                                  type="number"
+                                  step={1}
+                                  className="w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  onClick={(e) => e.stopPropagation()}
+                                  aria-label="Batch order integer"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                                 <Button
                                   size="sm"
+                                  className="h-11 min-h-11 w-full touch-manipulation sm:h-9 sm:min-h-9 sm:w-auto"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     try {
@@ -1626,12 +1831,14 @@ export default function Years() {
                                 </Button>
                                 <Button
                                   size="sm"
+                                  className="h-11 min-h-11 w-full touch-manipulation sm:h-9 sm:min-h-9 sm:w-auto"
                                   onClick={async (e) => {
                                     e.stopPropagation();
                                     try {
                                       const regStr = editingBatchRegistrationName?.trim() ?? "";
                                       const regNames = regStr ? [regStr] : [];
-                                      await updateBatch?.(b.id, {
+                                      const orderTrim = editingBatchOrder.trim();
+                                      const patch: Record<string, unknown> = {
                                         batch_name: editingBatchValue,
                                         batchName: editingBatchValue,
                                         cr: editingBatchCR,
@@ -1647,15 +1854,17 @@ export default function Years() {
                                         registrationNames: regNames,
                                         registration_name: regStr,
                                         registrationName: regStr,
-                                      });
-                                      setEditingBatchId(null);
-                                      setEditingBatchValue("");
-                                      setEditingBatchCR("");
-                                      setEditingBatchImage("");
-                                      setEditingBatchGroupLink("");
-                                      setEditingBatchGraduateDate("");
-                                      setEditingBatchSupervisor("");
-                                      setEditingBatchRegistrationName("");
+                                      };
+                                      if (orderTrim !== "") {
+                                        const n = parseInt(orderTrim, 10);
+                                        if (Number.isNaN(n)) {
+                                          alert("Order must be a whole number (integer).");
+                                          return;
+                                        }
+                                        patch.order = n;
+                                      }
+                                      await updateBatch?.(b.id, patch);
+                                      // Keep edit mode and controlled field values (do not reset inputs).
                                       alert("Saved");
                                     } catch (err) {
                                       console.error(err);
@@ -1668,6 +1877,7 @@ export default function Years() {
                                 <Button
                                   size="sm"
                                   variant="ghost"
+                                  className="h-11 min-h-11 w-full touch-manipulation sm:h-9 sm:min-h-9 sm:w-auto"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setEditingBatchId(null);
@@ -1678,6 +1888,7 @@ export default function Years() {
                                     setEditingBatchGraduateDate("");
                                     setEditingBatchSupervisor("");
                                     setEditingBatchRegistrationName("");
+                                    setEditingBatchOrder("");
                                   }}
                                 >
                                   Cancel
@@ -1686,10 +1897,14 @@ export default function Years() {
                             </div>
                           ) : (
                             <>
-                              <CardTitle className="text-lg">
+                              <CardTitle className="break-words text-base font-semibold leading-snug sm:text-lg">
                                 {b.batchName || "Batch"}
                               </CardTitle>
-                              <CardDescription className="text-sm text-muted-foreground space-y-1">
+                              <CardDescription className="space-y-1 break-words text-sm text-muted-foreground">
+                                {typeof b.order === "number" &&
+                                  Number.isFinite(b.order) && (
+                                    <div>Order: {Math.trunc(b.order)}</div>
+                                  )}
                                 {b.cr && <div>CR: {b.cr}</div>}
                                 {(() => {
                                   const ba = b as any;
@@ -1702,12 +1917,12 @@ export default function Years() {
                                 {b.graduateDate && (
                                   <div>Graduate: {b.graduateDate}</div>
                                 )}
-                                {b.groupLink && (
+                                {(b.groupLink || b.group_link) && (
                                   <a
-                                    href={b.groupLink}
+                                    href={b.groupLink || b.group_link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-blue-500 hover:underline flex items-center gap-1"
+                                    className="flex min-h-11 items-center gap-1 break-all text-blue-600 underline-offset-2 hover:underline sm:min-h-0"
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     📱 Group Link
@@ -1720,11 +1935,11 @@ export default function Years() {
                       </div>
                     </CardHeader>
                     <CardContent 
-                      className="mt-auto min-w-0"
+                      className="mt-auto min-w-0 border-t border-border/60 bg-muted/20 px-4 py-4 sm:px-6"
                       onClick={(e) => editingBatchId === b.id && e.stopPropagation()}
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <div className="text-sm text-muted-foreground shrink-0">
+                      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                        <div className="shrink-0 text-sm font-medium text-muted-foreground">
                           Years:{" "}
                           {
                             (years || []).filter(
@@ -1732,10 +1947,11 @@ export default function Years() {
                             ).length
                           }
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="grid min-w-0 grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end">
                           <Button
                             size="sm"
                             variant="outline"
+                            className="h-11 min-h-11 w-full touch-manipulation sm:h-9 sm:min-h-9 sm:w-auto"
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate(`/admin/years?batch=${b.id}`);
@@ -1747,6 +1963,7 @@ export default function Years() {
                           <Button
                             size="sm"
                             variant="ghost"
+                            className="h-11 min-h-11 w-full touch-manipulation sm:h-9 sm:min-h-9 sm:w-auto"
                             onClick={(e) => {
                               e.stopPropagation();
                               setEditingBatchId(b.id);
@@ -1760,6 +1977,15 @@ export default function Years() {
                               const rn = ba.registrationNames ?? ba.registration_names;
                               const regStr = Array.isArray(rn) && rn.length > 0 ? rn[0] : ba.registration_names?.[0] ?? ba.registration_name ?? ba.registrationName ?? "";
                               setEditingBatchRegistrationName(regStr);
+                              const ord = b.order;
+                              if (typeof ord === "number" && Number.isFinite(ord)) {
+                                setEditingBatchOrder(String(Math.trunc(ord)));
+                              } else if (typeof ord === "string" && ord.trim() !== "") {
+                                const n = parseInt(ord.trim(), 10);
+                                setEditingBatchOrder(Number.isNaN(n) ? "" : String(n));
+                              } else {
+                                setEditingBatchOrder("");
+                              }
                             }}
                           >
                             Edit
@@ -1767,6 +1993,7 @@ export default function Years() {
                           <Button
                             size="sm"
                             variant="ghost"
+                            className="h-11 min-h-11 w-full touch-manipulation sm:h-9 sm:min-h-9 sm:w-auto"
                             onClick={async (e) => {
                               e.stopPropagation();
                               try {
@@ -1801,10 +2028,11 @@ export default function Years() {
                               }}
                             >
                               Change Image
-                            </Button>
+                          </Button>
                             <Button
                               size="sm"
                               variant="destructive"
+                            className="h-11 min-h-11 w-full touch-manipulation sm:h-9 sm:min-h-9 sm:w-auto"
                             onClick={async (e) => {
                               e.stopPropagation();
                               try {
@@ -1829,6 +2057,7 @@ export default function Years() {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
               </div>
             )}
           </div>
