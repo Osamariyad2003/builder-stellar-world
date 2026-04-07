@@ -210,31 +210,39 @@ export function useYears() {
       ...(regNames !== undefined && { registration_name: registrationNameStr }),
       updatedAt: new Date(),
     };
-
-    if (isOfflineMode || !navigator.onLine) {
+    const patchOrder =
+      typeof patch.order === "number" && Number.isFinite(patch.order)
+        ? Math.trunc(patch.order)
+        : undefined;
+    const applyBatchPatchLocally = () =>
       setBatches((prev) =>
         prev.map((b) =>
           b.id === batchId
-            ? { ...b, ...patch, registration_name: registrationNameStr, registrationName: registrationNameStr }
+            ? {
+                ...b,
+                ...patch,
+                ...(patchOrder !== undefined ? { order: patchOrder } : {}),
+                registration_name: registrationNameStr,
+                registrationName: registrationNameStr,
+              }
             : b,
         ),
       );
+
+    if (isOfflineMode || !navigator.onLine) {
+      applyBatchPatchLocally();
       return;
     }
     try {
       const batchRef = doc(db, "batches", batchId);
       await updateDoc(batchRef, normalizedPatch);
+      // Keep UI in sync immediately after save (before refetch completes).
+      applyBatchPatchLocally();
       // refresh retry to trigger re-fetch
       queryClient.invalidateQueries({ queryKey: ["years-data"] });
     } catch (err) {
       console.error("Failed to update batch:", err);
-      setBatches((prev) =>
-        prev.map((b) =>
-          b.id === batchId
-            ? { ...b, ...patch, registration_name: registrationNameStr, registrationName: registrationNameStr }
-            : b,
-        ),
-      );
+      applyBatchPatchLocally();
     }
   };
 
