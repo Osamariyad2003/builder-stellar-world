@@ -255,56 +255,53 @@ export function MCQForm({ mcq, subjects, onClose, onSave }: MCQFormProps) {
             <CardDescription>Title, description, and settings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="mcq-academic-year">Academic year *</Label>
+              <select
+                id="mcq-academic-year"
+                value={selectedYearNumber}
+                onChange={(e) =>
+                  setSelectedYearNumber(
+                    normalizeYearNumber(parseInt(e.target.value, 10)),
+                  )
+                }
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-label="Academic year from 1 to 6"
+              >
+                {ACADEMIC_YEAR_OPTIONS.map((y) => (
+                  <option key={y} value={y}>
+                    Year {y}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                This value is saved to Firebase as `yearNumber`.
+              </p>
+            </div>
             {showSubjectSelect && (
-              <>
-                <div>
-                  <Label htmlFor="mcq-academic-year">Academic year *</Label>
-                  <select
-                    id="mcq-academic-year"
-                    value={selectedYearNumber}
-                    onChange={(e) =>
-                      setSelectedYearNumber(
-                        normalizeYearNumber(parseInt(e.target.value, 10)),
-                      )
-                    }
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    aria-label="Academic year from 1 to 6"
-                  >
-                    {ACADEMIC_YEAR_OPTIONS.map((y) => (
-                      <option key={y} value={y}>
-                        Year {y}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    MCQ is tied to curriculum Year 1–6. Subjects below are filtered
-                    to this year.
+              <div>
+                <Label htmlFor="mcq-subject">Subject</Label>
+                <select
+                  id="mcq-subject"
+                  value={selectedSubjectId}
+                  onChange={(e) => setSelectedSubjectId(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  aria-label="Select subject for this MCQ"
+                >
+                  <option value="">No subject</option>
+                  {subjectsForYear.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+                {subjectsForYear.length === 0 && (
+                  <p className="mt-1 text-xs text-amber-700 dark:text-amber-500">
+                    No subjects for Year {selectedYearNumber}. Add subjects on
+                    the Years page for this year.
                   </p>
-                </div>
-                <div>
-                  <Label htmlFor="mcq-subject">Subject</Label>
-                  <select
-                    id="mcq-subject"
-                    value={selectedSubjectId}
-                    onChange={(e) => setSelectedSubjectId(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    aria-label="Select subject for this MCQ"
-                  >
-                    <option value="">No subject</option>
-                    {subjectsForYear.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                  {subjectsForYear.length === 0 && (
-                    <p className="mt-1 text-xs text-amber-700 dark:text-amber-500">
-                      No subjects for Year {selectedYearNumber}. Add subjects on
-                      the Years page for this year.
-                    </p>
-                  )}
-                </div>
-              </>
+                )}
+              </div>
             )}
             <div>
               <Label htmlFor="title">MCQ Title *</Label>
